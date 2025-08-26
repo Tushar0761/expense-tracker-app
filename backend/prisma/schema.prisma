@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  id            Int       @id @default(autoincrement())
+  date          DateTime
+  amount        Float
+  remarks       String?
+  categoryId    Int
+  subCategoryId Int?
+  category      Category  @relation("CategoryExpenses", fields: [categoryId], references: [id])
+  subCategory   Category? @relation("SubCategoryExpenses", fields: [subCategoryId], references: [id])
+  createdAt     DateTime  @default(now())
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  parentId    Int?
+  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  expenses    Expense[]  @relation("CategoryExpenses")
+  subExpenses Expense[]  @relation("SubCategoryExpenses")
+}
+
+model Asset {
+  id        Int      @id @default(autoincrement())
+  type      String   // Stock, SIP, Gold, etc.
+  name      String
+  quantity  Float
+  price     Float
+  value     Float
+  createdAt DateTime @default(now())
+}
