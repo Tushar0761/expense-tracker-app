@@ -1,9 +1,11 @@
+import React from "react";
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/layout/Navbar";
 import NotFound from "./pages/NotFound";
 import { Dashboard } from "./pages/dashboard/Dashboard";
 import { Expenses } from "./pages/expenses/Expenses";
+import LoansPage from "./pages/loans/LoansPage";
 
 function App() {
     return (
@@ -13,6 +15,14 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/expenses" element={<Expenses />} />
+                    <Route
+                        path="/loans"
+                        element={
+                            <React.Suspense fallback={<div>Loading...</div>}>
+                                <LoansPage />
+                            </React.Suspense>
+                        }
+                    />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </main>

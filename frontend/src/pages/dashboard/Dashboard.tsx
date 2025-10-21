@@ -42,15 +42,6 @@ const COLORS = [
     "#FFBB28",
 ];
 
-const netWorthData = [
-    { month: "Jan", netWorth: 800000 },
-    { month: "Feb", netWorth: 815000 },
-    { month: "Mar", netWorth: 830000 },
-    { month: "Apr", netWorth: 845000 },
-    { month: "May", netWorth: 860000 },
-    { month: "Jun", netWorth: 875000 },
-];
-
 const savingsRateData = [
     { month: "Jan", rate: 28 },
     { month: "Feb", rate: 30 },
@@ -58,13 +49,6 @@ const savingsRateData = [
     { month: "Apr", rate: 29 },
     { month: "May", rate: 31 },
     { month: "Jun", rate: 33 },
-];
-
-const assetAllocation = [
-    { name: "Stocks", value: 400000 },
-    { name: "Bonds", value: 200000 },
-    { name: "Cash", value: 100000 },
-    { name: "Real Estate", value: 150000 },
 ];
 
 const recentTransactions = [
@@ -107,6 +91,83 @@ const lastMonthCategories = [
     { name: "Shopping", value: 700 },
 ];
 
+// ----- MOCK LOAN+EMI+UDHAR DATA ----
+type LoanStatus = "pending" | "paid" | "overdue";
+
+type LoanType = "Loan" | "EMI" | "Udhar";
+
+export interface LoanData {
+    id: number;
+    type: LoanType;
+    lender: string;
+    principal: number;
+    emiAmount?: number; // Only for EMIs
+    pendingAmount: number;
+    dueDate: string;
+    status: LoanStatus;
+    notes?: string;
+}
+
+// Sample data:
+export const loansData: LoanData[] = [
+    {
+        id: 1,
+        type: "Loan",
+        lender: "HDFC Bank",
+        principal: 200000,
+        pendingAmount: 150000,
+        dueDate: "2024-11-15",
+        status: "pending",
+        notes: "Personal loan for bike, 10% interest.",
+    },
+    {
+        id: 2,
+        type: "EMI",
+        lender: "Bajaj Finance",
+        principal: 50000,
+        emiAmount: 5000,
+        pendingAmount: 25000,
+        dueDate: "2024-10-07",
+        status: "pending",
+        notes: "Laptop EMI, 12 months tenure.",
+    },
+    {
+        id: 3,
+        type: "Udhar",
+        lender: "Ravi Sharma",
+        principal: 3000,
+        pendingAmount: 1000,
+        dueDate: "2024-09-30",
+        status: "overdue",
+        notes: "Money borrowed for dinner.",
+    },
+    {
+        id: 4,
+        type: "Loan",
+        lender: "ICICI Bank",
+        principal: 100000,
+        pendingAmount: 0,
+        dueDate: "2024-07-10",
+        status: "paid",
+        notes: "Closed loan for scooter.",
+    },
+];
+
+// --- Prepare data for EMI/Loan Graph ---
+
+const totalLoanPrincipal = loansData
+    .filter((ld) => ld.type === "Loan")
+    .reduce((sum, l) => sum + l.principal, 0);
+const totalLoanRepaid = loansData
+    .filter((ld) => ld.type === "Loan")
+    .reduce((sum, l) => sum + (l.principal - l.pendingAmount), 0);
+const totalUdharPending = loansData
+    .filter((ld) => ld.type === "Udhar" && ld.status !== "paid")
+    .reduce((sum, l) => sum + l.pendingAmount, 0);
+const totalPendingEMI = loansData
+    .filter((ld) => ld.type === "EMI" && ld.status !== "paid")
+    .reduce((sum, l) => sum + (l.emiAmount ? l.emiAmount : 0), 0);
+
 export function Dashboard() {
     return (
         <div className="space-y-10">
@@ -142,6 +203,39 @@ export function Dashboard() {
                         ),
                         indicatorColor: "neutral" as const,
                     },
+                    {
+                        title: "Total Loan Principal",
+                        value: `₹${totalLoanPrincipal.toLocaleString()}`,
+                        description:
+                            `Total outstanding loan principal` as const,
+                        Icon: (
+                            <CreditCard size={16} className="text-blue-400" />
+                        ),
+                        indicatorColor: "neutral" as const,
+                    },
+                    {
+                        title: "Total Loan Repaid",
+                        value: `₹${totalLoanRepaid.toLocaleString()}`,
+                        description: `Total loan repaid` as const,
+                        Icon: (
+                            <CreditCard size={16} className="text-green-400" />
+                        ),
+                        indicatorColor: "green" as const,
+                    },
+                    {
+                        title: "Pending Udhar/EMI",
+                        value: `₹${totalUdharPending.toLocaleString()}`,
+                        description: "Outstanding udhar with contacts" as const,
+                        Icon: (
+                            <TrendingDown size={16} className="text-red-400" />
+                        ),
+                        indicatorColor: "red" as const,
+                    },
+                    {
+                        title: "Invested Amount",
+                        value: `₹ 50,000`,
+                        description: "Total invested amount" as const,
+                    },
                 ].map((kpi) => (
                     <KpiCard
                         key={kpi.title}
@@ -153,6 +247,8 @@ export function Dashboard() {
                     />
                 ))}
             </div>
+
+            {/* EMIs/Loan Repayment Chart */}
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

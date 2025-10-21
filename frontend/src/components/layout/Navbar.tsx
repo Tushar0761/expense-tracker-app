@@ -28,6 +28,9 @@ const Navbar = () => {
                 </Link>
                 <Link to="/expenses">
                     <Button variant="ghost">Expenses</Button>
+                </Link>{" "}
+                <Link to="/loans">
+                    <Button variant="ghost">Loans</Button>
                 </Link>
                 <Link to="/login">
                     <Button>Login</Button>
