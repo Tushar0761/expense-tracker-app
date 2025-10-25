@@ -164,9 +164,6 @@ const totalLoanRepaid = loansData
 const totalUdharPending = loansData
     .filter((ld) => ld.type === "Udhar" && ld.status !== "paid")
     .reduce((sum, l) => sum + l.pendingAmount, 0);
-const totalPendingEMI = loansData
-    .filter((ld) => ld.type === "EMI" && ld.status !== "paid")
-    .reduce((sum, l) => sum + (l.emiAmount ? l.emiAmount : 0), 0);
 
 export function Dashboard() {
     return (
@@ -247,8 +244,6 @@ export function Dashboard() {
                     />
                 ))}
             </div>
-
-            {/* EMIs/Loan Repayment Chart */}
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

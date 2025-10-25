@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,34 +7,129 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Expense {
-  id            Int       @id @default(autoincrement())
-  date          DateTime
-  amount        Float
-  remarks       String?
-  categoryId    Int
-  subCategoryId Int?
-  category      Category  @relation("CategoryExpenses", fields: [categoryId], references: [id])
-  subCategory   Category? @relation("SubCategoryExpenses", fields: [subCategoryId], references: [id])
-  createdAt     DateTime  @default(now())
-}
-
-model Category {
-  id          Int        @id @default(autoincrement())
-  name        String
-  parentId    Int?
-  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryChildren")
-  expenses    Expense[]  @relation("CategoryExpenses")
-  subExpenses Expense[]  @relation("SubCategoryExpenses")
-}
-
-model Asset {
+model asset_master {
   id        Int      @id @default(autoincrement())
-  type      String   // Stock, SIP, Gold, etc.
+  type      String
   name      String
   quantity  Float
   price     Float
   value     Float
   createdAt DateTime @default(now())
+}
+
+model category_master {
+  id                                                                       Int                    @id @default(autoincrement())
+  name                                                                     String
+  parentId                                                                 Int?
+  category_master                                                          category_master?       @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
+  other_category_master                                                    category_master[]      @relation("category_masterTocategory_master")
+  expenses_data_master_expenses_data_master_categoryIdTocategory_master    expenses_data_master[] @relation("expenses_data_master_categoryIdTocategory_master")
+  expenses_data_master_expenses_data_master_subCategoryIdTocategory_master expenses_data_master[] @relation("expenses_data_master_subCategoryIdTocategory_master")
+
+  @@index([parentId], map: "Category_parentId_fkey")
+}
+
+model emi_payment_data {
+  id                                                                                      Int                            @id @default(autoincrement())
+  loanId                                                                                  Int
+  paymentDate                                                                             DateTime
+  principalAmount                                                                         Float
+  interestAmount                                                                          Float
+  totalAmount                                                                             Float
+  paymentMethod                                                                           emi_payment_data_paymentMethod
+  notes                                                                                   String?
+  createdAt                                                                               DateTime                       @default(now())
+  futurePaymentId                                                                         Int?                           @unique(map: "futurePaymentId")
+  loans_master                                                                            loans_master                   @relation(fields: [loanId], references: [id], onDelete: Cascade, map: "EmiPayment_loanId_fkey")
+  future_payment_data_master_emi_payment_data_futurePaymentIdTofuture_payment_data_master future_payment_data_master?    @relation("emi_payment_data_futurePaymentIdTofuture_payment_data_master", fields: [futurePaymentId], references: [id], map: "fk_emiPayment_futurePayment")
+  expenses_data_master                                                                    expenses_data_master[]
+  future_payment_data_master_future_payment_data_master_emiPaymentIdToemi_payment_data    future_payment_data_master[]   @relation("future_payment_data_master_emiPaymentIdToemi_payment_data")
+
+  @@index([loanId], map: "EmiPayment_loanId_fkey")
+}
+
+model expenses_data_master {
+  id                                                                  Int               @id @default(autoincrement())
+  date                                                                DateTime
+  amount                                                              Float
+  remarks                                                             String?
+  categoryId                                                          Int
+  subCategoryId                                                       Int?
+  createdAt                                                           DateTime          @default(now())
+  emiPaymentId                                                        Int?
+  category_master_expenses_data_master_categoryIdTocategory_master    category_master   @relation("expenses_data_master_categoryIdTocategory_master", fields: [categoryId], references: [id], map: "Expense_categoryId_fkey")
+  category_master_expenses_data_master_subCategoryIdTocategory_master category_master?  @relation("expenses_data_master_subCategoryIdTocategory_master", fields: [subCategoryId], references: [id], map: "Expense_subCategoryId_fkey")
+  emi_payment_data                                                    emi_payment_data? @relation(fields: [emiPaymentId], references: [id], map: "fk_expense_emiPayment")
+
+  @@index([categoryId], map: "Expense_categoryId_fkey")
+  @@index([subCategoryId], map: "Expense_subCategoryId_fkey")
+  @@index([emiPaymentId], map: "fk_expense_emiPayment")
+}
+
+model future_payment_data_master {
+  id                                                                            Int                               @id @default(autoincrement())
+  loanId                                                                        Int
+  plannedDate                                                                   DateTime
+  principalAmount                                                               Float
+  interestAmount                                                                Float
+  totalAmount                                                                   Float
+  status                                                                        future_payment_data_master_status
+  notes                                                                         String?
+  createdAt                                                                     DateTime                          @default(now())
+  updatedAt                                                                     DateTime?                         @default(now())
+  emiPaymentId                                                                  Int?
+  emi_payment_data_emi_payment_data_futurePaymentIdTofuture_payment_data_master emi_payment_data?                 @relation("emi_payment_data_futurePaymentIdTofuture_payment_data_master")
+  loans_master                                                                  loans_master                      @relation(fields: [loanId], references: [id], onDelete: Cascade, map: "FuturePayment_loanId_fkey")
+  emi_payment_data_future_payment_data_master_emiPaymentIdToemi_payment_data    emi_payment_data?                 @relation("future_payment_data_master_emiPaymentIdToemi_payment_data", fields: [emiPaymentId], references: [id], map: "fk_futurePayment_emiPayment")
+
+  @@index([loanId], map: "FuturePayment_loanId_fkey")
+  @@index([emiPaymentId], map: "fk_futurePayment_emiPayment")
+}
+
+model loans_master {
+  id                         Int                          @id @default(autoincrement())
+  borrowerId                 Int?
+  dueDate                    DateTime?
+  status                     loans_master_status
+  notes                      String?
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @default(now())
+  initialAmount              Float
+  interestRate               Float
+  loanDate                   DateTime                     @db.Date
+  totalAmount                Float
+  emi_payment_data           emi_payment_data[]
+  future_payment_data_master future_payment_data_master[]
+  borrower_master            borrower_master?             @relation(fields: [borrowerId], references: [id], map: "fk_loans_borrower")
+
+  @@index([borrowerId], map: "fk_loans_borrower")
+}
+
+model borrower_master {
+  id              Int            @id @default(autoincrement())
+  borrowerName    String
+  borrowerContact String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now())
+  loans_master    loans_master[]
+}
+
+enum loans_master_status {
+  active
+  closed
+  defaulted
+}
+
+enum emi_payment_data_paymentMethod {
+  cash
+  bank_transfer
+  upi
+  cheque
+  other
+}
+
+enum future_payment_data_master_status {
+  pending
+  completed
+  cancelled
 }
