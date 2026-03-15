@@ -30,7 +30,7 @@ const LoansSummaryCards: React.FC<{
                 heading: "Amount Paid",
                 value: loansInsight?.amountPaid ?? "-",
                 icon: <TrendingUp className="h-4 w-4 text-green-500" />,
-                subtitle: "Paid back",
+                subtitle: `Paid back ${loansInsight?.paidPercentage * 100}%`,
                 color: "text-green-600",
             },
             {
@@ -38,7 +38,7 @@ const LoansSummaryCards: React.FC<{
                 value: loansInsight?.amountPending ?? "-",
                 icon: <TrendingDown className="h-4 w-4 text-red-500" />,
                 color: "text-red-600",
-                subtitle: "Still pending",
+                subtitle: `Still pending ${(1 - loansInsight?.paidPercentage) * 100}%`,
             },
         ];
     }, [loansInsight]);

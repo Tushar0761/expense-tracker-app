@@ -1,19 +1,22 @@
 import EmiPaymentsTable from "@/components/loans/EmiPaymentsTable";
-import { CreateLoanFormDialog } from "@/components/loans/forms";
+import {
+    CreateLoanFormDialog,
+    RecordPaymentFormDialog,
+} from "@/components/loans/forms";
 import FuturePaymentsTable from "@/components/loans/FuturePaymentsTable";
 import LoansSummaryCards from "@/components/loans/LoansSummaryCards";
 import LoansTable from "@/components/loans/LoansTable";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+    fetchBorrowersList,
     fetchLoansGraph,
     fetchLoansInsight,
     fetchLoansTable,
+    type borrowersData,
     type LoanGraphPoint,
     type LoanTableRow,
 } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import { CreditCard } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
     Bar,
@@ -38,6 +41,7 @@ const COLORS = [
 ];
 
 export function LoansPage() {
+    const queryClient = useQueryClient();
     const { data: loansInsight } = useQuery({
         queryKey: ["loans-insight-data"],
         queryFn: fetchLoansInsight,
@@ -61,6 +65,12 @@ export function LoansPage() {
         queryFn: fetchLoansGraph,
     });
 
+    const { data: borrowers } = useQuery<borrowersData[]>({
+        queryKey: ["loans-borrowers"],
+        queryFn: fetchBorrowersList,
+    });
+    console.log({ borrowers });
+
     // Prepare pie chart data
     const pieData = useMemo(() => {
         if (!tableData) {
@@ -81,6 +91,16 @@ export function LoansPage() {
         return result;
     }, [tableData]);
 
+    // Prepare formatted borrowers list for the form
+    const formattedBorrowers = useMemo(() => {
+        return (
+            borrowers?.map((b) => ({
+                id: String(b.id),
+                borrowerName: b.borrowerName,
+            })) || []
+        );
+    }, [borrowers]);
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
@@ -88,15 +108,15 @@ export function LoansPage() {
                 <div className="flex gap-2">
                     <CreateLoanFormDialog
                         onSubmit={() => {}}
-                        borrowers={[{ id: "asd", name: "Tusahar" }]}
+                        borrowers={formattedBorrowers}
+                        onBorrowerAdded={() => {
+                            queryClient.invalidateQueries({
+                                queryKey: ["loans-borrowers"],
+                            });
+                        }}
                     />
 
-                    <Button
-                        variant="outline"
-                        className="flex items-center gap-2"
-                    >
-                        <CreditCard size={16} /> Record Payment
-                    </Button>
+                    <RecordPaymentFormDialog borrowers={formattedBorrowers} />
                 </div>
             </div>
 
@@ -124,35 +144,69 @@ export function LoansPage() {
                         )}
                         {graphData && (
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={graphData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="month" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
+                                <BarChart
+                                    data={graphData}
+                                    margin={{
+                                        top: 20,
+                                        right: 30,
+                                        left: 20,
+                                        bottom: 5,
+                                    }}
+                                    barGap={8}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        vertical={false}
+                                        stroke="#f1f5f9"
+                                    />
+                                    <XAxis
+                                        dataKey="month"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: "#64748b", fontSize: 12 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: "#64748b", fontSize: 12 }}
+                                        tickFormatter={(value) =>
+                                            `₹${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`
+                                        }
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: "#f8fafc" }}
+                                        formatter={(value: number) =>
+                                            `₹${value.toLocaleString()}`
+                                        }
+                                        contentStyle={{
+                                            borderRadius: "12px",
+                                            border: "1px solid #e2e8f0",
+                                            boxShadow:
+                                                "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                                            padding: "12px",
+                                        }}
+                                    />
+                                    <Legend
+                                        verticalAlign="top"
+                                        align="right"
+                                        iconType="circle"
+                                        wrapperStyle={{ paddingBottom: "20px" }}
+                                    />
+
                                     <Bar
-                                        dataKey="principalPaid"
-                                        stackId="paid"
-                                        fill="#34d399"
-                                        name="Principal Paid"
+                                        dataKey="totalPlanned"
+                                        fill="#ff8042"
+                                        name="Total Planned"
+                                        radius={[4, 4, 0, 0]}
+                                        barSize={32}
                                     />
                                     <Bar
-                                        dataKey="interestPaid"
-                                        stackId="paid"
-                                        fill="#60a5fa"
-                                        name="Interest Paid"
-                                    />
-                                    <Bar
-                                        dataKey="principalPending"
-                                        stackId="pending"
-                                        fill="#fbbf24"
-                                        name="Principal Pending"
-                                    />
-                                    <Bar
-                                        dataKey="interestPending"
-                                        stackId="pending"
-                                        fill="#f87171"
-                                        name="Interest Pending"
+                                        dataKey="totalPaid"
+                                        fill="#10b981"
+                                        name="Total Paid"
+                                        radius={[4, 4, 0, 0]}
+                                        barSize={32}
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -190,7 +244,7 @@ export function LoansPage() {
                                             ).toFixed(0)}%`
                                         }
                                     >
-                                        {pieData.map((entry, index) => (
+                                        {pieData.map((_, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
                                                 fill={
@@ -212,7 +266,7 @@ export function LoansPage() {
             <LoansTable LoansData={{ tableData, tableError, tableLoading }} />
             <div className="grid grid-cols-1 lg:grid-cols-2  gap-8 mb-8">
                 <EmiPaymentsTable />
-                <FuturePaymentsTable />
+                <FuturePaymentsTable borrowers={formattedBorrowers} />
             </div>
         </div>
     );

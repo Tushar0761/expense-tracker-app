@@ -1,8 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchFuturePayments, type FuturePaymentRow } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { PlanFuturePaymentDialog } from "./forms";
 
-const FuturePaymentsTable = () => {
+interface FuturePaymentsTableProps {
+    borrowers: { id: string; borrowerName: string }[];
+}
+
+const FuturePaymentsTable = ({ borrowers }: FuturePaymentsTableProps) => {
     const {
         data: futurePayments,
         isLoading: futureLoading,
@@ -13,10 +18,11 @@ const FuturePaymentsTable = () => {
     });
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="flex items-center gap-2">
                     Upcoming Payments
                 </CardTitle>
+                <PlanFuturePaymentDialog borrowers={borrowers} />
             </CardHeader>
             <CardContent>
                 {futureLoading && (
@@ -72,9 +78,9 @@ const FuturePaymentsTable = () => {
                                                     payment.status === "pending"
                                                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                                         : payment.status ===
-                                                          "completed"
-                                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                                            "completed"
+                                                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                                                 }`}
                                             >
                                                 {payment.status}

@@ -5,6 +5,7 @@ import NotFound from "./pages/NotFound";
 import { Dashboard } from "./pages/dashboard/Dashboard";
 import { Expenses } from "./pages/expenses/Expenses";
 import { LoansPage } from "./pages/loans/LoansPage";
+import { Toaster } from "sonner";
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </main>
+            <Toaster richColors position="top-right" />
         </div>
     );
 }

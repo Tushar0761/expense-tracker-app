@@ -15,26 +15,37 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { createLoan } from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "@radix-ui/react-label";
+import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { AddBorrowerDialog } from "./AddBorrowerDialog";
 import { loanSchema, type LoanFormValues } from "./schema";
 
 interface CreateLoanDialogProps {
-    borrowers: { id: string; name: string }[];
+    borrowers: { id: string; borrowerName: string }[];
     onSubmit: (data: LoanFormValues) => Promise<void> | void;
+    onBorrowerAdded?: (newBorrower: {
+        id: number;
+        borrowerName: string;
+    }) => void;
 }
 
 export const CreateLoanFormDialog = ({
     borrowers,
     onSubmit,
+    onBorrowerAdded,
 }: CreateLoanDialogProps) => {
     const [open, setOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<LoanFormValues>({
         resolver: zodResolver(loanSchema),
+        mode: "onChange", // Enable real-time validation
         defaultValues: {
             borrowerId: "",
             status: "PENDING",
@@ -42,17 +53,47 @@ export const CreateLoanFormDialog = ({
             initialAmount: 0,
             interestRate: 0,
             totalAmount: 0,
+            loanDate: new Date(),
         },
     });
 
     const handleSubmit = async (values: LoanFormValues) => {
-        await onSubmit(values);
-        setOpen(false);
-        form.reset();
+        try {
+            setIsLoading(true);
+            console.log({ values });
+
+            // Call the API to create the loan
+            const newLoan = await createLoan(values);
+            console.log("Loan created successfully:", newLoan);
+
+            // Show success toast
+            toast.success("Loan created successfully!", {
+                description: `Loan for ${values.totalAmount} has been created.`,
+            });
+
+            // Call the parent onSubmit if provided
+            await onSubmit(values);
+
+            // Close dialog and reset form on success
+            setOpen(false);
+            form.reset();
+        } catch (error) {
+            console.error("Failed to create loan:", error);
+
+            // Show error toast with details
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "An unexpected error occurred";
+
+            toast.error("Failed to create loan", {
+                description: errorMessage,
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
-    console.log("====================================");
-    console.log({ error: form.formState.errors });
-    console.log("====================================");
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -73,24 +114,52 @@ export const CreateLoanFormDialog = ({
                     {/* Borrower */}
                     <div>
                         <Label>Borrower</Label>
-                        <Select
-                            onValueChange={(val) =>
-                                form.setValue("borrowerId", val)
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Borrower" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {borrowers.map((b) => (
-                                    <SelectItem key={b.id} value={b.id}>
-                                        {b.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <Controller
+                                    name="borrowerId"
+                                    control={form.control}
+                                    render={({ field }) => (
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={(val) => {
+                                                console.log({
+                                                    valfromValueChange: val,
+                                                });
+                                                field.onChange(val);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Borrower" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {borrowers.map((b) => (
+                                                    <SelectItem
+                                                        key={b.id}
+                                                        value={String(b.id)}
+                                                    >
+                                                        {b.borrowerName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                            </div>
+                            <AddBorrowerDialog
+                                onSuccess={(newBorrower) => {
+                                    if (onBorrowerAdded) {
+                                        onBorrowerAdded(newBorrower);
+                                    }
+                                    form.setValue(
+                                        "borrowerId",
+                                        String(newBorrower.id),
+                                    );
+                                }}
+                            />
+                        </div>
                         {form.formState.errors.borrowerId && (
-                            <p className="text-red-500 text-xs">
+                            <p className="text-red-500 text-xs mt-1">
                                 {form.formState.errors.borrowerId.message}
                             </p>
                         )}
@@ -103,19 +172,20 @@ export const CreateLoanFormDialog = ({
                             onValueChange={(val) =>
                                 form.setValue(
                                     "status",
-                                    val as LoanFormValues["status"]
+                                    val as LoanFormValues["status"],
                                 )
                             }
+                            value="ACTIVE"
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="PENDING">Pending</SelectItem>
-                                <SelectItem value="APPROVED">
-                                    Approved
+                                <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+                                <SelectItem value="CLOSED">Closed</SelectItem>
+                                <SelectItem value="DEFAULTED">
+                                    Defaulted
                                 </SelectItem>
-                                <SelectItem value="PAID">Paid</SelectItem>
                             </SelectContent>
                         </Select>
                         {form.formState.errors.status?.message && (
@@ -179,32 +249,72 @@ export const CreateLoanFormDialog = ({
 
                     {/* Dates */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <Label>Loan Date</Label>
-                            <Input
-                                type="date"
-                                {...form.register("loanDate", {
-                                    setValueAs: (v) =>
-                                        v ? new Date(v) : undefined,
-                                })}
-                            />{" "}
+                        <div className="space-y-1">
+                            <Label className="text-sm font-medium">
+                                Loan Date
+                            </Label>
+                            <Controller
+                                name="loanDate"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <Input
+                                        type="date"
+                                        className="h-10"
+                                        value={
+                                            field.value instanceof Date
+                                                ? format(
+                                                      field.value,
+                                                      "yyyy-MM-dd",
+                                                  )
+                                                : field.value || ""
+                                        }
+                                        onChange={(e) =>
+                                            field.onChange(
+                                                e.target.value
+                                                    ? new Date(e.target.value)
+                                                    : undefined,
+                                            )
+                                        }
+                                    />
+                                )}
+                            />
                             {form.formState.errors.loanDate?.message && (
-                                <p className="text-red-500 text-xs">
+                                <p className="text-red-500 text-[10px] font-medium mt-1">
                                     {form.formState.errors.loanDate.message}
                                 </p>
-                            )}{" "}
+                            )}
                         </div>
-                        <div>
-                            <Label>Due Date</Label>
-                            <Input
-                                type="date"
-                                {...form.register("dueDate", {
-                                    setValueAs: (v) =>
-                                        v ? new Date(v) : undefined,
-                                })}
-                            />{" "}
+                        <div className="space-y-1">
+                            <Label className="text-sm font-medium">
+                                Due Date (Optional)
+                            </Label>
+                            <Controller
+                                name="dueDate"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <Input
+                                        type="date"
+                                        className="h-10"
+                                        value={
+                                            field.value instanceof Date
+                                                ? format(
+                                                      field.value,
+                                                      "yyyy-MM-dd",
+                                                  )
+                                                : field.value || ""
+                                        }
+                                        onChange={(e) =>
+                                            field.onChange(
+                                                e.target.value
+                                                    ? new Date(e.target.value)
+                                                    : undefined,
+                                            )
+                                        }
+                                    />
+                                )}
+                            />
                             {form.formState.errors.dueDate?.message && (
-                                <p className="text-red-500 text-xs">
+                                <p className="text-red-500 text-[10px] font-medium mt-1">
                                     {form.formState.errors.dueDate.message}
                                 </p>
                             )}
@@ -217,8 +327,12 @@ export const CreateLoanFormDialog = ({
                         <Input type="text" {...form.register("notes")} />
                     </div>
 
-                    <Button type="submit" className="w-full">
-                        Save Loan
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isLoading || !form.formState.isValid}
+                    >
+                        {isLoading ? "Creating..." : "Save Loan"}
                     </Button>
                 </form>
             </DialogContent>
