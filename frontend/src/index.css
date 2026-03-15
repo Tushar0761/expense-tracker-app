@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.4;
     font-weight: 400;
 
     color-scheme: light dark;
@@ -16,7 +16,8 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    --radius: 0.625rem;
+    --radius: 0.4rem;
+    font-size: 15px;
     --background: oklch(1 0 0);
     --foreground: oklch(0.129 0.042 264.695);
     --card: oklch(1 0 0);
@@ -127,6 +128,28 @@
         @apply border-border outline-ring/50;
     }
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground antialiased selection:bg-primary/20;
+    }
+
+    button, input, select, textarea {
+        @apply focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0;
+    }
+
+    /* Compact Table Styles */
+    table {
+        @apply text-[13px];
+    }
+    
+    th {
+        @apply py-2 px-3 text-xs font-semibold uppercase tracking-wider bg-muted/30;
+    }
+    
+    td {
+        @apply py-2 px-3 border-b border-border/40;
+    }
+
+    /* Professional Card Tightening */
+    .card-padding {
+        @apply p-4 sm:p-5;
     }
 }

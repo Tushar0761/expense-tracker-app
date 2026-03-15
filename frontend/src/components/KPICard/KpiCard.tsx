@@ -27,19 +27,19 @@ export const KpiCard: React.FC<KpiCardProps> = ({
     if (indicatorColor === "green") colorClass = "text-green-500";
 
     return (
-        <Card className="p-2 bg-card/80 border border-border shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between px-3 pt-3">
-                <div className="flex items-center gap-2">
+        <Card className="p-1 px-2 bg-card/50 border-border/50 shadow-sm transition-all hover:bg-card/80">
+            <CardHeader className="flex flex-row items-center justify-between px-2 pt-2 pb-1">
+                <div className="flex items-center gap-1.5">
                     {Icon}
-                    <CardTitle className="text-sm font-medium">
+                    <CardTitle className="text-xs font-semibold text-muted-foreground">
                         {title}
                     </CardTitle>
                 </div>
             </CardHeader>
-            <CardContent className="px-3 pb-3">
-                <p className="text-lg font-bold">{value}</p>
+            <CardContent className="px-2 pb-2">
+                <p className="text-base font-bold tracking-tight">{value}</p>
                 <CardDescription
-                    className={`text-xs flex items-center gap-1 ${colorClass}`}
+                    className={`text-[10px] leading-tight mt-0.5 flex items-center gap-1 ${colorClass}`}
                 >
                     {description}
                 </CardDescription>

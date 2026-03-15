@@ -306,13 +306,16 @@ group by
           },
         },
       },
+      orderBy: {
+        paymentDate: 'desc',
+      },
     });
 
     const data: EmiPaymentRow[] = result.map(
       ({ id, loans_master, paymentDate, totalAmount, paymentMethod }) => ({
         borrowerName: loans_master.borrower_master?.borrowerName ?? '-',
         id,
-        paymentDate: format(paymentDate, 'dd MMM yyyy'),
+        paymentDate: format(paymentDate, 'MMM-yyyy'),
         paymentMethod,
         totalAmount,
       }),

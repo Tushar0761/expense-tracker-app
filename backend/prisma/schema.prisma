@@ -18,15 +18,49 @@ model asset_master {
 }
 
 model category_master {
-  id                                                                       Int                    @id @default(autoincrement())
-  name                                                                     String
-  parentId                                                                 Int?
-  category_master                                                          category_master?       @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
-  other_category_master                                                    category_master[]      @relation("category_masterTocategory_master")
-  expenses_data_master_expenses_data_master_categoryIdTocategory_master    expenses_data_master[] @relation("expenses_data_master_categoryIdTocategory_master")
-  expenses_data_master_expenses_data_master_subCategoryIdTocategory_master expenses_data_master[] @relation("expenses_data_master_subCategoryIdTocategory_master")
+  id               Int                        @id @default(autoincrement())
+  name             String
+  parentId         Int?
+  parent           category_master?           @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
+  children         category_master[]          @relation("category_masterTocategory_master")
+  // Many-to-many relationship with expenses via mapping table
+  expenseMappings  expense_category_mapping[]
 
   @@index([parentId], map: "Category_parentId_fkey")
+}
+
+model account_master {
+  id            Int                    @id @default(autoincrement())
+  name          String
+  type          account_type
+  balance       Float                  @default(0)
+  creditLimit   Float?                 @default(0)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @default(now()) @updatedAt
+  expenses      expenses_data_master[]
+  transfersFrom transfer_data_master[] @relation("FromAccount")
+  transfersTo   transfer_data_master[] @relation("ToAccount")
+}
+
+enum account_type {
+  CASH
+  BANK
+  CREDIT
+}
+
+model transfer_data_master {
+  id            Int            @id @default(autoincrement())
+  date          DateTime
+  amount        Float
+  fromAccountId Int
+  toAccountId   Int
+  remarks       String?
+  createdAt     DateTime       @default(now())
+  fromAccount   account_master @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccount     account_master @relation("ToAccount", fields: [toAccountId], references: [id])
+
+  @@index([fromAccountId])
+  @@index([toAccountId])
 }
 
 model emi_payment_data {
@@ -49,21 +83,30 @@ model emi_payment_data {
 }
 
 model expenses_data_master {
-  id                                                                  Int               @id @default(autoincrement())
-  date                                                                DateTime
-  amount                                                              Float
-  remarks                                                             String?
-  categoryId                                                          Int
-  subCategoryId                                                       Int?
-  createdAt                                                           DateTime          @default(now())
-  emiPaymentId                                                        Int?
-  category_master_expenses_data_master_categoryIdTocategory_master    category_master   @relation("expenses_data_master_categoryIdTocategory_master", fields: [categoryId], references: [id], map: "Expense_categoryId_fkey")
-  category_master_expenses_data_master_subCategoryIdTocategory_master category_master?  @relation("expenses_data_master_subCategoryIdTocategory_master", fields: [subCategoryId], references: [id], map: "Expense_subCategoryId_fkey")
-  emi_payment_data                                                    emi_payment_data? @relation(fields: [emiPaymentId], references: [id], map: "fk_expense_emiPayment")
+  id               Int                        @id @default(autoincrement())
+  date             DateTime
+  amount           Float
+  remarks          String?
+  accountId        Int?
+  createdAt        DateTime                   @default(now())
+  emiPaymentId     Int?
+  account          account_master?            @relation(fields: [accountId], references: [id])
+  emi_payment_data emi_payment_data?          @relation(fields: [emiPaymentId], references: [id], map: "fk_expense_emiPayment")
+  categories       expense_category_mapping[]
 
-  @@index([categoryId], map: "Expense_categoryId_fkey")
-  @@index([subCategoryId], map: "Expense_subCategoryId_fkey")
+  @@index([accountId])
   @@index([emiPaymentId], map: "fk_expense_emiPayment")
+}
+
+model expense_category_mapping {
+  expenseId Int
+  categoryId Int
+  expense   expenses_data_master @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  category  category_master     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([expenseId, categoryId])
+  @@index([expenseId])
+  @@index([categoryId])
 }
 
 model future_payment_data_master {

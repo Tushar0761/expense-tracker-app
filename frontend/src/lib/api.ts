@@ -87,7 +87,7 @@ export async function fetchBorrowersList(): Promise<
 
 export type LoanFormValues = {
     borrowerId: string;
-    status: "PENDING" | "APPROVED" | "PAID";
+    status: "ACTIVE" | "CLOSED" | "DEFAULTED";
     initialAmount: number;
     interestRate: number;
     loanDate: Date;
@@ -97,12 +97,10 @@ export type LoanFormValues = {
 };
 
 export async function createLoan(data: LoanFormValues): Promise<LoanTableRow> {
-    // Validate required date field
     if (!data.loanDate) {
         throw new Error("Loan date is required");
     }
 
-    // Transform the data to match the backend DTO format
     const payload = {
         borrowerId: Number(data.borrowerId),
         status: data.status?.toLowerCase(),
@@ -197,5 +195,273 @@ export async function bulkCreateFuturePayments(
     payload: BulkCreateFuturePaymentPayload,
 ): Promise<{ count: number }> {
     const response = await api.post("/api/loans/bulk-future-payments", payload);
+    return response.data;
+}
+
+// ==================== ACCOUNT TYPES ====================
+
+export type AccountType = "CASH" | "BANK" | "CREDIT";
+
+export type Account = {
+    id: number;
+    name: string;
+    type: AccountType;
+    balance: number;
+    creditLimit?: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateAccountPayload = {
+    name: string;
+    type: AccountType;
+    balance?: number;
+    creditLimit?: number;
+};
+
+// ==================== TRANSFER TYPES ====================
+
+export type Transfer = {
+    id: number;
+    date: string;
+    amount: number;
+    fromAccountId: number;
+    toAccountId: number;
+    remarks?: string;
+    fromAccount?: Account;
+    toAccount?: Account;
+};
+
+export type CreateTransferPayload = {
+    date: string;
+    amount: number;
+    fromAccountId: number;
+    toAccountId: number;
+    remarks?: string;
+};
+
+// ==================== EXPENSE TYPES ====================
+
+export type ExpenseRow = {
+    id: number;
+    date: string;
+    amount: number;
+    remarks: string | null;
+    accountId: number | null;
+    accountName: string | null;
+    categories: { id: number; name: string }[];
+    createdAt: string;
+};
+
+export type ExpenseListResponse = {
+    data: ExpenseRow[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+};
+
+export type ExpenseQueryParams = {
+    startDate?: string;
+    endDate?: string;
+    categoryId?: number;
+    accountId?: number;
+    search?: string;
+    page?: number;
+    limit?: number;
+};
+
+export type CreateExpensePayload = {
+    date: string; // yyyy-MM-dd
+    amount: number;
+    remarks?: string;
+    accountId: number;
+    categoryIds: number[];
+    emiPaymentId?: number;
+};
+
+export type UpdateExpensePayload = Partial<CreateExpensePayload>;
+
+export type ExpenseSummaryPoint = {
+    period: string;
+    totalAmount: number;
+    count: number;
+};
+
+export type ExpenseSummaryParams = {
+    granularity: "day" | "week" | "month" | "year";
+    startDate?: string;
+    endDate?: string;
+};
+
+// ==================== CATEGORY TYPES ====================
+
+export type SubCategory = {
+    id: number;
+    name: string;
+};
+
+export type CategoryWithSubs = {
+    id: number;
+    name: string;
+    subCategories: SubCategory[];
+};
+
+export type CategoryFlat = {
+    id: number;
+    name: string;
+    parentId: number | null;
+};
+
+// ==================== ACCOUNT API FUNCTIONS ====================
+
+export async function fetchAccounts(): Promise<Account[]> {
+    const response = await api.get("/api/accounts");
+    return response.data;
+}
+
+export async function createAccount(data: CreateAccountPayload): Promise<Account> {
+    const response = await api.post("/api/accounts", data);
+    return response.data;
+}
+
+export async function updateAccount(id: number, data: Partial<CreateAccountPayload>): Promise<Account> {
+    const response = await api.put(`/api/accounts/${id}`, data);
+    return response.data;
+}
+
+export async function deleteAccount(id: number): Promise<void> {
+    await api.delete(`/api/accounts/${id}`);
+}
+
+// ==================== TRANSFER API FUNCTIONS ====================
+
+export async function fetchTransfers(): Promise<Transfer[]> {
+    const response = await api.get("/api/transfers");
+    return response.data;
+}
+
+export async function createTransfer(data: CreateTransferPayload): Promise<Transfer> {
+    const response = await api.post("/api/transfers", data);
+    return response.data;
+}
+
+export async function deleteTransfer(id: number): Promise<void> {
+    await api.delete(`/api/transfers/${id}`);
+}
+
+// ==================== EXPENSE API FUNCTIONS ====================
+
+export async function fetchExpenses(
+    params?: ExpenseQueryParams,
+): Promise<ExpenseListResponse> {
+    const response = await api.get("/api/expenses", { params });
+    return response.data;
+}
+
+export async function fetchExpenseById(id: number): Promise<ExpenseRow> {
+    const response = await api.get(`/api/expenses/${id}`);
+    return response.data;
+}
+
+export async function createExpense(
+    data: CreateExpensePayload,
+): Promise<ExpenseRow> {
+    const response = await api.post("/api/expenses/create", data);
+    return response.data;
+}
+
+export async function updateExpense(
+    id: number,
+    data: UpdateExpensePayload,
+): Promise<ExpenseRow> {
+    const response = await api.put(`/api/expenses/${id}`, data);
+    return response.data;
+}
+
+export async function deleteExpense(id: number): Promise<void> {
+    await api.delete(`/api/expenses/${id}`);
+}
+
+export async function fetchExpenseSummary(
+    params: ExpenseSummaryParams,
+): Promise<ExpenseSummaryPoint[]> {
+    const response = await api.get("/api/expenses/summary", { params });
+    return response.data;
+}
+
+// ==================== CATEGORY API FUNCTIONS ====================
+
+export async function fetchCategories(): Promise<CategoryWithSubs[]> {
+    const response = await api.get("/api/categories");
+    return response.data;
+}
+
+export async function fetchCategoriesFlat(): Promise<CategoryFlat[]> {
+    const response = await api.get("/api/categories/flat");
+    return response.data;
+}
+
+export async function fetchSubcategories(
+    categoryId: number,
+): Promise<SubCategory[]> {
+    const response = await api.get(
+        `/api/categories/${categoryId}/subcategories`,
+    );
+    return response.data;
+}
+
+export async function createCategory(data: {
+    name: string;
+    parentId?: number;
+}): Promise<CategoryFlat> {
+    const response = await api.post("/api/categories/create", data);
+    return response.data;
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+    await api.delete(`/api/categories/${id}`);
+}
+
+// ==================== DASHBOARD + CATEGORY TOTALS ====================
+
+export type CategoryTotal = {
+    id: number;
+    name: string;
+    total: number;
+    count?: number;
+};
+
+export type DashboardKPIs = {
+    thisMonth: { total: number; count: number };
+    lastMonth: { total: number; count: number };
+    overall: { total: number; count: number };
+    accounts: {
+        id: number;
+        name: string;
+        type: AccountType;
+        balance: number;
+    }[];
+    recentTransactions: {
+        id: number;
+        date: string;
+        amount: number;
+        remarks: string | null;
+        categories: string[];
+    }[];
+};
+
+export async function fetchCategoryTotals(params?: {
+    startDate?: string;
+    endDate?: string;
+}): Promise<CategoryTotal[]> {
+    const response = await api.get("/api/expenses/category-totals", { params });
+    return response.data;
+}
+
+export async function fetchDashboardKPIs(): Promise<DashboardKPIs> {
+    const response = await api.get("/api/expenses/dashboard");
     return response.data;
 }

@@ -48,7 +48,7 @@ export const CreateLoanFormDialog = ({
         mode: "onChange", // Enable real-time validation
         defaultValues: {
             borrowerId: "",
-            status: "PENDING",
+            status: "ACTIVE",
             notes: "",
             initialAmount: 0,
             interestRate: 0,

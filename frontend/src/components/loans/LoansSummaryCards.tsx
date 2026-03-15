@@ -8,6 +8,7 @@ const LoansSummaryCards: React.FC<{
         totalInterest: number;
         amountPaid: number;
         amountPending: number;
+        paidPercentage: number;
     };
 }> = ({ loansInsight }) => {
     const loansInsightData = useMemo(() => {

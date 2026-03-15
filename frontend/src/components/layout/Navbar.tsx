@@ -15,33 +15,41 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="flex items-center justify-between py-4 px-8 shadow-md bg-white dark:bg-gray-900">
+        <nav className="flex items-center justify-between py-2 px-6 sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div
-                className="text-2xl font-bold text-primary"
+                className="text-lg font-bold tracking-tight text-primary cursor-pointer"
                 onClick={() => navigate("/")}
             >
-                Expense Tracker
+                ExpenseTracker
             </div>
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-1 items-center">
                 <Link to="/">
-                    <Button variant="ghost">Dashboard</Button>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs">Dashboard</Button>
                 </Link>
                 <Link to="/expenses">
-                    <Button variant="ghost">Expenses</Button>
-                </Link>{" "}
-                <Link to="/loans">
-                    <Button variant="ghost">Loans</Button>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs">Expenses</Button>
                 </Link>
+                <Link to="/categories">
+                    <Button variant="ghost" size="sm" className="h-8 text-xs">Categories</Button>
+                </Link>
+                <Link to="/loans">
+                    <Button variant="ghost" size="sm" className="h-8 text-xs">Loans</Button>
+                </Link>
+                <Link to="/accounts">
+                    <Button variant="ghost" size="sm" className="h-8 text-xs">Accounts</Button>
+                </Link>
+                <div className="w-px h-4 bg-border mx-2" />
                 <Link to="/login">
-                    <Button>Login</Button>
+                    <Button size="sm" className="h-8 text-xs px-4">Login</Button>
                 </Link>
                 <Button
-                    variant="outline"
+                    variant="ghost"
+                    size="icon"
                     onClick={toggleDark}
                     aria-label="Toggle dark mode"
-                    className="ml-2"
+                    className="h-8 w-8 ml-1"
                 >
-                    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                    {isDark ? <Sun size={14} /> : <Moon size={14} />}
                 </Button>
             </div>
         </nav>

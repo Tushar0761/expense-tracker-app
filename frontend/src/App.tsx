@@ -2,9 +2,11 @@ import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/layout/Navbar";
 import NotFound from "./pages/NotFound";
+import { Categories } from "./pages/categories/Categories";
 import { Dashboard } from "./pages/dashboard/Dashboard";
 import { Expenses } from "./pages/expenses/Expenses";
 import { LoansPage } from "./pages/loans/LoansPage";
+import Accounts from "./pages/Accounts";
 import { Toaster } from "sonner";
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/expenses" element={<Expenses />} />
+                    <Route path="/categories" element={<Categories />} />
+                    <Route path="/accounts" element={<Accounts />} />
                     <Route path="/loans" element={<LoansPage />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
