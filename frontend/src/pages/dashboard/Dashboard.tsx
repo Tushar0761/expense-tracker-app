@@ -113,7 +113,7 @@ export function Dashboard() {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700">
+        <div className="space-y-6 animate-in fade-in duration-700 max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                <div>
                   <h1 className="text-2xl font-bold tracking-tight">Financial Overview</h1>
@@ -133,7 +133,7 @@ export function Dashboard() {
             </div>
 
             {/* Account Balances Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
                 {(kpis?.accounts ?? []).map(acc => (
                     <Card key={acc.id} className="overflow-hidden group hover:border-primary/40 transition-all bg-card/40">
                         <CardHeader className="p-3 pb-1.5 space-y-0 flex flex-row items-center justify-between">
@@ -151,7 +151,7 @@ export function Dashboard() {
             </div>
 
             {/* KPI Cards Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
                 <KpiCard
                     title="Spending This Month"
                     value={`₹${(kpis?.thisMonth.total ?? 0).toLocaleString()}`}

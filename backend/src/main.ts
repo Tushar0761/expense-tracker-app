@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -14,11 +15,13 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-    ],
+    origin: (origin: string, callback: any) => {
+      const isLocalhost =
+        !origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+      if (isLocalhost) callback(null, true);
+      else callback(new Error(`CORS blocked: ${origin}`));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,

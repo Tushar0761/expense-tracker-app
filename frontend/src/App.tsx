@@ -13,7 +13,7 @@ function App() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
             <Navbar />
-            <main className="flex-1 p-4">
+            <main className="flex-1 p-4 w-full max-w-7xl mx-auto">
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/expenses" element={<Expenses />} />

@@ -128,7 +128,7 @@ export function Expenses() {
     }, [categoryFilter, startDate, endDate, search]);
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Expenses</h1>
@@ -164,14 +164,14 @@ export function Expenses() {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="border rounded h-8 px-2 text-[12px] bg-background w-[115px]"
+                                    className="border rounded h-7 px-2 text-[11px] bg-background w-[110px]"
                                 />
                                 <span className="text-muted-foreground text-[10px]">to</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="border rounded h-8 px-2 text-[12px] bg-background w-[115px]"
+                                    className="border rounded h-7 px-2 text-[11px] bg-background w-[110px]"
                                 />
                             </div>
                         </div>
@@ -181,7 +181,7 @@ export function Expenses() {
                             <select
                                 value={categoryFilter}
                                 onChange={(e) => setCategoryFilter(e.target.value)}
-                                className="border rounded h-8 px-2 text-[12px] bg-background min-w-[140px]"
+                                className="border rounded h-7 px-2 text-[11px] bg-background min-w-[130px]"
                             >
                                 <option value="">All Categories</option>
                                 {categories.map((cat) => (
@@ -198,7 +198,7 @@ export function Expenses() {
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="border rounded h-8 px-2 text-[12px] bg-background w-full"
+                                className="border rounded h-7 px-2 text-[11px] bg-background w-full"
                                 placeholder="Search remarks..."
                             />
                         </div>
@@ -208,7 +208,7 @@ export function Expenses() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-9"
+                                    className="h-7 text-[11px]"
                                     onClick={() => {
                                         setStartDate("");
                                         setEndDate("");
@@ -270,12 +270,12 @@ export function Expenses() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-muted/30 border-b">
-                                    <th className="py-2 px-4 font-semibold">Date</th>
-                                    <th className="py-2 px-4 font-semibold">Account</th>
-                                    <th className="py-2 px-4 font-semibold">Categories</th>
-                                    <th className="py-2 px-4 font-semibold">Remarks</th>
-                                    <th className="py-2 px-4 font-semibold text-right">Amount</th>
-                                    <th className="py-2 px-4 font-semibold text-center">Actions</th>
+                                    <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
+                                    <th className="py-1.5 px-3 text-xs font-semibold">Account</th>
+                                    <th className="py-1.5 px-3 text-xs font-semibold">Categories</th>
+                                    <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
+                                    <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
+                                    <th className="py-1.5 px-3 text-xs font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
@@ -289,18 +289,18 @@ export function Expenses() {
                                             key={tx.id}
                                             className="hover:bg-primary/[0.02] transition-colors group border-b border-border/10"
                                         >
-                                            <td className="py-2 px-4 font-medium whitespace-nowrap text-muted-foreground tabular-nums">
+                                            <td className="py-1.5 px-3 font-medium whitespace-nowrap text-muted-foreground tabular-nums text-xs">
                                                 {format(new Date(tx.date), "dd MMM yy")}
                                             </td>
-                                            <td className="py-2 px-4">
+                                            <td className="py-1.5 px-3">
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
                                                         <Wallet className="h-2.5 w-2.5 text-primary" />
                                                     </div>
-                                                    <span className="font-semibold text-[12px]">{tx.accountName || "Unlinked"}</span>
+                                                    <span className="font-semibold text-[11px]">{tx.accountName || "Unlinked"}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-2 px-4">
+                                            <td className="py-1.5 px-3">
                                                 <div className="flex flex-wrap gap-1">
                                                     {tx.categories.map(c => (
                                                         <Badge key={c.id} variant="secondary" className="text-[9px] py-0 px-1 h-3.5 font-normal flex items-center gap-1">
@@ -310,18 +310,18 @@ export function Expenses() {
                                                     {tx.categories.length === 0 && <span className="text-[10px] text-muted-foreground italic">-</span>}
                                                 </div>
                                             </td>
-                                            <td className="py-2 px-4 max-w-[180px] truncate text-xs text-muted-foreground">
+                                            <td className="py-1.5 px-3 max-w-[180px] truncate text-xs text-muted-foreground">
                                                 {tx.remarks || "—"}
                                             </td>
-                                            <td className="py-2 px-4 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums">
+                                            <td className="py-1.5 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
                                                 ₹{tx.amount.toLocaleString()}
                                             </td>
-                                            <td className="py-2 px-4">
+                                            <td className="py-1.5 px-3">
                                                 <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-7 w-7 text-blue-500 hover:text-blue-700 hover:bg-blue-50/50"
+                                                        className="h-6 w-6 text-blue-500 hover:text-blue-700 hover:bg-blue-50/50"
                                                         onClick={() => handleEdit(tx)}
                                                     >
                                                         <Edit2 className="h-3 w-3" />
@@ -329,7 +329,7 @@ export function Expenses() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-7 w-7 text-rose-500 hover:text-rose-700 hover:bg-rose-50/50"
+                                                        className="h-6 w-6 text-rose-500 hover:text-rose-700 hover:bg-rose-50/50"
                                                         onClick={() => {
                                                             if (window.confirm("Are you sure you want to delete this expense?")) {
                                                                 deleteMutation.mutate(tx.id);
