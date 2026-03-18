@@ -249,7 +249,8 @@ export type ExpenseRow = {
     remarks: string | null;
     accountId: number | null;
     accountName: string | null;
-    categories: { id: number; name: string }[];
+    categoryId: number;
+    categoryName: string;
     createdAt: string;
 };
 
@@ -278,7 +279,7 @@ export type CreateExpensePayload = {
     amount: number;
     remarks?: string;
     accountId: number;
-    categoryIds: number[];
+    categoryId: number;
     emiPaymentId?: number;
 };
 
@@ -334,6 +335,16 @@ export async function updateAccount(id: number, data: Partial<CreateAccountPaylo
 
 export async function deleteAccount(id: number): Promise<void> {
     await api.delete(`/api/accounts/${id}`);
+}
+
+export async function adjustAccountBalance(id: number, amount: number, reason: string): Promise<{ adjustment: any; account: Account }> {
+    const response = await api.post(`/api/accounts/${id}/adjust-balance`, { amount, reason });
+    return response.data;
+}
+
+export async function fetchAccountAdjustments(id: number): Promise<any[]> {
+    const response = await api.get(`/api/accounts/${id}/adjustments`);
+    return response.data;
 }
 
 // ==================== TRANSFER API FUNCTIONS ====================

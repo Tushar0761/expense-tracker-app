@@ -36,3 +36,13 @@ export class UpdateAccountDto {
   @IsOptional()
   creditLimit?: number;
 }
+
+export class AdjustBalanceDto {
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number;
+
+  @IsString()
+  @IsNotEmpty()
+  reason: string;
+}

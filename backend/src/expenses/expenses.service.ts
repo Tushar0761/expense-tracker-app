@@ -23,7 +23,8 @@ export type ExpenseRow = {
   remarks: string | null;
   accountId: number | null;
   accountName: string | null;
-  categories: { id: number; name: string }[];
+  categoryId: number;
+  categoryName: string;
   createdAt: Date;
 };
 
@@ -39,25 +40,17 @@ export class ExpensesService {
 
   async createExpense(payload: CreateExpenseDto) {
     return this.prisma.$transaction(async (tx) => {
-      // 1. Create the expense
       const expense = await tx.expenses_data_master.create({
         data: {
           date: new Date(payload.date),
           amount: payload.amount,
           remarks: payload.remarks,
           accountId: payload.accountId,
+          categoryId: payload.categoryId,
           emiPaymentId: payload.emiPaymentId,
-          // Handle Many-to-Many categories
-          categories: {
-            create: payload.categoryIds.map((id) => ({
-              category: { connect: { id } },
-            })),
-          },
         },
         include: {
-          categories: {
-            include: { category: true },
-          },
+          category: true,
           account: true,
         },
       });
@@ -80,9 +73,7 @@ export class ExpensesService {
     }
 
     if (query.categoryId) {
-      where.categories = {
-        some: { categoryId: Number(query.categoryId) },
-      };
+      where.categoryId = Number(query.categoryId);
     }
 
     if (query.accountId) {
@@ -97,7 +88,7 @@ export class ExpensesService {
       this.prisma.expenses_data_master.findMany({
         where,
         include: {
-          categories: { include: { category: true } },
+          category: true,
           account: true,
         },
         orderBy: { date: 'desc' },
@@ -114,10 +105,8 @@ export class ExpensesService {
       remarks: exp.remarks,
       accountId: exp.accountId,
       accountName: exp.account?.name ?? null,
-      categories: exp.categories.map((c) => ({
-        id: c.category.id,
-        name: c.category.name,
-      })),
+      categoryId: exp.categoryId,
+      categoryName: exp.category?.name ?? 'Unknown',
       createdAt: exp.createdAt,
     }));
 
@@ -136,7 +125,7 @@ export class ExpensesService {
     const expense = await this.prisma.expenses_data_master.findUnique({
       where: { id },
       include: {
-        categories: { include: { category: true } },
+        category: true,
         account: true,
       },
     });
@@ -173,14 +162,7 @@ export class ExpensesService {
         }
       }
 
-      // 2. Update Categories if provided
-      if (payload.categoryIds) {
-        await tx.expense_category_mapping.deleteMany({
-          where: { expenseId: id },
-        });
-      }
-
-      // 3. Update the expense record
+      // 2. Update the expense record
       return tx.expenses_data_master.update({
         where: { id },
         data: {
@@ -188,13 +170,7 @@ export class ExpensesService {
           amount: payload.amount,
           remarks: payload.remarks,
           accountId: payload.accountId,
-          categories: payload.categoryIds
-            ? {
-                create: payload.categoryIds.map((catId) => ({
-                  category: { connect: { id: catId } },
-                })),
-              }
-            : undefined,
+          categoryId: payload.categoryId,
         },
       });
     });
@@ -279,14 +255,14 @@ export class ExpensesService {
     const expenses = await this.prisma.expenses_data_master.findMany({
       where,
       include: {
-        categories: { include: { category: true } },
+        category: true,
       },
     });
 
     const categoryMap = new Map<number, { name: string; total: number }>();
     for (const exp of expenses) {
-      for (const mapping of exp.categories) {
-        const cat = mapping.category;
+      const cat = exp.category;
+      if (cat) {
         const current = categoryMap.get(cat.id) || { name: cat.name, total: 0 };
         current.total += exp.amount;
         categoryMap.set(cat.id, current);
@@ -332,7 +308,7 @@ export class ExpensesService {
           orderBy: { date: 'desc' },
           take: 10,
           include: {
-            categories: { include: { category: true } },
+            category: true,
           },
         }),
         this.prisma.account_master.findMany(),
@@ -363,7 +339,7 @@ export class ExpensesService {
         date: format(e.date, 'yyyy-MM-dd'),
         amount: e.amount,
         remarks: e.remarks,
-        categories: e.categories.map((c) => c.category.name),
+        categories: e.category ? [e.category.name] : [],
       })),
     };
   }

@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   fetchAccounts, 
   createAccount, 
+  updateAccount,
+  adjustAccountBalance,
   fetchTransfers, 
   createTransfer, 
   type Account, 
@@ -45,6 +47,7 @@ import {
   Plus, 
   History,
   TrendingUp,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -53,6 +56,8 @@ export default function Accounts() {
   const queryClient = useQueryClient();
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
   // Queries
   const { data: accounts = [], isLoading: isAccountsLoading } = useQuery({
@@ -87,6 +92,30 @@ export default function Accounts() {
     onError: () => toast.error("Failed to record transfer"),
   });
 
+  const updateAccountMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { name?: string; creditLimit?: number } }) => 
+      updateAccount(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-kpis"] });
+      toast.success("Account details updated");
+    },
+    onError: () => toast.error("Failed to update account"),
+  });
+
+  const adjustBalanceMutation = useMutation({
+    mutationFn: ({ id, amount, reason }: { id: number; amount: number; reason: string }) => 
+      adjustAccountBalance(id, amount, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-kpis"] });
+      setIsEditDialogOpen(false);
+      setEditingAccount(null);
+      toast.success("Balance adjusted successfully");
+    },
+    onError: () => toast.error("Failed to adjust balance"),
+  });
+
   const handleCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -109,6 +138,49 @@ export default function Accounts() {
       remarks: formData.get("remarks") as string,
     };
     createTransferMutation.mutate(payload);
+  };
+
+  const handleEditAccount = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingAccount) return;
+    const formData = new FormData(e.currentTarget);
+    
+    const newName = formData.get("name") as string;
+    const newBalance = Number(formData.get("balance"));
+    const balanceChange = newBalance - editingAccount.balance;
+    const creditLimit = editingAccount.type === 'CREDIT' ? Number(formData.get("creditLimit")) : undefined;
+
+    // Update name and credit limit
+    if (newName !== editingAccount.name || (creditLimit !== undefined && creditLimit !== (editingAccount.creditLimit || 0))) {
+      updateAccountMutation.mutate({
+        id: editingAccount.id,
+        data: {
+          name: newName,
+          creditLimit: creditLimit,
+        },
+      });
+    }
+
+    // If balance changed, create an adjustment
+    if (balanceChange !== 0) {
+      const reason = formData.get("reason") as string || `Manual adjustment: ${balanceChange > 0 ? 'Added' : 'Subtracted'} ₹${Math.abs(balanceChange)}`;
+      adjustBalanceMutation.mutate({
+        id: editingAccount.id,
+        amount: balanceChange,
+        reason,
+      });
+    }
+
+    // Close dialog if no balance change (just name update)
+    if (balanceChange === 0) {
+      setIsEditDialogOpen(false);
+      setEditingAccount(null);
+    }
+  };
+
+  const openEditDialog = (account: Account) => {
+    setEditingAccount(account);
+    setIsEditDialogOpen(true);
   };
 
   const getAccountIcon = (type: AccountType) => {
@@ -235,6 +307,76 @@ export default function Accounts() {
               </form>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) setEditingAccount(null);
+          }}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-base">Edit Account</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Update account name. To change balance, adjust it below (creates audit entry).
+                </DialogDescription>
+              </DialogHeader>
+              {editingAccount && (
+                <form onSubmit={handleEditAccount} className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-name">Account Name</Label>
+                    <Input 
+                      id="edit-name" 
+                      name="name" 
+                      defaultValue={editingAccount.name} 
+                      required 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-balance">New Balance (₹)</Label>
+                    <Input 
+                      id="edit-balance" 
+                      name="balance" 
+                      type="number" 
+                      step="0.01" 
+                      defaultValue={editingAccount.balance} 
+                      required 
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Current: ₹{editingAccount.balance.toLocaleString()}. Enter new value to adjust.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-reason">Reason for Balance Change</Label>
+                    <Input 
+                      id="edit-reason" 
+                      name="reason" 
+                      placeholder="e.g., Bank statement correction, initial balance setup"
+                    />
+                  </div>
+                  {editingAccount.type === 'CREDIT' && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="edit-creditLimit">Credit Limit (₹)</Label>
+                      <Input 
+                        id="edit-creditLimit" 
+                        name="creditLimit" 
+                        type="number" 
+                        step="0.01" 
+                        defaultValue={editingAccount.creditLimit || 0} 
+                      />
+                    </div>
+                  )}
+                  <DialogFooter>
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={updateAccountMutation.isPending || adjustBalanceMutation.isPending}
+                    >
+                      {(updateAccountMutation.isPending || adjustBalanceMutation.isPending) ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -283,13 +425,23 @@ export default function Accounts() {
                         <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{acc.type}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-bold ${acc.type === 'CREDIT' ? 'text-rose-500' : 'text-emerald-500'} tabular-nums`}>
-                        ₹{acc.balance.toLocaleString()}
-                      </p>
-                      {acc.type === 'CREDIT' && acc.creditLimit && (
-                        <p className="text-[9px] text-muted-foreground leading-tight">Limit: ₹{acc.creditLimit.toLocaleString()}</p>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className={`text-sm font-bold ${acc.type === 'CREDIT' ? 'text-rose-500' : 'text-emerald-500'} tabular-nums`}>
+                          ₹{acc.balance.toLocaleString()}
+                        </p>
+                        {acc.type === 'CREDIT' && acc.creditLimit && (
+                          <p className="text-[9px] text-muted-foreground leading-tight">Limit: ₹{acc.creditLimit.toLocaleString()}</p>
+                        )}
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => openEditDialog(acc)}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

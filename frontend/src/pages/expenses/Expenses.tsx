@@ -92,9 +92,9 @@ export function Expenses() {
 
         const categoryTotals: Record<string, number> = {};
         expenses.forEach((t) => {
-            t.categories.forEach(c => {
-                categoryTotals[c.name] = (categoryTotals[c.name] || 0) + t.amount;
-            });
+            if (t.categoryName) {
+                categoryTotals[t.categoryName] = (categoryTotals[t.categoryName] || 0) + t.amount;
+            }
         });
         const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
 
@@ -301,14 +301,9 @@ export function Expenses() {
                                                 </div>
                                             </td>
                                             <td className="py-1.5 px-3">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {tx.categories.map(c => (
-                                                        <Badge key={c.id} variant="secondary" className="text-[9px] py-0 px-1 h-3.5 font-normal flex items-center gap-1">
-                                                            {c.name}
-                                                        </Badge>
-                                                    ))}
-                                                    {tx.categories.length === 0 && <span className="text-[10px] text-muted-foreground italic">-</span>}
-                                                </div>
+                                                <Badge variant="secondary" className="text-[9px] py-0 px-1 h-3.5 font-normal">
+                                                    {tx.categoryName || "-"}
+                                                </Badge>
                                             </td>
                                             <td className="py-1.5 px-3 max-w-[180px] truncate text-xs text-muted-foreground">
                                                 {tx.remarks || "—"}

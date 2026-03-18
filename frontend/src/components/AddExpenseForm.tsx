@@ -21,7 +21,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
     createCategory,
     createExpense,
@@ -36,8 +35,9 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { X, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { X, ChevronLeft, ChevronRight, Calendar, Search } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { subDays } from "date-fns";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -49,7 +49,7 @@ const expenseSchema = z.object({
         .positive({ message: "Amount must be greater than zero" }),
     remarks: z.string().optional(),
     accountId: z.coerce.number().min(1, { message: "Account is required" }),
-    categoryIds: z.array(z.number()).min(1, { message: "At least one category is required" }),
+    categoryId: z.coerce.number().min(1, { message: "Category is required" }),
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseSchema>;
@@ -81,6 +81,14 @@ export function AddExpenseForm({
         enabled: isOpen,
     });
 
+    const [categorySearch, setCategorySearch] = useState("");
+
+    const filteredCategories = useMemo(() => {
+        if (!categorySearch.trim()) return categories;
+        const search = categorySearch.toLowerCase();
+        return categories.filter(cat => cat.name.toLowerCase().includes(search));
+    }, [categories, categorySearch]);
+
     const { data: accounts = [] } = useQuery<Account[]>({
         queryKey: ["accounts"],
         queryFn: fetchAccounts,
@@ -102,11 +110,9 @@ export function AddExpenseForm({
             amount: 0,
             remarks: "",
             accountId: 0,
-            categoryIds: [],
+            categoryId: 0,
         },
     });
-
-    const selectedCategoryIds = watch("categoryIds") || [];
 
     // Initialize form when editing
     useEffect(() => {
@@ -116,7 +122,7 @@ export function AddExpenseForm({
                 amount: expense.amount,
                 remarks: expense.remarks || "",
                 accountId: expense.accountId || 0,
-                categoryIds: expense.categories.map(c => c.id),
+                categoryId: expense.categoryId,
             });
         } else if (isOpen) {
             reset({
@@ -124,7 +130,7 @@ export function AddExpenseForm({
                 amount: 0,
                 remarks: "",
                 accountId: accounts[0]?.id || 0,
-                categoryIds: [],
+                categoryId: 0,
             });
         }
     }, [expense, isOpen, reset, accounts]);
@@ -153,7 +159,7 @@ export function AddExpenseForm({
             const newCat = await createCategory({ name: newCatName });
             toast.success("Category created");
             await queryClient.invalidateQueries({ queryKey: ["categories-flat"] });
-            setValue("categoryIds", [...selectedCategoryIds, newCat.id]);
+            setValue("categoryId", newCat.id);
             setIsAddCategoryOpen(false);
             setNewCatName("");
         } catch (err: unknown) {
@@ -163,24 +169,13 @@ export function AddExpenseForm({
         }
     };
 
-    const toggleCategory = (id: number) => {
-        const current = [...selectedCategoryIds];
-        const index = current.indexOf(id);
-        if (index > -1) {
-            current.splice(index, 1);
-        } else {
-            current.push(id);
-        }
-        setValue("categoryIds", current);
-    };
-
     const onSubmit = (data: ExpenseFormValues) => {
         const payload: CreateExpensePayload = {
             date: format(data.date, "yyyy-MM-dd"),
             amount: data.amount,
             remarks: data.remarks || undefined,
             accountId: data.accountId,
-            categoryIds: data.categoryIds,
+            categoryId: data.categoryId,
         };
         mutation.mutate(payload);
     };
@@ -207,16 +202,72 @@ export function AddExpenseForm({
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label htmlFor="date" className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Date</Label>
-                                <Input
-                                    id="date"
-                                    type="date"
-                                    className="h-9 text-xs"
-                                    {...register("date", {
-                                        setValueAs: (v: string) => v ? new Date(v) : undefined,
-                                    })}
-                                    defaultValue={format(expense ? new Date(expense.date) : new Date(), "yyyy-MM-dd")}
-                                />
+                                <Label className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Date</Label>
+                                <div className="flex items-center gap-1">
+                                    <div className="relative flex-1">
+                                        <Input
+                                            type="date"
+                                            className="h-9 text-xs pr-8"
+                                            {...register("date", {
+                                                setValueAs: (v: string) => v ? new Date(v) : undefined,
+                                            })}
+                                            defaultValue={format(expense ? new Date(expense.date) : new Date(), "yyyy-MM-dd")}
+                                        />
+                                        <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-6 text-[10px] px-2 font-medium"
+                                        onClick={() => {
+                                            const yesterday = subDays(new Date(), 1);
+                                            setValue("date", yesterday);
+                                        }}
+                                    >
+                                        Yesterday
+                                    </Button>
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-6 text-[10px] px-2 font-medium"
+                                        onClick={() => {
+                                            setValue("date", new Date());
+                                        }}
+                                    >
+                                        Today
+                                    </Button>
+                                    <Button 
+                                        type="button" 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                        onClick={() => {
+                                            const currentValue = watch("date");
+                                            const date = currentValue || new Date();
+                                            const newDate = new Date(date.getFullYear(), date.getMonth() - 1, date.getDate());
+                                            setValue("date", newDate);
+                                        }}
+                                    >
+                                        <ChevronLeft className="h-3 w-3" />
+                                    </Button>
+                                    <Button 
+                                        type="button" 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                        onClick={() => {
+                                            const date = watch("date") || new Date();
+                                            const newDate = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
+                                            setValue("date", newDate);
+                                        }}
+                                    >
+                                        <ChevronRight className="h-3 w-3" />
+                                    </Button>
+                                </div>
                                 {errors.date && <p className="text-[9px] text-red-500">{errors.date.message}</p>}
                             </div>
 
@@ -265,27 +316,45 @@ export function AddExpenseForm({
 
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                                <Label className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Categories</Label>
+                                <Label className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Category</Label>
                                 <Button type="button" variant="ghost" size="sm" className="h-6 text-primary text-[10px] font-bold px-1" onClick={() => setIsAddCategoryOpen(true)}>
                                     + ADD NEW
                                 </Button>
                             </div>
-                            <div className="flex flex-wrap gap-1.5 p-2 bg-muted/10 border rounded-lg min-h-[70px] max-h-[100px] overflow-y-auto">
-                                {categories.map(cat => (
-                                    <Badge 
-                                        key={cat.id} 
-                                        variant={selectedCategoryIds.includes(cat.id) ? "default" : "outline"}
-                                        className={`cursor-pointer transition-all duration-200 select-none py-0.5 px-2 text-[10px] font-medium rounded-md ${
-                                            selectedCategoryIds.includes(cat.id) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-                                        }`}
-                                        onClick={() => toggleCategory(cat.id)}
-                                    >
-                                        {cat.name}
-                                        {selectedCategoryIds.includes(cat.id) && <Check className="ml-1 h-2.5 w-2.5" />}
-                                    </Badge>
-                                ))}
-                            </div>
-                            {errors.categoryIds && <p className="text-[9px] text-red-500">{errors.categoryIds.message}</p>}
+                            <Controller
+                                name="categoryId"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ""}>
+                                        <SelectTrigger className="h-9 text-xs">
+                                            <SelectValue placeholder="Select category" />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-[200px]">
+                                            <div className="p-2 border-b">
+                                                <div className="relative">
+                                                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                                                    <Input
+                                                        placeholder="Search categories..."
+                                                        value={categorySearch}
+                                                        onChange={(e) => setCategorySearch(e.target.value)}
+                                                        className="h-7 text-xs pl-7"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {filteredCategories.map(cat => (
+                                                <SelectItem key={cat.id} value={cat.id.toString()} className="text-xs">
+                                                    {cat.name}
+                                                </SelectItem>
+                                            ))}
+                                            {filteredCategories.length === 0 && (
+                                                <div className="p-2 text-xs text-muted-foreground text-center">No categories found</div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.categoryId && <p className="text-[9px] text-red-500">{errors.categoryId.message}</p>}
                         </div>
 
                         <div className="space-y-1.5">

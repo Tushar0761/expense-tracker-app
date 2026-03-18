@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { CreateAccountDto, UpdateAccountDto } from './accounts.dto';
+import { CreateAccountDto, UpdateAccountDto, AdjustBalanceDto } from './accounts.dto';
 
 @Injectable()
 export class AccountsService {
@@ -15,6 +15,9 @@ export class AccountsService {
   async findAll() {
     return await this.prisma.account_master.findMany({
       orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { adjustments: true } }
+      }
     });
   }
 
@@ -36,6 +39,40 @@ export class AccountsService {
   async remove(id: number) {
     return await this.prisma.account_master.delete({
       where: { id },
+    });
+  }
+
+  async adjustBalance(id: number, dto: AdjustBalanceDto) {
+    return await this.prisma.$transaction(async (tx) => {
+      const account = await tx.account_master.findUnique({ where: { id } });
+      if (!account) throw new NotFoundException('Account not found');
+
+      const adjustment = await tx.account_balance_adjustment.create({
+        data: {
+          accountId: id,
+          amount: dto.amount,
+          reason: dto.reason,
+        },
+      });
+
+      const updatedAccount = await tx.account_master.update({
+        where: { id },
+        data: {
+          balance: { increment: dto.amount },
+        },
+      });
+
+      return {
+        adjustment,
+        account: updatedAccount,
+      };
+    });
+  }
+
+  async getAdjustments(accountId: number) {
+    return await this.prisma.account_balance_adjustment.findMany({
+      where: { accountId },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

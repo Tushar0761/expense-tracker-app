@@ -1,12 +1,10 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsDateString,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
 
 export class CreateExpenseDto {
@@ -26,10 +24,9 @@ export class CreateExpenseDto {
   @IsNotEmpty()
   accountId: number;
 
-  @IsArray()
-  @IsNumber({}, { each: true })
+  @IsNumber()
   @IsNotEmpty()
-  categoryIds: number[];
+  categoryId: number;  // Single category (not array)
 
   @IsNumber()
   @IsOptional()
@@ -53,10 +50,9 @@ export class UpdateExpenseDto {
   @IsOptional()
   accountId?: number;
 
-  @IsArray()
-  @IsNumber({}, { each: true })
+  @IsNumber()
   @IsOptional()
-  categoryIds?: number[];
+  categoryId?: number;  // Single category (not array)
 
   @IsNumber()
   @IsOptional()

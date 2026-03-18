@@ -8,7 +8,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { CreateAccountDto, UpdateAccountDto } from './accounts.dto';
+import { CreateAccountDto, UpdateAccountDto, AdjustBalanceDto } from './accounts.dto';
 import { AccountsService } from './accounts.service';
 
 @Controller('accounts')
@@ -38,5 +38,18 @@ export class AccountsController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.accountsService.remove(id);
+  }
+
+  @Post(':id/adjust-balance')
+  adjustBalance(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AdjustBalanceDto,
+  ) {
+    return this.accountsService.adjustBalance(id, dto);
+  }
+
+  @Get(':id/adjustments')
+  getAdjustments(@Param('id', ParseIntPipe) id: number) {
+    return this.accountsService.getAdjustments(id);
   }
 }
