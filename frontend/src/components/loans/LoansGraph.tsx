@@ -1,10 +1,5 @@
-
 const LoansGraph = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default LoansGraph
+export default LoansGraph;

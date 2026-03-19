@@ -1,49 +1,49 @@
-import React from "react";
+import React from 'react';
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "../ui/card";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 
 interface KpiCardProps {
-    title: string;
-    value: string | number;
-    description: string;
-    Icon: React.ReactNode;
-    indicatorColor?: "red" | "green" | "neutral";
+  title: string;
+  value: string | number;
+  description: string;
+  Icon: React.ReactNode;
+  indicatorColor?: 'red' | 'green' | 'neutral';
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
-    title,
-    value,
-    description,
-    Icon,
-    indicatorColor = "neutral",
+  title,
+  value,
+  description,
+  Icon,
+  indicatorColor = 'neutral',
 }) => {
-    let colorClass = "text-gray-500 dark:text-gray-400";
-    if (indicatorColor === "red") colorClass = "text-red-500";
-    if (indicatorColor === "green") colorClass = "text-green-500";
+  let colorClass = 'text-gray-500 dark:text-gray-400';
+  if (indicatorColor === 'red') colorClass = 'text-red-500';
+  if (indicatorColor === 'green') colorClass = 'text-green-500';
 
-    return (
-        <Card className="p-1 px-2 bg-card/50 border-border/50 shadow-sm transition-all hover:bg-card/80">
-            <CardHeader className="flex flex-row items-center justify-between px-2 pt-2 pb-1">
-                <div className="flex items-center gap-1.5">
-                    {Icon}
-                    <CardTitle className="text-xs font-semibold text-muted-foreground">
-                        {title}
-                    </CardTitle>
-                </div>
-            </CardHeader>
-            <CardContent className="px-2 pb-2">
-                <p className="text-base font-bold tracking-tight">{value}</p>
-                <CardDescription
-                    className={`text-[10px] leading-tight mt-0.5 flex items-center gap-1 ${colorClass}`}
-                >
-                    {description}
-                </CardDescription>
-            </CardContent>
-        </Card>
-    );
+  return (
+    <Card className="p-1 px-2 bg-card/50 border-border/50 shadow-sm transition-all hover:bg-card/80">
+      <CardHeader className="flex flex-row items-center justify-between px-2 pt-2 pb-1">
+        <div className="flex items-center gap-1.5">
+          {Icon}
+          <CardTitle className="text-xs font-semibold text-muted-foreground">
+            {title}
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="px-2 pb-2">
+        <p className="text-base font-bold tracking-tight">{value}</p>
+        <CardDescription
+          className={`text-[10px] leading-tight mt-0.5 flex items-center gap-1 ${colorClass}`}
+        >
+          {description}
+        </CardDescription>
+      </CardContent>
+    </Card>
+  );
 };

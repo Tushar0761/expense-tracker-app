@@ -1,5 +1,5 @@
 const LoansPageContainer = () => {
-    return <div></div>;
+  return <div></div>;
 };
 
 export default LoansPageContainer;

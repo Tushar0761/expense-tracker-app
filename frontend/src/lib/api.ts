@@ -1,5 +1,5 @@
-import axios from "axios";
-import { format } from "date-fns";
+import axios from 'axios';
+import { format } from 'date-fns';
 
 export type LoanGraphPoint = {
   month: string;
@@ -16,7 +16,7 @@ export type LoanTableRow = {
   borrowerName: string;
   totalAmount: number;
   loanDate: string;
-  status: "PENDING" | "ACTIVE" | "CLOSED" | "DEFAULTED";
+  status: 'PENDING' | 'ACTIVE' | 'CLOSED' | 'DEFAULTED';
   notes?: string;
   paidAmount: number;
   remainingAmount: number;
@@ -41,13 +41,13 @@ export type FuturePaymentRow = {
   principalAmount: number;
   interestAmount: number;
   totalAmount: number;
-  status: "pending" | "completed" | "cancelled";
+  status: 'pending' | 'completed' | 'cancelled';
   notes?: string;
   borrowerName: string;
 };
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -55,39 +55,39 @@ const api = axios.create({
 });
 
 export async function fetchLoansGraph(): Promise<LoanGraphPoint[]> {
-  const response = await api.get("/api/loans/graph");
+  const response = await api.get('/api/loans/graph');
   return response.data;
 }
 
 export async function fetchLoansInsight() {
-  const response = await api.get("/api/loans/insight");
+  const response = await api.get('/api/loans/insight');
   return response.data;
 }
 
 export async function fetchLoansTable(): Promise<LoanTableRow[]> {
-  const response = await api.get("/api/loans/table");
+  const response = await api.get('/api/loans/table');
   return response.data;
 }
 
 export async function fetchEmiPayments(): Promise<EmiPaymentRow[]> {
-  const response = await api.get("/api/loans/payments");
+  const response = await api.get('/api/loans/payments');
   return response.data;
 }
 
 export async function fetchFuturePayments(): Promise<FuturePaymentRow[]> {
-  const response = await api.get("/api/loans/future-payments");
+  const response = await api.get('/api/loans/future-payments');
   return response.data;
 }
 export async function fetchBorrowersList(): Promise<
   { id: number; borrowerName: string }[]
 > {
-  const response = await api.get("/api/loans/borrowers");
+  const response = await api.get('/api/loans/borrowers');
   return response.data;
 }
 
 export type LoanFormValues = {
   borrowerId: string;
-  status: "ACTIVE" | "CLOSED" | "DEFAULTED";
+  status: 'ACTIVE' | 'CLOSED' | 'DEFAULTED';
   initialAmount: number;
   interestRate: number;
   loanDate: Date;
@@ -98,7 +98,7 @@ export type LoanFormValues = {
 
 export async function createLoan(data: LoanFormValues): Promise<LoanTableRow> {
   if (!data.loanDate) {
-    throw new Error("Loan date is required");
+    throw new Error('Loan date is required');
   }
 
   const payload = {
@@ -106,20 +106,20 @@ export async function createLoan(data: LoanFormValues): Promise<LoanTableRow> {
     status: data.status?.toLowerCase(),
     initialAmount: data.initialAmount,
     interestRate: data.interestRate,
-    loanDate: format(data.loanDate, "yyyy-MM-dd"),
+    loanDate: format(data.loanDate, 'yyyy-MM-dd'),
     totalAmount: data.totalAmount,
-    dueDate: data.dueDate ? format(data.dueDate, "yyyy-MM-dd") : undefined,
+    dueDate: data.dueDate ? format(data.dueDate, 'yyyy-MM-dd') : undefined,
     notes: data.notes,
   };
 
-  const response = await api.post("/api/loans/create", payload);
+  const response = await api.post('/api/loans/create', payload);
   return response.data;
 }
 
 export async function addBorrower(
   borrowerName: string,
 ): Promise<borrowersData> {
-  const response = await api.post("/api/loans/add-borrower", {
+  const response = await api.post('/api/loans/add-borrower', {
     borrowerName,
   });
   return response.data;
@@ -129,7 +129,7 @@ export type RecordPaymentValues = {
   loanId: number;
   paymentDate: Date;
   totalAmount: number;
-  paymentMethod: "cash" | "bank_transfer" | "upi" | "cheque" | "other";
+  paymentMethod: 'cash' | 'bank_transfer' | 'upi' | 'cheque' | 'other';
   futurePaymentId?: number;
   notes?: string;
   principalAmount?: number;
@@ -141,10 +141,10 @@ export async function recordPayment(
 ): Promise<{ id: number }> {
   const payload = {
     ...data,
-    paymentDate: format(data.paymentDate, "yyyy-MM-dd"),
+    paymentDate: format(data.paymentDate, 'yyyy-MM-dd'),
   };
 
-  const response = await api.post("/api/loans/record-payment", payload);
+  const response = await api.post('/api/loans/record-payment', payload);
   return response.data;
 }
 
@@ -194,13 +194,13 @@ export type BulkCreateFuturePaymentPayload = {
 export async function bulkCreateFuturePayments(
   payload: BulkCreateFuturePaymentPayload,
 ): Promise<{ count: number }> {
-  const response = await api.post("/api/loans/bulk-future-payments", payload);
+  const response = await api.post('/api/loans/bulk-future-payments', payload);
   return response.data;
 }
 
 // ==================== ACCOUNT TYPES ====================
 
-export type AccountType = "CASH" | "BANK" | "CREDIT";
+export type AccountType = 'CASH' | 'BANK' | 'CREDIT';
 
 export type Account = {
   id: number;
@@ -292,7 +292,7 @@ export type ExpenseSummaryPoint = {
 };
 
 export type ExpenseSummaryParams = {
-  granularity: "day" | "week" | "month" | "year";
+  granularity: 'day' | 'week' | 'month' | 'year';
   startDate?: string;
   endDate?: string;
 };
@@ -320,14 +320,14 @@ export type CategoryFlat = {
 // ==================== ACCOUNT API FUNCTIONS ====================
 
 export async function fetchAccounts(): Promise<Account[]> {
-  const response = await api.get("/api/accounts");
+  const response = await api.get('/api/accounts');
   return response.data;
 }
 
 export async function createAccount(
   data: CreateAccountPayload,
 ): Promise<Account> {
-  const response = await api.post("/api/accounts", data);
+  const response = await api.post('/api/accounts', data);
   return response.data;
 }
 
@@ -354,14 +354,14 @@ export async function updateAccountBalance(
 // ==================== TRANSFER API FUNCTIONS ====================
 
 export async function fetchTransfers(): Promise<Transfer[]> {
-  const response = await api.get("/api/transfers");
+  const response = await api.get('/api/transfers');
   return response.data;
 }
 
 export async function createTransfer(
   data: CreateTransferPayload,
 ): Promise<Transfer> {
-  const response = await api.post("/api/transfers", data);
+  const response = await api.post('/api/transfers', data);
   return response.data;
 }
 
@@ -374,7 +374,7 @@ export async function deleteTransfer(id: number): Promise<void> {
 export async function fetchExpenses(
   params?: ExpenseQueryParams,
 ): Promise<ExpenseListResponse> {
-  const response = await api.get("/api/expenses", { params });
+  const response = await api.get('/api/expenses', { params });
   return response.data;
 }
 
@@ -386,14 +386,14 @@ export async function fetchExpenseById(id: number): Promise<ExpenseRow> {
 export async function createExpense(
   data: CreateExpensePayload,
 ): Promise<ExpenseRow> {
-  const response = await api.post("/api/expenses/create", data);
+  const response = await api.post('/api/expenses/create', data);
   return response.data;
 }
 
 export async function bulkCreateExpenses(
   data: CreateExpensePayload[],
 ): Promise<ExpenseRow[]> {
-  const response = await api.post("/api/expenses/bulk-create", data);
+  const response = await api.post('/api/expenses/bulk-create', data);
   return response.data;
 }
 
@@ -412,19 +412,19 @@ export async function deleteExpense(id: number): Promise<void> {
 export async function fetchExpenseSummary(
   params: ExpenseSummaryParams,
 ): Promise<ExpenseSummaryPoint[]> {
-  const response = await api.get("/api/expenses/summary", { params });
+  const response = await api.get('/api/expenses/summary', { params });
   return response.data;
 }
 
 // ==================== CATEGORY API FUNCTIONS ====================
 
 export async function fetchCategories(): Promise<CategoryWithSubs[]> {
-  const response = await api.get("/api/categories");
+  const response = await api.get('/api/categories');
   return response.data;
 }
 
 export async function fetchCategoriesFlat(): Promise<CategoryFlat[]> {
-  const response = await api.get("/api/categories/flat");
+  const response = await api.get('/api/categories/flat');
   return response.data;
 }
 
@@ -439,7 +439,7 @@ export async function createCategory(data: {
   name: string;
   parentId?: number;
 }): Promise<CategoryFlat> {
-  const response = await api.post("/api/categories/create", data);
+  const response = await api.post('/api/categories/create', data);
   return response.data;
 }
 
@@ -479,12 +479,12 @@ export async function fetchCategoryTotals(params?: {
   startDate?: string;
   endDate?: string;
 }): Promise<CategoryTotal[]> {
-  const response = await api.get("/api/expenses/category-totals", { params });
+  const response = await api.get('/api/expenses/category-totals', { params });
   return response.data;
 }
 
 export async function fetchDashboardKPIs(): Promise<DashboardKPIs> {
-  const response = await api.get("/api/expenses/dashboard");
+  const response = await api.get('/api/expenses/dashboard');
   return response.data;
 }
 
@@ -507,11 +507,11 @@ export async function downloadExpenseTemplate(
   month?: number,
 ): Promise<void> {
   const params = new URLSearchParams();
-  if (year) params.set("year", year.toString());
-  if (month) params.set("month", month.toString());
+  if (year) params.set('year', year.toString());
+  if (month) params.set('month', month.toString());
 
   const queryString = params.toString();
-  const url = `${API_BASE_URL}/api/expense-excel/template${queryString ? `?${queryString}` : ""}`;
+  const url = `${API_BASE_URL}/api/expense-excel/template${queryString ? `?${queryString}` : ''}`;
 
   const response = await fetch(url);
 
@@ -522,11 +522,11 @@ export async function downloadExpenseTemplate(
     );
   }
 
-  const contentType = response.headers.get("content-type");
+  const contentType = response.headers.get('content-type');
   if (
-    !contentType?.includes("spreadsheet") &&
-    !contentType?.includes("excel") &&
-    !contentType?.includes("application/vnd")
+    !contentType?.includes('spreadsheet') &&
+    !contentType?.includes('excel') &&
+    !contentType?.includes('application/vnd')
   ) {
     const text = await response.text();
     throw new Error(`Invalid response: ${text.substring(0, 200)}`);
@@ -534,12 +534,12 @@ export async function downloadExpenseTemplate(
 
   const blob = await response.blob();
   const downloadUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = downloadUrl;
   a.download =
     year && month
-      ? `expenses_${year}_${month.toString().padStart(2, "0")}.xlsx`
-      : "expense_template.xlsx";
+      ? `expenses_${year}_${month.toString().padStart(2, '0')}.xlsx`
+      : 'expense_template.xlsx';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -548,14 +548,14 @@ export async function downloadExpenseTemplate(
 
 export async function uploadExpenseFile(file: File): Promise<UploadResult> {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append('file', file);
 
   const response = await api.post<UploadResult>(
-    "/api/expense-excel/upload",
+    '/api/expense-excel/upload',
     formData,
     {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     },
   );

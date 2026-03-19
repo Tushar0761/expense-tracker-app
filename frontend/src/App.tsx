@@ -1,31 +1,31 @@
-import { Route, Routes } from "react-router-dom";
-import "./App.css";
-import Navbar from "./components/layout/Navbar";
-import NotFound from "./pages/NotFound";
-import { Categories } from "./pages/categories/Categories";
-import { Dashboard } from "./pages/dashboard/Dashboard";
-import { Expenses } from "./pages/expenses/Expenses";
-import { LoansPage } from "./pages/loans/LoansPage";
-import Accounts from "./pages/Accounts";
-import { Toaster } from "sonner";
+import { Route, Routes } from 'react-router-dom';
+import './App.css';
+import Navbar from './components/layout/Navbar';
+import NotFound from './pages/NotFound';
+import { Categories } from './pages/categories/Categories';
+import { Dashboard } from './pages/dashboard/Dashboard';
+import { Expenses } from './pages/expenses/Expenses';
+import { LoansPage } from './pages/loans/LoansPage';
+import Accounts from './pages/Accounts';
+import { Toaster } from 'sonner';
 
 function App() {
-    return (
-        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
-            <Navbar />
-            <main className="flex-1 p-4 w-full max-w-7xl mx-auto">
-                <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/expenses" element={<Expenses />} />
-                    <Route path="/categories" element={<Categories />} />
-                    <Route path="/accounts" element={<Accounts />} />
-                    <Route path="/loans" element={<LoansPage />} />
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
-            </main>
-            <Toaster richColors position="top-right" />
-        </div>
-    );
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      <Navbar />
+      <main className="flex-1 p-4 w-full max-w-7xl mx-auto">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/loans" element={<LoansPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Toaster richColors position="top-right" />
+    </div>
+  );
 }
 
 export default App;
