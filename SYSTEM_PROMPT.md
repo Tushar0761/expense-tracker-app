@@ -19,17 +19,34 @@ After EVERY code change, you MUST run:
 
 **Backend:**
 ```bash
-cd backend && npm run lint && npm run build
+cd backend && npm run lint:fix && npm run format && npm run lint && npm run build
 ```
 
 **Frontend:**
 ```bash
-cd frontend && npm run lint && npm run build
+cd frontend && npm run lint:fix && npm run format && npm run lint && npm run build
 ```
 
 Both builds MUST pass. Fix errors immediately.
 
-### 3. Prisma Schema Changes - CRITICAL
+### 3. CHANGELOG - MANDATORY
+**After every significant code change, ALWAYS update the CHANGELOG section at the bottom of this file.**
+
+- Add new entry with date and description of changes
+- Include files that were changed
+- Explain what was fixed or added
+- This helps maintain context if conversation resets
+
+**Format:**
+```markdown
+### YYYY-MM-DD: Brief Title
+**Description**: What was changed or fixed
+**Files Changed**:
+- file path 1
+- file path 2
+```
+
+### 4. Prisma Schema Changes - CRITICAL
 **NEVER** run `npx prisma migrate dev` - it resets the database!
 
 Safe process:
@@ -118,6 +135,98 @@ expense-tracker-app/
 | Docs | `docs/*.md` |
 
 ## CHANGELOG - Important Fixes
+
+### 2026-03-18: Manual Balance System
+**Change**: Removed automatic balance updates from expenses and transfers.
+
+**Files Changed**:
+- `backend/src/expenses/expenses.service.ts` - Removed balance update logic from updateExpense/deleteExpense
+- `backend/src/transfers/transfers.service.ts` - Removed auto balance updates
+- `backend/prisma/schema.prisma` - Removed account_balance_adjustment table
+
+**Rule**: Balance is manual. User sets it directly. Transactions do NOT affect balance.
+
+---
+
+## CHANGELOG
+
+### 2026-03-19: Standardized Code Quality Commands
+
+**Description**: Updated all docs and configuration files to use consistent lint/format/build command sequence.
+
+**Files Changed**:
+- `AGENTS.md` - Updated frontend command
+- `SYSTEM_PROMPT.md` - Updated both backend and frontend commands
+- `docs/coding-rules.md` - Updated Code Quality Checks, Development Workflow, and Testing Changes sections
+
+**New Command Flow**:
+```bash
+# Backend
+cd backend && npm run lint:fix && npm run format && npm run lint && npm run build
+
+# Frontend
+cd frontend && npm run lint:fix && npm run format && npm run lint && npm run build
+```
+
+**Purpose**: Auto-fix lint issues → Format code → Check remaining lint issues → Build
+
+### 2026-03-19: Bulk Upload Template with Month/Year Data + Amount Column
+
+**Description**: Enhanced bulk upload to allow downloading pre-filled templates with existing expenses for a specific month/year. Added amount column to the template.
+
+**Files Changed**:
+- `backend/src/expense-upload/expense-upload.controller.ts` - Added `year` and `month` query params to template download
+- `backend/src/expense-upload/expense-upload.service.ts` - Modified `generateTemplate()` to fetch and pre-fill expenses for selected month/year; Added amount column to Excel template
+- `frontend/src/lib/api.ts` - Updated `downloadExpenseTemplate()` to accept year/month params
+- `frontend/src/components/BulkUpload.tsx` - Added month/year dropdown selectors above download button
+- `docs/api-routes.md` - Updated documentation for new query params
+
+**New Feature**: Users can now select a month/year and download a template pre-filled with existing expenses for editing.
+
+### 2026-03-19: Template Upload Column Parsing Fix
+
+**Description**: Fixed column parsing in upload to use header-based lookup instead of index-based. This fixed issues where Excel reading would fail due to column offset problems.
+
+**Files Changed**:
+- `backend/src/expense-upload/expense-upload.service.ts` - Replaced index-based column access with header-based column name lookup using Map
+
+**Lesson Learned**: Always use header-based column finding for Excel parsing to handle different Excel configurations.
+
+### 2026-03-19: BulkExpenseForm Refactored
+
+**Description**: Completely refactored BulkExpenseForm to fix category/account selection issues:
+1. Category/Account values not showing after selection
+2. Copy row not preserving values
+3. New rows not auto-selecting default account
+
+**Root Cause**: Previous implementation used refs unnecessarily causing closure issues.
+
+**Files Changed**:
+- `frontend/src/components/BulkExpenseForm.tsx` - Removed all refs, simplified to useState/useEffect only
+
+**Solution**: 
+- Removed unnecessary refs (accountsRef, defaultAccountIdRef, createEmptyRowRef, firstRowInitializedRef)
+- Used simple boolean `initialized` state for form initialization
+- Inline row creation in useEffect and addNewRow to avoid dependency issues
+
+### 2026-03-19: Lint/Build Error Fixing Rules
+
+**Description**: Updated coding rules to clarify handling of lint/build errors. Warnings requiring over-engineering can be skipped after reasonable attempts.
+
+**Files Changed**:
+- `docs/coding-rules.md` - Clarified that warnings can be skipped if they require excessive type casting or workarounds
+
+### 2026-03-19: Pre-existing Lint Errors Fixed
+
+**Description**: Fixed multiple pre-existing lint/build errors that were not related to recent changes.
+
+**Files Changed**:
+- `backend/src/main.ts` - Fixed floating promise with `void bootstrap()`
+- `backend/src/expense-upload/expense-upload.service.ts` - Fixed Buffer type casting with `as unknown as ArrayBuffer`
+- `backend/test/app.e2e-spec.ts` - Fixed type errors with `request` import
+- `frontend/src/components/ui/badge.tsx` - Removed `badgeVariants` export
+- `frontend/src/components/ui/button.tsx` - Removed `buttonVariants` export
+- `frontend/src/components/ui/input.tsx` - Changed interface to type
 
 ### 2026-03-18: Prisma Relation Fix
 **Problem**: Code used `category: true` but schema defines relation as `category_master`.

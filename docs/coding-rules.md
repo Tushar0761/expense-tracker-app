@@ -34,8 +34,8 @@
 
 ```bash
 # Both must pass with 0 errors (warnings are ok):
-cd backend && npm run lint && npm run build
-cd frontend && npm run lint && npm run build
+cd backend && npm run lint:fix && npm run format && npm run lint && npm run build
+cd frontend && npm run lint:fix && npm run format && npm run lint && npm run build
 ```
 
 ### 4. Prisma Relation Names - CRITICAL
@@ -110,16 +110,12 @@ export class ExpenseUploadController {
 
 ### Backend
 ```bash
-cd backend
-npm run lint      # ESLint check
-npm run build     # TypeScript build
+cd backend && npm run lint:fix && npm run format && npm run lint && npm run build
 ```
 
 ### Frontend
 ```bash
-cd frontend
-npm run lint      # ESLint check
-npm run build     # TypeScript + Vite build
+cd frontend && npm run lint:fix && npm run format && npm run lint && npm run build
 ```
 
 **Rule: Both builds must pass before completing any task.**
@@ -135,10 +131,10 @@ npm run build     # TypeScript + Vite build
 ### 2. Run Quality Checks
 ```bash
 # Backend
-cd backend && npm run lint && npm run build
+cd backend && npm run lint:fix && npm run format && npm run lint && npm run build
 
 # Frontend  
-cd frontend && npm run lint && npm run build
+cd frontend && npm run lint:fix && npm run format && npm run lint && npm run build
 ```
 
 ### 3. Fix Any Errors
@@ -149,6 +145,32 @@ cd frontend && npm run lint && npm run build
 ### 4. Document Changes
 - Update relevant docs in `/docs` if API/schema changed
 - Update this file if workflow changes
+- **Update CHANGELOG in `SYSTEM_PROMPT.md`** after every significant code change
+
+---
+
+## CHANGELOG Updates - MANDATORY
+
+**After every significant code change, ALWAYS update the CHANGELOG section at the bottom of `SYSTEM_PROMPT.md`.**
+
+**Format:**
+```markdown
+### YYYY-MM-DD: Brief Title
+**Description**: What was changed or fixed
+**Files Changed**:
+- file path 1
+- file path 2
+```
+
+**Why**: Maintains project history even if AI context resets. Helps new sessions understand past decisions and changes.
+
+**Examples of changes to log:**
+- New features or modules
+- Bug fixes
+- API changes
+- UI/UX changes
+- Database schema changes
+- Important architectural decisions
 
 ---
 
@@ -208,7 +230,7 @@ cd frontend && npm run lint && npm run build
 ## Testing Changes
 
 After any code change:
-1. Run lint + build for both backend and frontend
+1. Run `npm run lint:fix && npm run format && npm run lint && npm run build` for both backend and frontend
 2. If there are runtime errors, check console
 3. Verify the feature works as expected
 4. Update docs if API changed
