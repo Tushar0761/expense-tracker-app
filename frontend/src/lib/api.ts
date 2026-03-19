@@ -314,6 +314,7 @@ export type CategoryFlat = {
     id: number;
     name: string;
     parentId: number | null;
+    parentName?: string | null;
 };
 
 // ==================== ACCOUNT API FUNCTIONS ====================
@@ -337,13 +338,8 @@ export async function deleteAccount(id: number): Promise<void> {
     await api.delete(`/api/accounts/${id}`);
 }
 
-export async function adjustAccountBalance(id: number, amount: number, reason: string): Promise<{ adjustment: any; account: Account }> {
-    const response = await api.post(`/api/accounts/${id}/adjust-balance`, { amount, reason });
-    return response.data;
-}
-
-export async function fetchAccountAdjustments(id: number): Promise<any[]> {
-    const response = await api.get(`/api/accounts/${id}/adjustments`);
+export async function updateAccountBalance(id: number, balance: number): Promise<Account> {
+    const response = await api.put(`/api/accounts/${id}/balance`, { balance });
     return response.data;
 }
 

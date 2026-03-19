@@ -50,7 +50,7 @@ export class ExpensesService {
           emiPaymentId: payload.emiPaymentId,
         },
         include: {
-          category: true,
+          category_master: true,
           account: true,
         },
       });
@@ -88,7 +88,7 @@ export class ExpensesService {
       this.prisma.expenses_data_master.findMany({
         where,
         include: {
-          category: true,
+          category_master: true,
           account: true,
         },
         orderBy: { date: 'desc' },
@@ -106,7 +106,7 @@ export class ExpensesService {
       accountId: exp.accountId,
       accountName: exp.account?.name ?? null,
       categoryId: exp.categoryId,
-      categoryName: exp.category?.name ?? 'Unknown',
+      categoryName: exp.category_master?.name ?? 'Unknown',
       createdAt: exp.createdAt,
     }));
 
@@ -125,7 +125,7 @@ export class ExpensesService {
     const expense = await this.prisma.expenses_data_master.findUnique({
       where: { id },
       include: {
-        category: true,
+        category_master: true,
         account: true,
       },
     });
@@ -140,29 +140,9 @@ export class ExpensesService {
       });
       if (!oldExpense) throw new NotFoundException('Expense not found');
 
-      // 1. Handle Balance Changes
-      if (payload.amount !== undefined || payload.accountId !== undefined) {
-        const newAmount = payload.amount ?? oldExpense.amount;
-        const newAccountId = payload.accountId ?? oldExpense.accountId;
+      // Note: Account balance is manual - expenses do NOT auto-update balance
 
-        // Revert old account balance
-        if (oldExpense.accountId) {
-          await tx.account_master.update({
-            where: { id: oldExpense.accountId },
-            data: { balance: { increment: oldExpense.amount } },
-          });
-        }
-
-        // Apply new account balance
-        if (newAccountId) {
-          await tx.account_master.update({
-            where: { id: newAccountId },
-            data: { balance: { decrement: newAmount } },
-          });
-        }
-      }
-
-      // 2. Update the expense record
+      // Update the expense record
       return tx.expenses_data_master.update({
         where: { id },
         data: {
@@ -183,13 +163,7 @@ export class ExpensesService {
       });
       if (!expense) throw new NotFoundException('Expense not found');
 
-      // Revert account balance
-      if (expense.accountId) {
-        await tx.account_master.update({
-          where: { id: expense.accountId },
-          data: { balance: { increment: expense.amount } },
-        });
-      }
+      // Note: Account balance is manual - expenses do NOT auto-update balance
 
       return tx.expenses_data_master.delete({ where: { id } });
     });
@@ -255,13 +229,13 @@ export class ExpensesService {
     const expenses = await this.prisma.expenses_data_master.findMany({
       where,
       include: {
-        category: true,
+        category_master: true,
       },
     });
 
     const categoryMap = new Map<number, { name: string; total: number }>();
     for (const exp of expenses) {
-      const cat = exp.category;
+      const cat = exp.category_master;
       if (cat) {
         const current = categoryMap.get(cat.id) || { name: cat.name, total: 0 };
         current.total += exp.amount;
@@ -308,7 +282,7 @@ export class ExpensesService {
           orderBy: { date: 'desc' },
           take: 10,
           include: {
-            category: true,
+            category_master: true,
           },
         }),
         this.prisma.account_master.findMany(),
@@ -339,7 +313,7 @@ export class ExpensesService {
         date: format(e.date, 'yyyy-MM-dd'),
         amount: e.amount,
         remarks: e.remarks,
-        categories: e.category ? [e.category.name] : [],
+        categories: e.category_master ? [e.category_master.name] : [],
       })),
     };
   }

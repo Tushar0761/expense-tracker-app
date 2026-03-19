@@ -8,34 +8,22 @@ export class TransfersService {
 
   async create(dto: CreateTransferDto) {
     if (dto.fromAccountId === dto.toAccountId) {
-      throw new BadRequestException('Source and destination accounts must be different');
+      throw new BadRequestException(
+        'Source and destination accounts must be different',
+      );
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Record the transfer
-      const transfer = await tx.transfer_data_master.create({
-        data: {
-          date: new Date(dto.date),
-          amount: dto.amount,
-          fromAccountId: dto.fromAccountId,
-          toAccountId: dto.toAccountId,
-          remarks: dto.remarks,
-        },
-      });
+    // Note: Account balance is manual - transfers do NOT auto-update balance
+    // User must manually update account balances if needed
 
-      // 2. Update Source Account balance (Decrease)
-      await tx.account_master.update({
-        where: { id: dto.fromAccountId },
-        data: { balance: { decrement: dto.amount } },
-      });
-
-      // 3. Update Destination Account balance (Increase)
-      await tx.account_master.update({
-        where: { id: dto.toAccountId },
-        data: { balance: { increment: dto.amount } },
-      });
-
-      return transfer;
+    return this.prisma.transfer_data_master.create({
+      data: {
+        date: new Date(dto.date),
+        amount: dto.amount,
+        fromAccountId: dto.fromAccountId,
+        toAccountId: dto.toAccountId,
+        remarks: dto.remarks,
+      },
     });
   }
 
@@ -50,21 +38,13 @@ export class TransfersService {
   }
 
   async remove(id: number) {
-    return this.prisma.$transaction(async (tx) => {
-      const transfer = await tx.transfer_data_master.findUnique({ where: { id } });
-      if (!transfer) throw new BadRequestException('Transfer not found');
-
-      // Revert balances
-      await tx.account_master.update({
-        where: { id: transfer.fromAccountId },
-        data: { balance: { increment: transfer.amount } },
-      });
-      await tx.account_master.update({
-        where: { id: transfer.toAccountId },
-        data: { balance: { decrement: transfer.amount } },
-      });
-
-      return tx.transfer_data_master.delete({ where: { id } });
+    const transfer = await this.prisma.transfer_data_master.findUnique({
+      where: { id },
     });
+    if (!transfer) throw new BadRequestException('Transfer not found');
+
+    // Note: Account balance is manual - deleting transfer does NOT revert balance
+
+    return this.prisma.transfer_data_master.delete({ where: { id } });
   }
 }

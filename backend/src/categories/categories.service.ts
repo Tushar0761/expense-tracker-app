@@ -35,10 +35,34 @@ export class CategoriesService {
   }
 
   async getAllCategoriesFlat() {
-    // Returns all categories (both parent and child) as a flat list
-    return this.prisma.category_master.findMany({
+    const categories = await this.prisma.category_master.findMany({
       select: { id: true, name: true, parentId: true },
       orderBy: { name: 'asc' },
+    });
+
+    const categoryMap = new Map(categories.map((c) => [c.id, c]));
+
+    return categories.map((cat) => {
+      let parentName: string | null = null;
+      if (cat.parentId) {
+        const parent = categoryMap.get(cat.parentId);
+        if (parent) {
+          if (parent.parentId) {
+            const grandparent = categoryMap.get(parent.parentId);
+            parentName = grandparent
+              ? `${grandparent.name} > ${parent.name}`
+              : parent.name;
+          } else {
+            parentName = parent.name;
+          }
+        }
+      }
+      return {
+        id: cat.id,
+        name: cat.name,
+        parentId: cat.parentId,
+        parentName,
+      };
     });
   }
 

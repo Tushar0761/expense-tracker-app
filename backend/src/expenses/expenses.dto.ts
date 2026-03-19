@@ -26,7 +26,7 @@ export class CreateExpenseDto {
 
   @IsNumber()
   @IsNotEmpty()
-  categoryId: number;  // Single category (not array)
+  categoryId: number; // Single category (not array)
 
   @IsNumber()
   @IsOptional()
@@ -52,7 +52,7 @@ export class UpdateExpenseDto {
 
   @IsNumber()
   @IsOptional()
-  categoryId?: number;  // Single category (not array)
+  categoryId?: number; // Single category (not array)
 
   @IsNumber()
   @IsOptional()

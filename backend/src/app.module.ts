@@ -9,7 +9,13 @@ import { AccountsModule } from './accounts/accounts.module';
 import { TransfersModule } from './transfers/transfers.module';
 
 @Module({
-  imports: [LoansModule, ExpensesModule, CategoriesModule, AccountsModule, TransfersModule],
+  imports: [
+    LoansModule,
+    ExpensesModule,
+    CategoriesModule,
+    AccountsModule,
+    TransfersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
     createCategory,
     createExpense,
@@ -34,10 +35,9 @@ import {
 } from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { X, ChevronLeft, ChevronRight, Calendar, Search } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
-import { subDays } from "date-fns";
+import { format, subDays, addDays } from "date-fns";
+import { X, ChevronLeft, ChevronRight, Calendar, Check, Trash2 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -58,7 +58,7 @@ interface AddExpenseFormProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: () => void;
-    expense?: ExpenseRow | null; // For editing
+    expense?: ExpenseRow | null;
 }
 
 export function AddExpenseForm({
@@ -74,26 +74,25 @@ export function AddExpenseForm({
     const [newCatName, setNewCatName] = useState("");
     const [isCreatingCat, setIsCreatingCat] = useState(false);
 
-    // Fetch data
+    const firstAccountIdRef = useRef<number | null>(null);
+
     const { data: categories = [] } = useQuery<CategoryFlat[]>({
         queryKey: ["categories-flat"],
         queryFn: fetchCategoriesFlat,
         enabled: isOpen,
     });
 
-    const [categorySearch, setCategorySearch] = useState("");
-
-    const filteredCategories = useMemo(() => {
-        if (!categorySearch.trim()) return categories;
-        const search = categorySearch.toLowerCase();
-        return categories.filter(cat => cat.name.toLowerCase().includes(search));
-    }, [categories, categorySearch]);
-
     const { data: accounts = [] } = useQuery<Account[]>({
         queryKey: ["accounts"],
         queryFn: fetchAccounts,
         enabled: isOpen,
     });
+
+    useEffect(() => {
+        if (accounts.length > 0 && firstAccountIdRef.current === null) {
+            firstAccountIdRef.current = accounts[0].id;
+        }
+    }, [accounts]);
 
     const {
         register,
@@ -114,9 +113,12 @@ export function AddExpenseForm({
         },
     });
 
-    // Initialize form when editing
+    const watchedDate = watch("date");
+
     useEffect(() => {
-        if (expense && isOpen) {
+        if (!isOpen) return;
+        
+        if (expense) {
             reset({
                 date: new Date(expense.date),
                 amount: expense.amount,
@@ -124,16 +126,44 @@ export function AddExpenseForm({
                 accountId: expense.accountId || 0,
                 categoryId: expense.categoryId,
             });
-        } else if (isOpen) {
+        } else {
             reset({
                 date: new Date(),
                 amount: 0,
                 remarks: "",
-                accountId: accounts[0]?.id || 0,
+                accountId: firstAccountIdRef.current || 0,
                 categoryId: 0,
             });
         }
-    }, [expense, isOpen, reset, accounts]);
+    }, [isOpen, expense, reset]);
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value) {
+            setValue("date", new Date(value), { shouldValidate: true });
+        }
+    };
+
+    const handleYesterday = () => {
+        const yesterday = subDays(new Date(), 1);
+        setValue("date", yesterday, { shouldValidate: true });
+    };
+
+    const handleToday = () => {
+        setValue("date", new Date(), { shouldValidate: true });
+    };
+
+    const handlePrevDay = () => {
+        const current = watchedDate || new Date();
+        const newDate = addDays(current, -1);
+        setValue("date", newDate, { shouldValidate: true });
+    };
+
+    const handleNextDay = () => {
+        const current = watchedDate || new Date();
+        const newDate = addDays(current, 1);
+        setValue("date", newDate, { shouldValidate: true });
+    };
 
     const mutation = useMutation({
         mutationFn: (payload: CreateExpensePayload) => 
@@ -146,6 +176,7 @@ export function AddExpenseForm({
             onClose();
             onSuccess?.();
             reset();
+            firstAccountIdRef.current = null;
         },
         onError: (error: Error) => {
             toast.error(`Error: ${error.message}`);
@@ -159,7 +190,7 @@ export function AddExpenseForm({
             const newCat = await createCategory({ name: newCatName });
             toast.success("Category created");
             await queryClient.invalidateQueries({ queryKey: ["categories-flat"] });
-            setValue("categoryId", newCat.id);
+            setValue("categoryId", newCat.id, { shouldValidate: true });
             setIsAddCategoryOpen(false);
             setNewCatName("");
         } catch (err: unknown) {
@@ -183,127 +214,121 @@ export function AddExpenseForm({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-2 backdrop-blur-[2px] animate-in fade-in duration-300">
-            <Card className="w-full max-w-md shadow-2xl border-border/50 overflow-hidden bg-card/95">
-                <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/20 py-3 px-4">
+        <div 
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <Card 
+                className="w-full max-w-lg shadow-2xl border-border/50 overflow-hidden bg-card"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 py-4 px-6">
                     <div>
-                        <CardTitle className="text-lg font-bold tracking-tight">
+                        <CardTitle className="text-xl font-bold tracking-tight">
                             {isEditing ? "Edit Expense" : "New Transaction"}
                         </CardTitle>
-                        <p className="text-[11px] text-muted-foreground">
-                            {isEditing ? "Update details" : "Record a new entry"}
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                            {isEditing ? "Update transaction details" : "Record a new expense"}
                         </p>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
-                        <X className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-9 w-9">
+                        <X className="h-5 w-5" />
                     </Button>
                 </CardHeader>
-                <CardContent className="p-4">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Date</Label>
-                                <div className="flex items-center gap-1">
-                                    <div className="relative flex-1">
+                <CardContent className="p-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold text-foreground">Date</Label>
+                                <div className="space-y-2">
+                                    <div className="relative">
                                         <Input
                                             type="date"
-                                            className="h-9 text-xs pr-8"
-                                            {...register("date", {
-                                                setValueAs: (v: string) => v ? new Date(v) : undefined,
-                                            })}
-                                            defaultValue={format(expense ? new Date(expense.date) : new Date(), "yyyy-MM-dd")}
+                                            className="h-11 pr-10 text-sm font-medium cursor-pointer"
+                                            value={watchedDate ? format(watchedDate, "yyyy-MM-dd") : ""}
+                                            onChange={handleDateChange}
                                         />
-                                        <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="h-8 text-sm font-medium flex-1"
+                                            onClick={handleYesterday}
+                                        >
+                                            Yesterday
+                                        </Button>
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="h-8 text-sm font-medium flex-1"
+                                            onClick={handleToday}
+                                        >
+                                            Today
+                                        </Button>
+                                        <div className="flex gap-1">
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="h-8 w-8"
+                                                onClick={handlePrevDay}
+                                                title="Previous day"
+                                            >
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </Button>
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="h-8 w-8"
+                                                onClick={handleNextDay}
+                                                title="Next day"
+                                            >
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-6 text-[10px] px-2 font-medium"
-                                        onClick={() => {
-                                            const yesterday = subDays(new Date(), 1);
-                                            setValue("date", yesterday);
-                                        }}
-                                    >
-                                        Yesterday
-                                    </Button>
-                                    <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-6 text-[10px] px-2 font-medium"
-                                        onClick={() => {
-                                            setValue("date", new Date());
-                                        }}
-                                    >
-                                        Today
-                                    </Button>
-                                    <Button 
-                                        type="button" 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                        onClick={() => {
-                                            const currentValue = watch("date");
-                                            const date = currentValue || new Date();
-                                            const newDate = new Date(date.getFullYear(), date.getMonth() - 1, date.getDate());
-                                            setValue("date", newDate);
-                                        }}
-                                    >
-                                        <ChevronLeft className="h-3 w-3" />
-                                    </Button>
-                                    <Button 
-                                        type="button" 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                        onClick={() => {
-                                            const date = watch("date") || new Date();
-                                            const newDate = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
-                                            setValue("date", newDate);
-                                        }}
-                                    >
-                                        <ChevronRight className="h-3 w-3" />
-                                    </Button>
-                                </div>
-                                {errors.date && <p className="text-[9px] text-red-500">{errors.date.message}</p>}
+                                {errors.date && <p className="text-xs text-red-500">{errors.date.message}</p>}
                             </div>
 
-                            <div className="space-y-1.5">
-                                <Label htmlFor="amount" className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Amount (₹)</Label>
+                            <div className="space-y-2">
+                                <Label htmlFor="amount" className="text-sm font-semibold text-foreground">Amount (₹)</Label>
                                 <div className="relative">
-                                    <span className="absolute left-2.5 top-2 text-muted-foreground text-xs">₹</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-base font-medium">₹</span>
                                     <Input
                                         id="amount"
                                         type="number"
                                         placeholder="0.00"
                                         step="0.01"
-                                        className="pl-6 h-9 font-bold text-xs"
+                                        className="pl-8 h-11 text-base font-bold"
                                         {...register("amount")}
                                     />
                                 </div>
-                                {errors.amount && <p className="text-[9px] text-red-500">{errors.amount.message}</p>}
+                                {errors.amount && <p className="text-xs text-red-500">{errors.amount.message}</p>}
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="accountId" className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Payment Account</Label>
+                        <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-foreground">Payment Account</Label>
                             <Controller
                                 name="accountId"
                                 control={control}
                                 render={({ field }) => (
                                     <Select value={String(field.value)} onValueChange={v => field.onChange(Number(v))}>
-                                        <SelectTrigger className="h-9 text-xs">
-                                            <SelectValue placeholder="Select an account" />
+                                        <SelectTrigger className="h-11 text-sm">
+                                            <SelectValue placeholder="Select payment account" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {accounts.map(acc => (
                                                 <SelectItem key={acc.id} value={String(acc.id)}>
-                                                    <div className="flex items-center gap-2 text-xs">
-                                                        <span>{acc.name}</span>
-                                                        <span className="text-[9px] opacity-50 tabular-nums">₹{acc.balance.toLocaleString()}</span>
+                                                    <div className="flex items-center justify-between w-full">
+                                                        <span className="font-medium">{acc.name}</span>
+                                                        <span className="text-muted-foreground ml-2">₹{acc.balance.toLocaleString()}</span>
                                                     </div>
                                                 </SelectItem>
                                             ))}
@@ -311,68 +336,64 @@ export function AddExpenseForm({
                                     </Select>
                                 )}
                             />
-                            {errors.accountId && <p className="text-[9px] text-red-500">{errors.accountId.message}</p>}
+                            {errors.accountId && <p className="text-xs text-red-500">{errors.accountId.message}</p>}
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Category</Label>
-                                <Button type="button" variant="ghost" size="sm" className="h-6 text-primary text-[10px] font-bold px-1" onClick={() => setIsAddCategoryOpen(true)}>
-                                    + ADD NEW
+                                <Label className="text-sm font-semibold text-foreground">Category</Label>
+                                <Button 
+                                    type="button" 
+                                    variant="link" 
+                                    size="sm" 
+                                    className="h-7 text-sm font-semibold text-primary p-0"
+                                    onClick={() => setIsAddCategoryOpen(true)}
+                                >
+                                    + Add New
                                 </Button>
                             </div>
                             <Controller
                                 name="categoryId"
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ""}>
-                                        <SelectTrigger className="h-9 text-xs">
-                                            <SelectValue placeholder="Select category" />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-[200px]">
-                                            <div className="p-2 border-b">
-                                                <div className="relative">
-                                                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                                                    <Input
-                                                        placeholder="Search categories..."
-                                                        value={categorySearch}
-                                                        onChange={(e) => setCategorySearch(e.target.value)}
-                                                        className="h-7 text-xs pl-7"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                </div>
-                                            </div>
-                                            {filteredCategories.map(cat => (
-                                                <SelectItem key={cat.id} value={cat.id.toString()} className="text-xs">
-                                                    {cat.name}
-                                                </SelectItem>
-                                            ))}
-                                            {filteredCategories.length === 0 && (
-                                                <div className="p-2 text-xs text-muted-foreground text-center">No categories found</div>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <SearchableSelect
+                                        value={field.value === 0 ? null : field.value}
+                                        onChange={field.onChange}
+                                        options={categories}
+                                        placeholder="Select category"
+                                        error={errors.categoryId?.message}
+                                    />
                                 )}
                             />
-                            {errors.categoryId && <p className="text-[9px] text-red-500">{errors.categoryId.message}</p>}
                         </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="remarks" className="text-[11px] font-bold uppercase text-muted-foreground ml-0.5">Notes / Remarks</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="remarks" className="text-sm font-semibold text-foreground">Notes / Remarks</Label>
                             <Input
                                 id="remarks"
-                                placeholder="..."
-                                className="h-9 text-xs"
+                                placeholder="Add notes about this expense..."
+                                className="h-11 text-sm"
                                 {...register("remarks")}
                             />
                         </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <Button type="button" variant="outline" onClick={onClose} className="flex-1 rounded-md h-9 text-xs font-semibold">
+                        <div className="flex gap-3 pt-4">
+                            <Button 
+                                type="button" 
+                                variant="destructive"
+                                onClick={onClose} 
+                                className="flex-1 rounded-lg h-12 text-base font-medium"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
                                 Cancel
                             </Button>
-                            <Button type="submit" className="flex-1 rounded-md h-9 text-xs font-bold" disabled={isSubmitting || mutation.isPending}>
-                                {mutation.isPending ? "..." : isEditing ? "Update" : "Confirm"}
+                            <Button 
+                                type="submit" 
+                                className="flex-1 rounded-lg h-12 text-base font-bold bg-green-600 hover:bg-green-700"
+                                disabled={isSubmitting || mutation.isPending}
+                            >
+                                <Check className="w-4 h-4 mr-2" />
+                                {mutation.isPending ? "Saving..." : isEditing ? "Update" : "Confirm"}
                             </Button>
                         </div>
                     </form>
@@ -380,24 +401,42 @@ export function AddExpenseForm({
             </Card>
 
             <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
-                <DialogContent className="sm:max-w-[400px]">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Quick Add Category</DialogTitle>
+                        <DialogTitle className="text-lg">Add New Category</DialogTitle>
                     </DialogHeader>
                     <div className="py-4 space-y-4">
-                        <Label htmlFor="newCategory">Category Name</Label>
-                        <Input
-                            id="newCategory"
-                            value={newCatName}
-                            onChange={e => setNewCatName(e.target.value)}
-                            placeholder="e.g. Travel, Entertainment"
-                            onKeyDown={e => e.key === "Enter" && handleCreateCategory()}
-                        />
+                        <div className="space-y-2">
+                            <Label htmlFor="newCategory" className="text-sm font-medium">Category Name</Label>
+                            <Input
+                                id="newCategory"
+                                value={newCatName}
+                                onChange={e => setNewCatName(e.target.value)}
+                                placeholder="e.g. Groceries, Entertainment"
+                                className="h-11 text-sm"
+                                onKeyDown={e => e.key === "Enter" && handleCreateCategory()}
+                            />
+                        </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>Cancel</Button>
-                        <Button onClick={handleCreateCategory} disabled={isCreatingCat || !newCatName.trim()}>
-                            {isCreatingCat ? "Saving..." : "Create & Add"}
+                    <DialogFooter className="gap-2">
+                        <Button 
+                            variant="destructive"
+                            onClick={() => {
+                                setIsAddCategoryOpen(false);
+                                setNewCatName("");
+                            }}
+                            className="flex-1 h-10"
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleCreateCategory} 
+                            disabled={isCreatingCat || !newCatName.trim()}
+                            className="flex-1 h-10 bg-green-600 hover:bg-green-700"
+                        >
+                            <Check className="w-4 h-4 mr-2" />
+                            {isCreatingCat ? "Creating..." : "Create & Add"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

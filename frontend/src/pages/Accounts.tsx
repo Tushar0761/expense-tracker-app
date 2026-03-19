@@ -4,7 +4,7 @@ import {
   fetchAccounts, 
   createAccount, 
   updateAccount,
-  adjustAccountBalance,
+  updateAccountBalance,
   fetchTransfers, 
   createTransfer, 
   type Account, 
@@ -103,17 +103,17 @@ export default function Accounts() {
     onError: () => toast.error("Failed to update account"),
   });
 
-  const adjustBalanceMutation = useMutation({
-    mutationFn: ({ id, amount, reason }: { id: number; amount: number; reason: string }) => 
-      adjustAccountBalance(id, amount, reason),
+  const updateBalanceMutation = useMutation({
+    mutationFn: ({ id, balance }: { id: number; balance: number }) => 
+      updateAccountBalance(id, balance),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-kpis"] });
       setIsEditDialogOpen(false);
       setEditingAccount(null);
-      toast.success("Balance adjusted successfully");
+      toast.success("Balance updated successfully");
     },
-    onError: () => toast.error("Failed to adjust balance"),
+    onError: () => toast.error("Failed to update balance"),
   });
 
   const handleCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
@@ -147,7 +147,6 @@ export default function Accounts() {
     
     const newName = formData.get("name") as string;
     const newBalance = Number(formData.get("balance"));
-    const balanceChange = newBalance - editingAccount.balance;
     const creditLimit = editingAccount.type === 'CREDIT' ? Number(formData.get("creditLimit")) : undefined;
 
     // Update name and credit limit
@@ -161,18 +160,16 @@ export default function Accounts() {
       });
     }
 
-    // If balance changed, create an adjustment
-    if (balanceChange !== 0) {
-      const reason = formData.get("reason") as string || `Manual adjustment: ${balanceChange > 0 ? 'Added' : 'Subtracted'} ₹${Math.abs(balanceChange)}`;
-      adjustBalanceMutation.mutate({
+    // If balance changed, update directly
+    if (newBalance !== editingAccount.balance) {
+      updateBalanceMutation.mutate({
         id: editingAccount.id,
-        amount: balanceChange,
-        reason,
+        balance: newBalance,
       });
     }
 
     // Close dialog if no balance change (just name update)
-    if (balanceChange === 0) {
+    if (newBalance === editingAccount.balance) {
       setIsEditDialogOpen(false);
       setEditingAccount(null);
     }
@@ -316,7 +313,7 @@ export default function Accounts() {
               <DialogHeader>
                 <DialogTitle className="text-base">Edit Account</DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Update account name. To change balance, adjust it below (creates audit entry).
+                  Update account name or manually set your current balance.
                 </DialogDescription>
               </DialogHeader>
               {editingAccount && (
@@ -331,7 +328,7 @@ export default function Accounts() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-balance">New Balance (₹)</Label>
+                    <Label htmlFor="edit-balance">Current Balance (₹)</Label>
                     <Input 
                       id="edit-balance" 
                       name="balance" 
@@ -341,16 +338,8 @@ export default function Accounts() {
                       required 
                     />
                     <p className="text-[10px] text-muted-foreground">
-                      Current: ₹{editingAccount.balance.toLocaleString()}. Enter new value to adjust.
+                      Enter your current balance. This won't be affected by expenses.
                     </p>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-reason">Reason for Balance Change</Label>
-                    <Input 
-                      id="edit-reason" 
-                      name="reason" 
-                      placeholder="e.g., Bank statement correction, initial balance setup"
-                    />
                   </div>
                   {editingAccount.type === 'CREDIT' && (
                     <div className="grid gap-2">
@@ -368,9 +357,9 @@ export default function Accounts() {
                     <Button 
                       type="submit" 
                       className="w-full" 
-                      disabled={updateAccountMutation.isPending || adjustBalanceMutation.isPending}
+                      disabled={updateAccountMutation.isPending || updateBalanceMutation.isPending}
                     >
-                      {(updateAccountMutation.isPending || adjustBalanceMutation.isPending) ? "Saving..." : "Save Changes"}
+                      {(updateAccountMutation.isPending || updateBalanceMutation.isPending) ? "Saving..." : "Save Changes"}
                     </Button>
                   </DialogFooter>
                 </form>

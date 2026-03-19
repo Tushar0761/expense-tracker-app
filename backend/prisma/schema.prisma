@@ -29,16 +29,16 @@ model category_master {
 }
 
 model account_master {
-  id                         Int                          @id @default(autoincrement())
-  name                       String
-  type                       account_type
-  balance                    Float                        @default(0)
-  creditLimit                Float?                       @default(0)
-  createdAt                  DateTime                     @default(now())
-  updatedAt                  DateTime                     @default(now()) @updatedAt
-  expenses                   expenses_data_master[]
-  transfersFrom              transfer_data_master[]       @relation("FromAccount")
-  transfersTo                transfer_data_master[]       @relation("ToAccount")
+  id            Int                    @id @default(autoincrement())
+  name          String
+  type          account_type
+  balance       Float                  @default(0)
+  creditLimit   Float?                 @default(0)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @default(now()) @updatedAt
+  expenses      expenses_data_master[]
+  transfersFrom transfer_data_master[] @relation("FromAccount")
+  transfersTo   transfer_data_master[] @relation("ToAccount")
 }
 
 model transfer_data_master {
@@ -141,7 +141,6 @@ model borrower_master {
   updatedAt       DateTime       @default(now())
   loans_master    loans_master[]
 }
-
 
 enum account_type {
   CASH

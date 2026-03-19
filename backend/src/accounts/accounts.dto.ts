@@ -1,5 +1,11 @@
 import { account_type } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateAccountDto {
   @IsString()
@@ -37,12 +43,8 @@ export class UpdateAccountDto {
   creditLimit?: number;
 }
 
-export class AdjustBalanceDto {
+export class UpdateBalanceDto {
   @IsNumber()
   @IsNotEmpty()
-  amount: number;
-
-  @IsString()
-  @IsNotEmpty()
-  reason: string;
+  balance: number;
 }
