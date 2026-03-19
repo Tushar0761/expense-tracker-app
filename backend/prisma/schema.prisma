@@ -18,27 +18,27 @@ model asset_master {
 }
 
 model category_master {
-  id                       Int                        @id @default(autoincrement())
-  name                     String
-  parentId                 Int?
-  parent                   category_master?           @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
-  children                 category_master[]          @relation("category_masterTocategory_master")
-  expense_category_mapping expense_category_mapping[]
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  parentId             Int?
+  parent               category_master?       @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
+  children             category_master[]      @relation("category_masterTocategory_master")
+  expenses_data_master expenses_data_master[]
 
   @@index([parentId], map: "Category_parentId_fkey")
 }
 
 model account_master {
-  id            Int                    @id @default(autoincrement())
-  name          String
-  type          account_type
-  balance       Float                  @default(0)
-  creditLimit   Float?                 @default(0)
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @default(now()) @updatedAt
-  expenses      expenses_data_master[]
-  transfersFrom transfer_data_master[] @relation("FromAccount")
-  transfersTo   transfer_data_master[] @relation("ToAccount")
+  id                         Int                          @id @default(autoincrement())
+  name                       String
+  type                       account_type
+  balance                    Float                        @default(0)
+  creditLimit                Float?                       @default(0)
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @default(now()) @updatedAt
+  expenses                   expenses_data_master[]
+  transfersFrom              transfer_data_master[]       @relation("FromAccount")
+  transfersTo                transfer_data_master[]       @relation("ToAccount")
 }
 
 model transfer_data_master {
@@ -76,19 +76,21 @@ model emi_payment_data {
 }
 
 model expenses_data_master {
-  id                       Int                        @id @default(autoincrement())
-  date                     DateTime
-  amount                   Float
-  remarks                  String?
-  accountId                Int?
-  createdAt                DateTime                   @default(now())
-  emiPaymentId             Int?
-  expense_category_mapping expense_category_mapping[]
-  account                  account_master?            @relation(fields: [accountId], references: [id])
-  emi_payment_data         emi_payment_data?          @relation(fields: [emiPaymentId], references: [id], map: "fk_expense_emiPayment")
+  id               Int               @id @default(autoincrement())
+  date             DateTime
+  amount           Float
+  remarks          String?
+  accountId        Int?
+  createdAt        DateTime          @default(now())
+  emiPaymentId     Int?
+  categoryId       Int
+  account          account_master?   @relation(fields: [accountId], references: [id])
+  category_master  category_master   @relation(fields: [categoryId], references: [id])
+  emi_payment_data emi_payment_data? @relation(fields: [emiPaymentId], references: [id], map: "fk_expense_emiPayment")
 
   @@index([accountId])
   @@index([emiPaymentId], map: "fk_expense_emiPayment")
+  @@index([categoryId])
 }
 
 model future_payment_data_master {
@@ -140,16 +142,6 @@ model borrower_master {
   loans_master    loans_master[]
 }
 
-model expense_category_mapping {
-  expenseId            Int
-  categoryId           Int
-  category_master      category_master      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  expenses_data_master expenses_data_master @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-
-  @@id([expenseId, categoryId])
-  @@index([categoryId])
-  @@index([expenseId])
-}
 
 enum account_type {
   CASH
