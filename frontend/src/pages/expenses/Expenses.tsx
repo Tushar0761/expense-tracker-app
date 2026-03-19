@@ -1,4 +1,6 @@
 import { AddExpenseForm } from "@/components/AddExpenseForm";
+import { BulkExpenseForm } from "@/components/BulkExpenseForm";
+import { BulkUpload } from "@/components/BulkUpload";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -22,7 +24,7 @@ import {
     useQueryClient,
 } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Filter, PieChartIcon, Plus, Trash2, Edit2, Wallet } from "lucide-react";
+import { Filter, PieChartIcon, Plus, Trash2, Edit2, Wallet, List, Upload } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,6 +38,8 @@ export function Expenses() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [showUploadModal, setShowUploadModal] = useState(false);
     const [editingExpense, setEditingExpense] = useState<ExpenseRow | null>(null);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
@@ -149,6 +153,24 @@ export function Expenses() {
                         className="gap-1.5 h-8 text-xs"
                     >
                         <Plus size={14} /> Add Expense
+                    </Button>
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowBulkModal(true)}
+                        className="gap-1.5 h-8 text-xs"
+                    >
+                        <List size={14} /> Bulk Add
+                    </Button>
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowUploadModal(true)}
+                        className="gap-1.5 h-8 text-xs"
+                    >
+                        <Upload size={14} /> Bulk Upload
                     </Button>
                 </div>
             </div>
@@ -378,6 +400,26 @@ export function Expenses() {
                 isOpen={showModal}
                 onClose={handleCloseModal}
                 expense={editingExpense}
+            />
+
+            {/* Bulk Add Modal */}
+            <BulkExpenseForm
+                isOpen={showBulkModal}
+                onClose={() => setShowBulkModal(false)}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ["expenses"] });
+                    queryClient.invalidateQueries({ queryKey: ["dashboard-kpis"] });
+                }}
+            />
+
+            {/* Bulk Upload Modal */}
+            <BulkUpload
+                isOpen={showUploadModal}
+                onClose={() => setShowUploadModal(false)}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ["expenses"] });
+                    queryClient.invalidateQueries({ queryKey: ["dashboard-kpis"] });
+                }}
             />
         </div>
     );

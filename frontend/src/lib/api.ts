@@ -324,12 +324,17 @@ export async function fetchAccounts(): Promise<Account[]> {
     return response.data;
 }
 
-export async function createAccount(data: CreateAccountPayload): Promise<Account> {
+export async function createAccount(
+    data: CreateAccountPayload,
+): Promise<Account> {
     const response = await api.post("/api/accounts", data);
     return response.data;
 }
 
-export async function updateAccount(id: number, data: Partial<CreateAccountPayload>): Promise<Account> {
+export async function updateAccount(
+    id: number,
+    data: Partial<CreateAccountPayload>,
+): Promise<Account> {
     const response = await api.put(`/api/accounts/${id}`, data);
     return response.data;
 }
@@ -338,7 +343,10 @@ export async function deleteAccount(id: number): Promise<void> {
     await api.delete(`/api/accounts/${id}`);
 }
 
-export async function updateAccountBalance(id: number, balance: number): Promise<Account> {
+export async function updateAccountBalance(
+    id: number,
+    balance: number,
+): Promise<Account> {
     const response = await api.put(`/api/accounts/${id}/balance`, { balance });
     return response.data;
 }
@@ -350,7 +358,9 @@ export async function fetchTransfers(): Promise<Transfer[]> {
     return response.data;
 }
 
-export async function createTransfer(data: CreateTransferPayload): Promise<Transfer> {
+export async function createTransfer(
+    data: CreateTransferPayload,
+): Promise<Transfer> {
     const response = await api.post("/api/transfers", data);
     return response.data;
 }
@@ -377,6 +387,13 @@ export async function createExpense(
     data: CreateExpensePayload,
 ): Promise<ExpenseRow> {
     const response = await api.post("/api/expenses/create", data);
+    return response.data;
+}
+
+export async function bulkCreateExpenses(
+    data: CreateExpensePayload[],
+): Promise<ExpenseRow[]> {
+    const response = await api.post("/api/expenses/bulk-create", data);
     return response.data;
 }
 
@@ -470,5 +487,79 @@ export async function fetchCategoryTotals(params?: {
 
 export async function fetchDashboardKPIs(): Promise<DashboardKPIs> {
     const response = await api.get("/api/expenses/dashboard");
+    return response.data;
+}
+
+export interface UploadValidationError {
+    rowNumber: number;
+    field: string;
+    value: string;
+    error: string;
+}
+
+export interface UploadResult {
+    inserted: number;
+    updated: number;
+    deleted: number;
+    errors: UploadValidationError[];
+}
+
+export async function downloadExpenseTemplate(
+    year?: number,
+    month?: number,
+): Promise<void> {
+    const params = new URLSearchParams();
+    if (year) params.set('year', year.toString());
+    if (month) params.set('month', month.toString());
+
+    const queryString = params.toString();
+    const url = `${API_BASE_URL}/api/expense-excel/template${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+            errorData.message ||
+                `Failed to download template (${response.status})`,
+        );
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (
+        !contentType?.includes("spreadsheet") &&
+        !contentType?.includes("excel") &&
+        !contentType?.includes("application/vnd")
+    ) {
+        const text = await response.text();
+        throw new Error(`Invalid response: ${text.substring(0, 200)}`);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = year && month
+        ? `expenses_${year}_${month.toString().padStart(2, '0')}.xlsx`
+        : "expense_template.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(downloadUrl);
+}
+
+export async function uploadExpenseFile(file: File): Promise<UploadResult> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post<UploadResult>(
+        "/api/expense-excel/upload",
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        },
+    );
     return response.data;
 }

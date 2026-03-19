@@ -27,6 +27,12 @@ export class ExpensesController {
     return this.expensesService.createExpense(createExpenseDto);
   }
 
+  @Post('bulk-create')
+  @HttpCode(201)
+  bulkCreateExpenses(@Body() createExpenseDtos: CreateExpenseDto[]) {
+    return this.expensesService.bulkCreateExpenses(createExpenseDtos);
+  }
+
   @Get('summary')
   getSummary(@Query() query: ExpenseSummaryQueryDto) {
     return this.expensesService.getExpenseSummary(query);

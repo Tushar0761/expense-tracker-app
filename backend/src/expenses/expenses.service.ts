@@ -59,6 +59,25 @@ export class ExpensesService {
     });
   }
 
+  async bulkCreateExpenses(payloads: CreateExpenseDto[]) {
+    return this.prisma.$transaction(async (tx) => {
+      const results = await Promise.all(
+        payloads.map((payload) =>
+          tx.expenses_data_master.create({
+            data: {
+              date: new Date(payload.date),
+              amount: payload.amount,
+              remarks: payload.remarks,
+              accountId: payload.accountId,
+              categoryId: payload.categoryId,
+            },
+          }),
+        ),
+      );
+      return results;
+    });
+  }
+
   async getExpenses(query: ExpenseQueryDto) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;

@@ -7,6 +7,7 @@ import { LoansModule } from './loans/loans.module';
 
 import { AccountsModule } from './accounts/accounts.module';
 import { TransfersModule } from './transfers/transfers.module';
+import { ExpenseUploadModule } from './expense-upload/expense-upload.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TransfersModule } from './transfers/transfers.module';
     CategoriesModule,
     AccountsModule,
     TransfersModule,
+    ExpenseUploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

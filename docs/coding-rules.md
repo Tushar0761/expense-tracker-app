@@ -17,7 +17,28 @@
 3. If new table/column: create migration manually or use `npx prisma db push`
 4. Update relevant service/controller files
 
-### 3. Prisma Relation Names - CRITICAL
+### 3. Fix Lint/Build Errors - MANDATORY ⚠️
+
+**ALWAYS fix ALL lint and build ERRORS before completing any task.**
+
+- **Errors**: Must be fixed immediately - do not skip
+- **Warnings**: Can be skipped if they require over-engineering (excessive type casting, complex workarounds)
+
+**Practical approach:**
+- ESLint errors → fix (unless they require `any` over-engineering)
+- TypeScript errors → fix immediately
+- Build failures → fix before proceeding
+- Warnings that need `as any`, complex type workarounds, or `// eslint-disable` → skip after reasonable attempts
+
+**NEVER skip actual errors. Only skip warnings that cause more harm to fix than to leave.**
+
+```bash
+# Both must pass with 0 errors (warnings are ok):
+cd backend && npm run lint && npm run build
+cd frontend && npm run lint && npm run build
+```
+
+### 4. Prisma Relation Names - CRITICAL
 
 **Always use the exact relation name from schema.prisma in include statements!**
 
@@ -41,6 +62,47 @@ include: {
 ```
 
 After any schema change, always run: `cd backend && npx prisma generate`
+
+### 4. Route Naming - CRITICAL ⚠️
+
+**NEVER use duplicate route prefixes for different controllers!**
+
+**Example of WRONG route conflict:**
+```typescript
+// expense.controller.ts
+@Controller('expenses')
+export class ExpensesController {
+  @Get(':id') getExpense() {}  // /api/expenses/:id
+}
+
+// expense-upload.controller.ts (SAME ROUTE PREFIX!)
+@Controller('expenses')
+export class ExpenseUploadController {
+  @Get('template') downloadTemplate() {}  // /api/expenses/template
+}
+// ❌ CONFLICT! Backend may route to wrong controller
+```
+
+**CORRECT - Use unique route prefixes:**
+```typescript
+// expense.controller.ts
+@Controller('expenses')
+export class ExpensesController {
+  @Get(':id') getExpense() {}  // /api/expenses/:id
+}
+
+// expense-upload.controller.ts (DIFFERENT ROUTE PREFIX)
+@Controller('expense-excel')
+export class ExpenseUploadController {
+  @Get('template') downloadTemplate() {}  // /api/expense-excel/template
+}
+// ✅ NO CONFLICT
+```
+
+**Always verify:**
+1. Check existing `@Controller('route')` decorators in ALL controllers
+2. Use unique route prefixes for new modules
+3. Match frontend API calls exactly with backend routes
 
 ---
 

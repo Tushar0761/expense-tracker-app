@@ -36,6 +36,49 @@ Base URL: `http://localhost:3000/api`
 | GET | `/expenses/category-totals` | Get category totals | Query: `startDate, endDate` |
 | GET | `/expenses/dashboard` | Get dashboard KPIs | - |
 
+## Expense Excel Upload (`/expense-excel`)
+
+| Method | Endpoint | Description | Body |
+|--------|----------|-------------|------|
+| GET | `/expense-excel/template` | Download Excel template | Query: `year`, `month` (optional) |
+| POST | `/expense-excel/upload` | Upload Excel/CSV file | `multipart/form-data with 'file' field` |
+
+### Template Download
+- Without params: Downloads blank template
+- With `year` & `month`: Downloads template pre-filled with that month's expenses
+
+Example: `GET /api/expense-excel/template?year=2024&month=3`
+
+### Template Format (Excel)
+Columns: `id`, `date`, `amount`, `account`, `category`, `note`, `delete`
+- `id`: Blank for new entries, or existing ID to update
+- `amount`: Expense amount (required for new entries)
+- `account` & `category`: Use dropdown values from Lists sheet
+- `note`: Optional remarks (max 500 chars)
+- `delete`: Enter "yes" to delete (only works with existing ID)
+
+### Upload Response
+```json
+{
+  "inserted": 5,
+  "updated": 2,
+  "deleted": 1,
+  "errors": []
+}
+```
+
+If validation errors occur:
+```json
+{
+  "inserted": 0,
+  "updated": 0,
+  "deleted": 0,
+  "errors": [
+    { "rowNumber": 3, "field": "category", "value": "Invalid", "error": "Category not found" }
+  ]
+}
+```
+
 ## Transfers (`/transfers`)
 
 | Method | Endpoint | Description | Body |
