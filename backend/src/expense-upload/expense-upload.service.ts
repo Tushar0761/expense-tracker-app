@@ -24,23 +24,74 @@ export interface ParsedRow {
 export class ExpenseUploadService {
   constructor(private prisma: PrismaService) {}
 
+  private async getLeafCategoriesWithFullPath() {
+    const categories = await this.prisma.category_master.findMany({
+      select: {
+        id: true,
+        name: true,
+        level: true,
+        parentId: true,
+        children: {
+          select: { id: true },
+        },
+        parent: {
+          select: {
+            id: true,
+            name: true,
+            level: true,
+            parent: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return categories
+      .filter((cat) => cat.children.length === 0)
+      .map((cat) => {
+        let fullPath: string | null = null;
+
+        if (cat.parent) {
+          if (cat.parent.level === 1) {
+            fullPath = `${cat.parent.name} > ${cat.name}`;
+          } else if (cat.parent.level === 2 && cat.parent.parent) {
+            fullPath = `${cat.parent.parent.name} > ${cat.parent.name} > ${cat.name}`;
+          } else if (cat.parent.level === 2) {
+            fullPath = `${cat.parent.name} > ${cat.name}`;
+          }
+        } else {
+          fullPath = cat.name;
+        }
+
+        return {
+          id: cat.id,
+          name: cat.name,
+          level: cat.level,
+          parentId: cat.parentId,
+          fullPath,
+        };
+      });
+  }
+
   async generateTemplate(year?: number, month?: number): Promise<Buffer> {
-    const [accounts, categories] = await Promise.all([
+    const [accounts, leafCategories] = await Promise.all([
       this.prisma.account_master.findMany({
         select: { id: true, name: true },
         orderBy: { name: 'asc' },
       }),
-      this.prisma.category_master.findMany({
-        select: { id: true, name: true, parentId: true },
-        orderBy: { name: 'asc' },
-      }),
+      this.getLeafCategoriesWithFullPath(),
     ]);
 
     const accountMap = new Map(
       accounts.map((a) => [a.id, `${a.name}--${a.id}`]),
     );
     const categoryMap = new Map(
-      categories.map((c) => [c.id, `${c.name}--${c.id}`]),
+      leafCategories.map((c) => [c.id, `${c.fullPath}--${c.id}`]),
     );
 
     let expenses: {
@@ -82,11 +133,11 @@ export class ExpenseUploadService {
 
     listsSheet.columns = [
       { header: 'AccountName--AccountId', key: 'account', width: 40 },
-      { header: 'CategoryName--CategoryId', key: 'category', width: 40 },
+      { header: 'CategoryName--CategoryId', key: 'category', width: 50 },
     ];
 
     const accountOptions = accounts.map((a) => `${a.name}--${a.id}`);
-    const categoryOptions = categories.map((c) => `${c.name}--${c.id}`);
+    const categoryOptions = leafCategories.map((c) => `${c.fullPath}--${c.id}`);
 
     let rowNum = 2;
     const maxOptions = Math.max(accountOptions.length, categoryOptions.length);
@@ -101,14 +152,14 @@ export class ExpenseUploadService {
     }
 
     listsSheet.getColumn(1).width = 40;
-    listsSheet.getColumn(2).width = 40;
+    listsSheet.getColumn(2).width = 50;
 
     dataSheet.columns = [
       { header: 'id', key: 'id', width: 15 },
       { header: 'date', key: 'date', width: 15 },
       { header: 'amount', key: 'amount', width: 15 },
       { header: 'account', key: 'account', width: 30 },
-      { header: 'category', key: 'category', width: 30 },
+      { header: 'category', key: 'category', width: 40 },
       { header: 'note', key: 'note', width: 30 },
       { header: 'delete', key: 'delete', width: 10 },
     ];
@@ -169,7 +220,7 @@ export class ExpenseUploadService {
       categoryCell.dataValidation = {
         type: 'list',
         allowBlank: true,
-        formulae: ['Lists!$B$2:$B$' + (categories.length + 1)],
+        formulae: ['Lists!$B$2:$B$' + (leafCategories.length + 1)],
         showErrorMessage: true,
         errorTitle: 'Invalid Entry',
         error: 'Please select a category from the dropdown.',
@@ -211,7 +262,7 @@ export class ExpenseUploadService {
       categoryCell.dataValidation = {
         type: 'list',
         allowBlank: true,
-        formulae: ['Lists!$B$2:$B$' + (categories.length + 1)],
+        formulae: ['Lists!$B$2:$B$' + (leafCategories.length + 1)],
         showErrorMessage: true,
         errorTitle: 'Invalid Entry',
         error: 'Please select a category from the dropdown.',
@@ -246,20 +297,18 @@ export class ExpenseUploadService {
       throw new BadRequestException('Expenses sheet not found in the file');
     }
 
-    const [accounts, categories, existingExpenses] = await Promise.all([
+    const [accounts, leafCategories, existingExpenses] = await Promise.all([
       this.prisma.account_master.findMany({
         select: { id: true, name: true },
       }),
-      this.prisma.category_master.findMany({
-        select: { id: true, name: true },
-      }),
+      this.getLeafCategoriesWithFullPath(),
       this.prisma.expenses_data_master.findMany({
         select: { id: true },
       }),
     ]);
 
     const accountIds = new Set(accounts.map((a) => String(a.id)));
-    const categoryIds = new Set(categories.map((c) => String(c.id)));
+    const categoryIds = new Set(leafCategories.map((c) => String(c.id)));
     const expenseIds = new Set(existingExpenses.map((e) => e.id));
 
     const errors: ValidationError[] = [];
@@ -501,15 +550,13 @@ export class ExpenseUploadService {
     const accounts = await this.prisma.account_master.findMany({
       select: { id: true, name: true },
     });
-    const categories = await this.prisma.category_master.findMany({
-      select: { id: true, name: true },
-    });
+    const leafCategories = await this.getLeafCategoriesWithFullPath();
 
     const accountMap = new Map(
       accounts.map((a) => [`${a.name}--${a.id}`, a.id]),
     );
     const categoryMap = new Map(
-      categories.map((c) => [`${c.name}--${c.id}`, c.id]),
+      leafCategories.map((c) => [`${c.fullPath}--${c.id}`, c.id]),
     );
 
     let inserted = 0;

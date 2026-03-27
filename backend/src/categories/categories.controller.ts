@@ -6,23 +6,34 @@ import {
   HttpCode,
   Param,
   Post,
+  Put,
+  Query,
 } from '@nestjs/common';
-import { CreateCategoryDto } from './categories.dto';
 import { CategoriesService } from './categories.service';
+import {
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  CategoryQueryDto,
+} from './categories.dto';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(201)
   createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.createCategory(createCategoryDto);
   }
 
   @Get()
-  getCategories() {
-    return this.categoriesService.getCategories();
+  getCategories(@Query() query: CategoryQueryDto) {
+    return this.categoriesService.getCategories(query);
+  }
+
+  @Get('tree')
+  getCategoryTree() {
+    return this.categoriesService.getCategoryTree();
   }
 
   @Get('flat')
@@ -30,9 +41,32 @@ export class CategoriesController {
     return this.categoriesService.getAllCategoriesFlat();
   }
 
+  @Get('leaf')
+  getLeafCategories() {
+    return this.categoriesService.getLeafCategories();
+  }
+
+  @Get('stats')
+  getCategoryStats(@Query() query: CategoryQueryDto) {
+    return this.categoriesService.getCategoryStats(query);
+  }
+
+  @Get(':id')
+  getCategoryById(@Param('id') id: string) {
+    return this.categoriesService.getCategoryById(Number(id));
+  }
+
   @Get(':id/subcategories')
   getSubcategories(@Param('id') id: string) {
     return this.categoriesService.getSubcategories(Number(id));
+  }
+
+  @Put(':id')
+  updateCategory(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
+    return this.categoriesService.updateCategory(Number(id), updateCategoryDto);
   }
 
   @Delete(':id')

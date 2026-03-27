@@ -63,19 +63,16 @@ export class ExpenseUploadController {
       'text/csv',
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(
         'Invalid file type. Please upload .xlsx or .csv file.',
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (file.size > 5 * 1024 * 1024) {
       throw new BadRequestException('File size exceeds 5MB limit');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     const result = await this.expenseUploadService.processUpload(file.buffer);
 
     return result;

@@ -20,6 +20,7 @@ model asset_master {
 model category_master {
   id                   Int                    @id @default(autoincrement())
   name                 String
+  level                Int                    @default(1)
   parentId             Int?
   parent               category_master?       @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
   children             category_master[]      @relation("category_masterTocategory_master")
