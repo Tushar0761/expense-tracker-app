@@ -322,7 +322,7 @@ export type SubCategory = {
   id: number;
   name: string;
   level: number;
-  parentId: number;
+  parentId?: number;
 };
 
 // ==================== ACCOUNT API FUNCTIONS ====================

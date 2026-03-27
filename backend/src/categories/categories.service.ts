@@ -103,6 +103,14 @@ export class CategoriesService {
             level: true,
           },
         },
+        children: {
+          select: {
+            id: true,
+            name: true,
+            level: true,
+          },
+          orderBy: { name: 'asc' },
+        },
       },
       orderBy: { name: 'asc' },
     });
@@ -136,6 +144,7 @@ export class CategoriesService {
         parentName,
         parentLevel,
         fullPath,
+        subCategories: cat.children,
       };
     });
   }
@@ -159,7 +168,7 @@ export class CategoriesService {
         level: number;
         children: ReturnType<typeof buildTree>;
       }[] = [];
-      
+
       allCategories
         .filter((cat) => cat.parentId === parentId && cat.level === level)
         .forEach((cat) => {
@@ -170,7 +179,7 @@ export class CategoriesService {
             children: level < 3 ? buildTree(cat.id, level + 1) : [],
           });
         });
-      
+
       return result;
     };
 
