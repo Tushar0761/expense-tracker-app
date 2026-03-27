@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   bulkCreateExpenses,
-  fetchCategoriesFlat,
+  fetchLeafCategories,
   fetchAccounts,
   type CategoryFlat,
   type CreateExpensePayload,
@@ -12,7 +12,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { X, Plus, Copy, Trash2, Check, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface BulkExpenseRow {
@@ -40,11 +40,10 @@ export function BulkExpenseForm({
 }: BulkExpenseFormProps) {
   const [rows, setRows] = useState<BulkExpenseRow[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
   const { data: categories = [] } = useQuery<CategoryFlat[]>({
-    queryKey: ['categories-flat'],
-    queryFn: fetchCategoriesFlat,
+    queryKey: ['categories-leaf'],
+    queryFn: fetchLeafCategories,
     enabled: isOpen,
   });
 
@@ -54,25 +53,25 @@ export function BulkExpenseForm({
     enabled: isOpen,
   });
 
+  const createEmptyRow = useCallback<() => BulkExpenseRow>(
+    () => ({
+      id: crypto.randomUUID(),
+      date: format(new Date(), 'yyyy-MM-dd'),
+      description: '',
+      categoryId: null,
+      amount: null,
+      accountId: defaultAccountId ?? accounts[0]?.id ?? null,
+      hasError: false,
+    }),
+    [defaultAccountId, accounts],
+  );
+
   useEffect(() => {
-    if (isOpen && !initialized) {
-      const newRow: BulkExpenseRow = {
-        id: crypto.randomUUID(),
-        date: format(new Date(), 'yyyy-MM-dd'),
-        description: '',
-        categoryId: null,
-        amount: null,
-        accountId: defaultAccountId ?? accounts[0]?.id ?? null,
-        hasError: false,
-      };
-      setRows([newRow]);
+    if (isOpen && accounts.length > 0) {
+      setRows([createEmptyRow()]);
       setHasSubmitted(false);
-      setInitialized(true);
     }
-    if (!isOpen) {
-      setInitialized(false);
-    }
-  }, [isOpen, initialized]);
+  }, [isOpen, accounts, createEmptyRow]);
 
   const duplicateRow = (index: number) => {
     const sourceRow = rows[index];
@@ -290,6 +289,7 @@ export function BulkExpenseForm({
                             : undefined
                         }
                         className="text-sm"
+                        showFullPath
                       />
                     </td>
                     <td className="px-3 py-2">

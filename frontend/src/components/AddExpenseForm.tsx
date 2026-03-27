@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   Select,
   SelectContent,
@@ -16,30 +17,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   createCategory,
   createExpense,
-  updateExpense,
-  fetchCategoriesFlat,
   fetchAccounts,
+  fetchLeafCategories,
+  updateExpense,
+  type Account,
   type CategoryFlat,
   type CreateExpensePayload,
   type ExpenseRow,
-  type Account,
 } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, subDays, addDays } from 'date-fns';
+import { addDays, format, subDays } from 'date-fns';
 import {
-  X,
-  ChevronLeft,
-  ChevronRight,
   Calendar,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Trash2,
+  X,
 } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -79,8 +79,8 @@ export function AddExpenseForm({
   const firstAccountIdRef = useRef<number | null>(null);
 
   const { data: categories = [] } = useQuery<CategoryFlat[]>({
-    queryKey: ['categories-flat'],
-    queryFn: fetchCategoriesFlat,
+    queryKey: ['categories-leaf'],
+    queryFn: fetchLeafCategories,
     enabled: isOpen,
   });
 
@@ -193,7 +193,8 @@ export function AddExpenseForm({
     try {
       const newCat = await createCategory({ name: newCatName });
       toast.success('Category created');
-      await queryClient.invalidateQueries({ queryKey: ['categories-flat'] });
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+      await queryClient.invalidateQueries({ queryKey: ['categories-leaf'] });
       setValue('categoryId', newCat.id, { shouldValidate: true });
       setIsAddCategoryOpen(false);
       setNewCatName('');
@@ -405,6 +406,7 @@ export function AddExpenseForm({
                     options={categories}
                     placeholder="Select category"
                     error={errors.categoryId?.message}
+                    showFullPath
                   />
                 )}
               />

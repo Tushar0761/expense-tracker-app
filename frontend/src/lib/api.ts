@@ -299,22 +299,30 @@ export type ExpenseSummaryParams = {
 
 // ==================== CATEGORY TYPES ====================
 
-export type SubCategory = {
-  id: number;
-  name: string;
-};
-
 export type CategoryWithSubs = {
   id: number;
   name: string;
+  level: number;
+  parentId: number | null;
+  parentName?: string | null;
+  fullPath?: string;
   subCategories: SubCategory[];
 };
 
 export type CategoryFlat = {
   id: number;
   name: string;
+  level: number;
   parentId: number | null;
   parentName?: string | null;
+  fullPath?: string;
+};
+
+export type SubCategory = {
+  id: number;
+  name: string;
+  level: number;
+  parentId: number;
 };
 
 // ==================== ACCOUNT API FUNCTIONS ====================
@@ -428,18 +436,42 @@ export async function fetchCategoriesFlat(): Promise<CategoryFlat[]> {
   return response.data;
 }
 
-export async function fetchSubcategories(
-  categoryId: number,
-): Promise<SubCategory[]> {
-  const response = await api.get(`/api/categories/${categoryId}/subcategories`);
+export async function fetchCategoriesTree(): Promise<any> {
+  const response = await api.get('/api/categories/tree');
+  return response.data;
+}
+
+export async function fetchLeafCategories(): Promise<CategoryFlat[]> {
+  const response = await api.get('/api/categories/leaf');
+  return response.data;
+}
+
+export async function fetchCategoryStats(query: {
+  level?: number;
+  parentId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+}): Promise<any> {
+  const params = new URLSearchParams();
+  if (query.level !== undefined) params.set('level', query.level.toString());
+  if (query.parentId !== undefined)
+    params.set('parentId', query.parentId.toString());
+  if (query.dateFrom !== undefined) params.set('dateFrom', query.dateFrom);
+  if (query.dateTo !== undefined) params.set('dateTo', query.dateTo);
+
+  const queryString = params.toString();
+  const url = `/api/categories/stats${queryString ? `?${queryString}` : ''}`;
+
+  const response = await api.get(url);
   return response.data;
 }
 
 export async function createCategory(data: {
   name: string;
   parentId?: number;
+  level?: number;
 }): Promise<CategoryFlat> {
-  const response = await api.post('/api/categories/create', data);
+  const response = await api.post('/api/categories', data);
   return response.data;
 }
 

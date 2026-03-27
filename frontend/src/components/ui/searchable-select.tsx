@@ -7,6 +7,8 @@ interface OptionItem {
   id: number;
   name: string;
   parentName?: string | null;
+  level?: number;
+  fullPath?: string;
 }
 
 interface SearchableSelectProps {
@@ -16,6 +18,7 @@ interface SearchableSelectProps {
   placeholder?: string;
   error?: string;
   className?: string;
+  showFullPath?: boolean;
 }
 
 export const SearchableSelect = React.forwardRef<
@@ -23,7 +26,15 @@ export const SearchableSelect = React.forwardRef<
   SearchableSelectProps
 >(
   (
-    { value, onChange, options, placeholder = 'Select...', error, className },
+    {
+      value,
+      onChange,
+      options,
+      placeholder = 'Select...',
+      error,
+      className,
+      showFullPath,
+    },
     ref,
   ) => {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -48,7 +59,8 @@ export const SearchableSelect = React.forwardRef<
         (opt) =>
           opt.name.toLowerCase().includes(searchLower) ||
           (opt.parentName &&
-            opt.parentName.toLowerCase().includes(searchLower)),
+            opt.parentName.toLowerCase().includes(searchLower)) ||
+          (opt.fullPath && opt.fullPath.toLowerCase().includes(searchLower)),
       );
     }, [options, search]);
 
@@ -178,10 +190,17 @@ export const SearchableSelect = React.forwardRef<
                         'font-medium',
                         option.id === value && 'text-primary',
                       )}
+                      style={{
+                        paddingLeft: option.level
+                          ? `${(option.level - 1) * 16}px`
+                          : 0,
+                      }}
                     >
-                      {option.name}
+                      {showFullPath && option.fullPath
+                        ? option.fullPath
+                        : option.name}
                     </span>
-                    {option.parentName && (
+                    {option.parentName && !showFullPath && (
                       <span className="text-xs text-muted-foreground">
                         {option.parentName}
                       </span>
@@ -209,13 +228,14 @@ export const SearchableSelect = React.forwardRef<
           )}
         >
           {selectedOption ? (
-            <span className="flex flex-col items-start">
-              <span className="font-medium">{selectedOption.name}</span>
-              {selectedOption.parentName && (
-                <span className="text-xs text-muted-foreground font-normal">
-                  {selectedOption.parentName}
-                </span>
-              )}
+            <span className="flex flex-col items-start truncate w-full">
+              <span className="font-medium truncate">
+                {showFullPath && selectedOption.fullPath
+                  ? selectedOption.fullPath
+                  : selectedOption.parentName
+                    ? `${selectedOption.parentName} > ${selectedOption.name}`
+                    : selectedOption.name}
+              </span>
             </span>
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>

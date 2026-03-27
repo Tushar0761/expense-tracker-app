@@ -32,6 +32,7 @@ export function Categories() {
   const [isAddCatOpen, setIsAddCatOpen] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
 
   const { data: categories = [], isLoading } = useQuery<CategoryWithSubs[]>({
     queryKey: ['categories'],
@@ -39,7 +40,7 @@ export function Categories() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; parentId?: number }) =>
+    mutationFn: (data: { name: string; parentId?: number; level?: number }) =>
       createCategory(data),
     onSuccess: () => {
       toast.success('Category created successfully');
@@ -47,6 +48,7 @@ export function Categories() {
       setIsAddCatOpen(false);
       setNewCatName('');
       setSelectedParentId(null);
+      setSelectedLevel(1);
     },
     onError: (error: Error) => {
       toast.error(`Failed to create category: ${error.message}`);
@@ -76,11 +78,13 @@ export function Categories() {
     createMutation.mutate({
       name: newCatName,
       parentId: selectedParentId || undefined,
+      level: selectedLevel,
     });
   };
 
-  const openAddDialog = (parentId: number | null = null) => {
+  const openAddDialog = (parentId: number | null = null, level: number = 1) => {
     setSelectedParentId(parentId);
+    setSelectedLevel(level);
     setIsAddCatOpen(true);
   };
 
@@ -121,7 +125,12 @@ export function Categories() {
                         <ChevronRight size={18} />
                       )}
                     </button>
-                    <span className="font-semibold text-lg">{cat.name}</span>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-lg">{cat.name}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        Level {cat.level}
+                      </span>
+                    </div>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                       {cat.subCategories.length} subcategories
                     </span>
@@ -131,7 +140,7 @@ export function Categories() {
                       variant="ghost"
                       size="sm"
                       className="text-primary hover:text-primary hover:bg-primary/5"
-                      onClick={() => openAddDialog(cat.id)}
+                      onClick={() => openAddDialog(cat.id, cat.level + 1)}
                     >
                       <Plus size={16} className="mr-1" /> Add Sub
                     </Button>
@@ -166,9 +175,14 @@ export function Categories() {
                           key={sub.id}
                           className="flex items-center justify-between p-3 ml-8 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                         >
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {sub.name}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              {sub.name}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              Level {sub.level}
+                            </span>
+                          </div>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -209,7 +223,9 @@ export function Categories() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedParentId ? 'Add Subcategory' : 'Add Parent Category'}
+              {selectedParentId
+                ? `Add Level ${selectedLevel} Subcategory`
+                : 'Add Parent Category (Level 1)'}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
