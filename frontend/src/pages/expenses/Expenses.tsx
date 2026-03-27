@@ -1,9 +1,9 @@
 import { AddExpenseForm } from '@/components/AddExpenseForm';
 import { BulkExpenseForm } from '@/components/BulkExpenseForm';
 import { BulkUpload } from '@/components/BulkUpload';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   deleteExpense,
   fetchCategoriesFlat,
@@ -16,14 +16,14 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
+  Edit2,
   Filter,
+  List,
   PieChartIcon,
   Plus,
   Trash2,
-  Edit2,
-  Wallet,
-  List,
   Upload,
+  Wallet,
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -385,7 +385,11 @@ export function Expenses() {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 text-blue-500 hover:text-blue-700 hover:bg-blue-50/50"
-                            onClick={() => handleEdit(tx)}
+                            onClick={() => {
+                              console.log('editing', tx);
+
+                              return handleEdit(tx);
+                            }}
                           >
                             <Edit2 className="h-3 w-3" />
                           </Button>

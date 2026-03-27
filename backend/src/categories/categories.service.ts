@@ -327,54 +327,67 @@ export class CategoriesService {
         name: true,
         level: true,
         parentId: true,
-        children: {
-          select: { id: true },
-        },
+        children: { select: { id: true } },
         parent: {
           select: {
             id: true,
             name: true,
             level: true,
-            parent: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+            parent: { select: { id: true, name: true } },
           },
         },
       },
-      orderBy: { name: 'asc' },
+      orderBy: [{ id: 'asc' }],
     });
 
-    return categories
-      .filter((cat) => cat.children.length === 0)
-      .map((cat) => {
-        let fullPath: string | null = null;
-        let parentName: string | null = null;
+    // Map to flat shape first
+    const mapped = categories.map((cat) => {
+      let fullPath: string | null = null;
+      let parentName: string | null = null;
 
-        if (cat.parent) {
-          parentName = cat.parent.name;
-          if (cat.parent.level === 1) {
-            fullPath = `${cat.parent.name} > ${cat.name}`;
-          } else if (cat.parent.level === 2 && cat.parent.parent) {
-            fullPath = `${cat.parent.parent.name} > ${cat.parent.name} > ${cat.name}`;
-          } else if (cat.parent.level === 2) {
-            fullPath = `${cat.parent.name} > ${cat.name}`;
-          }
+      if (cat.parent) {
+        parentName = cat.parent.name;
+        if (cat.parent.level === 1) {
+          fullPath = `${cat.parent.name} > ${cat.name}`;
+        } else if (cat.parent.level === 2 && cat.parent.parent) {
+          fullPath = `${cat.parent.parent.name} > ${cat.parent.name} > ${cat.name}`;
         } else {
-          fullPath = cat.name;
+          fullPath = `${cat.parent.name} > ${cat.name}`;
         }
+      } else {
+        fullPath = cat.name;
+      }
 
-        return {
-          id: cat.id,
-          name: cat.name,
-          level: cat.level,
-          parentId: cat.parentId,
-          parentName,
-          fullPath,
-        };
-      });
+      return {
+        id: cat.id,
+        name: cat.name,
+        level: cat.level,
+        parentId: cat.parentId,
+        parentName,
+        fullPath,
+      };
+    });
+
+    // Group children by parentId for O(1) lookup
+    const byParent = new Map<number, typeof mapped>();
+    for (const cat of mapped) {
+      if (cat.parentId !== null) {
+        if (!byParent.has(cat.parentId)) byParent.set(cat.parentId, []);
+        byParent.get(cat.parentId)!.push(cat);
+      }
+    }
+
+    // Walk roots in order, inserting children immediately after each parent
+    const sorted: typeof mapped = [];
+    for (const cat of mapped) {
+      if (cat.parentId === null) {
+        sorted.push(cat);
+        const children = byParent.get(cat.id) ?? [];
+        sorted.push(...children);
+      }
+    }
+
+    return sorted;
   }
 
   async getSubcategories(categoryId: number) {
@@ -484,3 +497,9 @@ export class CategoriesService {
     });
   }
 }
+
+(async () => {
+  const prisma = new PrismaService();
+  const serv = await new CategoriesService(prisma).getLeafCategories();
+  console.log({ serv });
+})();

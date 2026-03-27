@@ -31,14 +31,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, subDays } from 'date-fns';
-import {
-  Calendar,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { Calendar, Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -118,53 +111,38 @@ export function AddExpenseForm({
   const watchedDate = watch('date');
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    if (expense) {
-      reset({
-        date: new Date(expense.date),
-        amount: expense.amount,
-        remarks: expense.remarks || '',
-        accountId: expense.accountId || 0,
-        categoryId: expense.categoryId,
-      });
-    } else {
-      reset({
-        date: new Date(),
-        amount: 0,
-        remarks: '',
-        accountId: firstAccountIdRef.current || 0,
-        categoryId: 0,
-      });
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    reset(
+      expense
+        ? {
+            date: new Date(expense.date),
+            amount: expense.amount,
+            remarks: expense.remarks || '',
+            accountId: expense.accountId || 0,
+            categoryId: expense.categoryId,
+          }
+        : {
+            date: new Date(),
+            amount: 0,
+            remarks: '',
+            accountId: firstAccountIdRef.current || 0,
+            categoryId: 0,
+          },
+    );
   }, [isOpen, expense, reset]);
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value) {
-      setValue('date', new Date(value), { shouldValidate: true });
-    }
-  };
-
-  const handleYesterday = () => {
-    const yesterday = subDays(new Date(), 1);
-    setValue('date', yesterday, { shouldValidate: true });
-  };
-
-  const handleToday = () => {
-    setValue('date', new Date(), { shouldValidate: true });
-  };
-
-  const handlePrevDay = () => {
-    const current = watchedDate || new Date();
-    const newDate = addDays(current, -1);
-    setValue('date', newDate, { shouldValidate: true });
-  };
-
-  const handleNextDay = () => {
-    const current = watchedDate || new Date();
-    const newDate = addDays(current, 1);
-    setValue('date', newDate, { shouldValidate: true });
+  const setDate = (d: Date) => setValue('date', d, { shouldValidate: true });
+  const handleDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) setDate(new Date(e.target.value));
   };
 
   const mutation = useMutation({
@@ -182,9 +160,7 @@ export function AddExpenseForm({
       reset();
       firstAccountIdRef.current = null;
     },
-    onError: (error: Error) => {
-      toast.error(`Error: ${error.message}`);
-    },
+    onError: (error: Error) => toast.error(`Error: ${error.message}`),
   });
 
   const handleCreateCategory = async () => {
@@ -208,14 +184,13 @@ export function AddExpenseForm({
   };
 
   const onSubmit = (data: ExpenseFormValues) => {
-    const payload: CreateExpensePayload = {
+    mutation.mutate({
       date: format(data.date, 'yyyy-MM-dd'),
       amount: data.amount,
       remarks: data.remarks || undefined,
       accountId: data.accountId,
       categoryId: data.categoryId,
-    };
-    mutation.mutate(payload);
+    });
   };
 
   if (!isOpen) return null;
@@ -226,15 +201,16 @@ export function AddExpenseForm({
       onClick={onClose}
     >
       <Card
-        className="w-full max-w-lg shadow-2xl border-border/50 overflow-hidden bg-card"
+        className="w-full max-w-2xl shadow-2xl border-border/50 bg-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 py-4 px-6">
+        {/* Header */}
+        <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 py-3 px-5">
           <div>
-            <CardTitle className="text-xl font-bold tracking-tight">
+            <CardTitle className="text-lg font-bold tracking-tight">
               {isEditing ? 'Edit Expense' : 'New Transaction'}
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {isEditing
                 ? 'Update transaction details'
                 : 'Record a new expense'}
@@ -244,87 +220,88 @@ export function AddExpenseForm({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="rounded-full h-9 w-9"
+            className="rounded-full h-8 w-8"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground">
+
+        <CardContent className="p-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Row 1: Date + Amount */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Date */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Date
                 </Label>
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      type="date"
-                      className="h-11 pr-10 text-sm font-medium cursor-pointer"
-                      value={
-                        watchedDate ? format(watchedDate, 'yyyy-MM-dd') : ''
-                      }
-                      onChange={handleDateChange}
-                    />
-                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-sm font-medium flex-1"
-                      onClick={handleYesterday}
-                    >
-                      Yesterday
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-sm font-medium flex-1"
-                      onClick={handleToday}
-                    >
-                      Today
-                    </Button>
-                    <div className="flex gap-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={handlePrevDay}
-                        title="Previous day"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={handleNextDay}
-                        title="Next day"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    className="h-10 pr-9 text-sm font-medium cursor-pointer"
+                    value={watchedDate ? format(watchedDate, 'yyyy-MM-dd') : ''}
+                    onChange={handleDateInput}
+                  />
+                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                </div>
+                {/* Date shortcuts */}
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs flex-1 px-2"
+                    onClick={() => setDate(subDays(new Date(), 1))}
+                  >
+                    Yesterday
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs flex-1 px-2"
+                    onClick={() => setDate(new Date())}
+                  >
+                    Today
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={() =>
+                      setDate(addDays(watchedDate || new Date(), -1))
+                    }
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={() =>
+                      setDate(addDays(watchedDate || new Date(), 1))
+                    }
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
                 {errors.date && (
                   <p className="text-xs text-red-500">{errors.date.message}</p>
                 )}
               </div>
 
-              <div className="space-y-2">
+              {/* Amount */}
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="amount"
-                  className="text-sm font-semibold text-foreground"
+                  className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
                   Amount (₹)
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-base font-medium">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
                     ₹
                   </span>
                   <Input
@@ -332,7 +309,7 @@ export function AddExpenseForm({
                     type="number"
                     placeholder="0.00"
                     step="0.01"
-                    className="pl-8 h-11 text-base font-bold"
+                    className="pl-7 h-10 text-base font-bold"
                     {...register('amount')}
                   />
                 </div>
@@ -344,105 +321,109 @@ export function AddExpenseForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground">
-                Payment Account
-              </Label>
-              <Controller
-                name="accountId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={String(field.value)}
-                    onValueChange={(v) => field.onChange(Number(v))}
-                  >
-                    <SelectTrigger className="h-11 text-sm">
-                      <SelectValue placeholder="Select payment account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {accounts.map((acc) => (
-                        <SelectItem key={acc.id} value={String(acc.id)}>
-                          <div className="flex items-center justify-between w-full">
+            {/* Row 2: Account + Category */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Account */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Account
+                </Label>
+                <Controller
+                  name="accountId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      key={`account-${accounts.length}-${field.value}`}
+                      value={String(field.value)}
+                      onValueChange={(v) => field.onChange(Number(v))}
+                    >
+                      <SelectTrigger className="h-10 text-sm">
+                        <SelectValue placeholder="Select account" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {accounts.map((acc) => (
+                          <SelectItem key={acc.id} value={String(acc.id)}>
                             <span className="font-medium">{acc.name}</span>
-                            <span className="text-muted-foreground ml-2">
+                            <span className="ml-2 text-muted-foreground text-xs">
                               ₹{acc.balance.toLocaleString()}
                             </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.accountId && (
+                  <p className="text-xs text-red-500">
+                    {errors.accountId.message}
+                  </p>
                 )}
-              />
-              {errors.accountId && (
-                <p className="text-xs text-red-500">
-                  {errors.accountId.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-foreground">
-                  Category
-                </Label>
-                <Button
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  className="h-7 text-sm font-semibold text-primary p-0"
-                  onClick={() => setIsAddCategoryOpen(true)}
-                >
-                  + Add New
-                </Button>
               </div>
-              <Controller
-                name="categoryId"
-                control={control}
-                render={({ field }) => (
-                  <SearchableSelect
-                    value={field.value === 0 ? null : field.value}
-                    onChange={field.onChange}
-                    options={categories}
-                    placeholder="Select category"
-                    error={errors.categoryId?.message}
-                    showFullPath
-                  />
-                )}
-              />
+
+              {/* Category */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Category
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddCategoryOpen(true)}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    + New
+                  </button>
+                </div>
+                <Controller
+                  name="categoryId"
+                  control={control}
+                  render={({ field }) => (
+                    <SearchableSelect
+                      value={field.value === 0 ? null : field.value}
+                      onChange={field.onChange}
+                      options={categories}
+                      placeholder="Select category"
+                      error={errors.categoryId?.message}
+                      showFullPath
+                    />
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
+            {/* Row 3: Notes */}
+            <div className="space-y-1.5">
               <Label
                 htmlFor="remarks"
-                className="text-sm font-semibold text-foreground"
+                className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
               >
-                Notes / Remarks
+                Notes
               </Label>
               <Input
                 id="remarks"
-                placeholder="Add notes about this expense..."
-                className="h-11 text-sm"
+                placeholder="Add a note about this expense..."
+                className="h-10 text-sm"
                 {...register('remarks')}
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            {/* Actions */}
+            <div className="flex gap-3 pt-1">
               <Button
                 type="button"
-                variant="destructive"
+                variant="outline"
                 onClick={onClose}
-                className="flex-1 rounded-lg h-12 text-base font-medium"
+                className="flex-1 h-10 text-sm font-medium"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <X className="w-4 h-4 mr-1.5" />
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="flex-1 rounded-lg h-12 text-base font-bold bg-green-600 hover:bg-green-700"
+                className="flex-1 h-10 text-sm font-bold bg-green-600 hover:bg-green-700"
                 disabled={isSubmitting || mutation.isPending}
               >
-                <Check className="w-4 h-4 mr-2" />
+                <Check className="w-4 h-4 mr-1.5" />
                 {mutation.isPending
                   ? 'Saving...'
                   : isEditing
@@ -454,45 +435,43 @@ export function AddExpenseForm({
         </CardContent>
       </Card>
 
+      {/* Add Category Dialog */}
       <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-lg">Add New Category</DialogTitle>
+            <DialogTitle>Add Category</DialogTitle>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="newCategory" className="text-sm font-medium">
-                Category Name
-              </Label>
-              <Input
-                id="newCategory"
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                placeholder="e.g. Groceries, Entertainment"
-                className="h-11 text-sm"
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
-              />
-            </div>
+          <div className="py-3 space-y-3">
+            <Label htmlFor="newCategory" className="text-sm font-medium">
+              Category Name
+            </Label>
+            <Input
+              id="newCategory"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              placeholder="e.g. Groceries, Entertainment"
+              className="h-10 text-sm"
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+            />
           </div>
           <DialogFooter className="gap-2">
             <Button
-              variant="destructive"
+              variant="outline"
               onClick={() => {
                 setIsAddCategoryOpen(false);
                 setNewCatName('');
               }}
-              className="flex-1 h-10"
+              className="flex-1 h-9"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
               Cancel
             </Button>
             <Button
               onClick={handleCreateCategory}
               disabled={isCreatingCat || !newCatName.trim()}
-              className="flex-1 h-10 bg-green-600 hover:bg-green-700"
+              className="flex-1 h-9 bg-green-600 hover:bg-green-700"
             >
-              <Check className="w-4 h-4 mr-2" />
-              {isCreatingCat ? 'Creating...' : 'Create & Add'}
+              <Check className="w-3.5 h-3.5 mr-1.5" />
+              {isCreatingCat ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

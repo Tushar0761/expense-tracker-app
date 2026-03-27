@@ -475,7 +475,7 @@ export async function createCategory(data: {
   return response.data;
 }
 
-export async function deleteCategory(id: number): Promise<void> {
+export async function deleteCategory(id: number): Promise<any> {
   await api.delete(`/api/categories/${id}`);
 }
 

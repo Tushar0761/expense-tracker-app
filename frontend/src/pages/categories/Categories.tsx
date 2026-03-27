@@ -16,6 +16,7 @@ import {
   type CategoryWithSubs,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import {
   ChevronDown,
   ChevronRight,
@@ -61,8 +62,10 @@ export function Categories() {
       toast.success('Category deleted');
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
-    onError: (error: Error) => {
-      toast.error(`Error deleting category: ${error.message}`);
+    onError: (error: AxiosError) => {
+      toast.error(
+        `Error deleting category: ${(error.response?.data as Record<string, string>)?.message ?? error.message}`,
+      );
     },
   });
 
