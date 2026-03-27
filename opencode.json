@@ -1,8 +1,33 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "AGENTS.md",
-    "docs/coding-rules.md",
-    "docs/architecture.md"
-  ]
+    "$schema": "https://opencode.ai/config.json",
+    "instructions": ["AGENTS.md"],
+    "compaction": {
+        "enabled": true
+    },
+    "agent": {
+        "build": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "prompt": "{file:.opencode/prompts/orchestrator.txt}",
+            "permission": {
+                "bash": {
+                    "*": "ask",
+                    "cd backend && npm run lint*": "allow",
+                    "cd backend && npm run format": "allow",
+                    "cd backend && npm run build": "allow",
+                    "cd frontend && npm run lint*": "allow",
+                    "cd frontend && npm run format": "allow",
+                    "cd frontend && npm run build": "allow",
+                    "cd backend && npx prisma generate": "allow",
+                    "cd backend && npx prisma db pull": "allow"
+                }
+            },
+            "plan": {
+                "temperature": 1.0,
+                "top_p": 0.95,
+                "top_k": 40
+            }
+        }
+    }
 }

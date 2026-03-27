@@ -209,6 +209,22 @@ cd frontend && npm run lint:fix && npm run format && npm run lint && npm run bui
 - Used simple boolean `initialized` state for form initialization
 - Inline row creation in useEffect and addNewRow to avoid dependency issues
 
+### 2026-03-20: Multi-Level Category System - Stage 3 Completed
+
+**Description**: Implemented hierarchical category management UI with 3-level support and fixes to bulk expense form.
+
+**Files Changed**:
+- `frontend/src/pages/categories/Categories.tsx` - Complete rewrite to support 3-level hierarchy with expand/collapse, level display, proper create/delete actions
+- `frontend/src/components/BulkExpenseForm.tsx` - Fixed category/account selection display issues, added proper row creation logic
+- `frontend/src/lib/api.ts` - Updated category types to include level information, added new API functions for tree and stats endpoints
+
+**Key Improvements**:
+- Category list now shows hierarchical structure with expand/collapse functionality
+- Each category displays its level (1, 2, or 3) 
+- Proper validation for creating subcategories (auto-incrementing level)
+- Fixed BulkExpenseForm to properly show selected category/account values
+- Added proper TypeScript types for category data with level information
+
 ### 2026-03-19: Lint/Build Error Fixing Rules
 
 **Description**: Updated coding rules to clarify handling of lint/build errors. Warnings requiring over-engineering can be skipped after reasonable attempts.
@@ -245,3 +261,19 @@ cd frontend && npm run lint:fix && npm run format && npm run lint && npm run bui
 - `backend/prisma/schema.prisma` - Removed account_balance_adjustment table
 
 **Rule**: Balance is manual. User sets it directly. Transactions do NOT affect balance.
+
+### 2026-03-20: Stage 4 - Expense Form Category Dropdown Update
+**Change**: Updated expense forms to use leaf categories with hierarchical display.
+
+**Files Changed**:
+- `frontend/src/components/BulkExpenseForm.tsx` - Fixed useCallback bug, switched to `fetchLeafCategories`
+- `frontend/src/components/AddExpenseForm.tsx` - Switched to `fetchLeafCategories`, added full path display
+- `frontend/src/components/ui/searchable-select.tsx` - Added `level`, `fullPath` support and indentation display
+- `backend/src/categories/categories.service.ts` - Added `fullPath` to `getLeafCategories()`
+- `backend/src/expense-upload/expense-upload.service.ts` - Rewrote with leaf categories and full paths
+
+**Features Added**:
+1. Category dropdown now shows only leaf categories (or level 1/2 if no children)
+2. Full path display: "Food > Groceries > Vegetables" instead of just "Vegetables"
+3. Hierarchical indentation in dropdown options
+4. Excel template dropdowns now use full path format

@@ -15,13 +15,33 @@ Base URL: `http://localhost:3000/api`
 
 ## Categories (`/categories`)
 
-| Method | Endpoint | Description | Body |
-|--------|----------|-------------|------|
-| POST | `/categories/create` | Create category | `{ name, parentId? }` |
-| GET | `/categories` | Get hierarchical categories | - |
+| Method | Endpoint | Description | Body/Query |
+|--------|----------|-------------|------------|
+| POST | `/categories` | Create category | `{ name, parentId?, level? }` |
+| GET | `/categories` | Get categories (filterable) | Query: `level`, `parentId` |
+| GET | `/categories/tree` | Get nested tree structure | - |
 | GET | `/categories/flat` | Get all categories flat | - |
+| GET | `/categories/leaf` | Get only leaf categories | - |
+| GET | `/categories/stats` | Get category stats with aggregates | Query: `level`, `parentId`, `dateFrom`, `dateTo` |
+| GET | `/categories/:id` | Get category by ID | - |
 | GET | `/categories/:id/subcategories` | Get subcategories | - |
+| PUT | `/categories/:id` | Update category name only | `{ name }` |
 | DELETE | `/categories/:id` | Delete category | - |
+
+### Category Query Params
+- `level`: Filter by level (1, 2, or 3)
+- `parentId`: Filter by parent
+- `dateFrom`: Start date for stats (YYYY-MM-DD)
+- `dateTo`: End date for stats (YYYY-MM-DD)
+
+### Create Category Rules
+- If `parentId` is provided, `level` is auto-derived (parent.level + 1)
+- Level cannot exceed 3
+- Name must be unique within same parent scope
+
+### Delete Category Rules
+- Blocked if category has children
+- Blocked if any expenses reference this category
 
 ## Expenses (`/expenses`)
 
