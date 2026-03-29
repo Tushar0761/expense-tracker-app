@@ -19,6 +19,7 @@ interface BulkExpenseRow {
   id: string;
   date: string;
   description: string;
+  userName: string;
   categoryId: number | null;
   amount: number | null;
   accountId: number | null;
@@ -58,6 +59,7 @@ export function BulkExpenseForm({
       id: crypto.randomUUID(),
       date: format(new Date(), 'yyyy-MM-dd'),
       description: '',
+      userName: '',
       categoryId: null,
       amount: null,
       accountId: defaultAccountId ?? accounts[0]?.id ?? null,
@@ -92,7 +94,7 @@ export function BulkExpenseForm({
 
   const updateRow = (
     index: number,
-    field: 'categoryId' | 'accountId' | 'date' | 'description' | 'amount',
+    field: 'categoryId' | 'accountId' | 'date' | 'description' | 'userName' | 'amount',
     value: string | number | null,
   ) => {
     console.log('updateRow called:', {
@@ -116,6 +118,7 @@ export function BulkExpenseForm({
       id: crypto.randomUUID(),
       date: format(new Date(), 'yyyy-MM-dd'),
       description: '',
+      userName: '',
       categoryId: null,
       amount: null,
       accountId: defaultAccountId ?? accounts[0]?.id ?? null,
@@ -177,6 +180,7 @@ export function BulkExpenseForm({
       date: row.date,
       amount: row.amount!,
       remarks: row.description || undefined,
+      userName: row.userName || undefined,
       categoryId: row.categoryId!,
       accountId: row.accountId!,
     }));
@@ -228,6 +232,9 @@ export function BulkExpenseForm({
                   <th className="text-left text-xs font-semibold uppercase tracking-wider px-3 py-3">
                     Description
                   </th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-3 py-3">
+                    Sent To
+                  </th>
                   <th className="text-left text-xs font-semibold uppercase tracking-wider px-3 py-3 w-44">
                     Category
                   </th>
@@ -271,6 +278,16 @@ export function BulkExpenseForm({
                         value={row.description}
                         onChange={(e) =>
                           updateRow(index, 'description', e.target.value)
+                        }
+                        className="h-9 text-sm"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        placeholder="Sent To..."
+                        value={row.userName}
+                        onChange={(e) =>
+                          updateRow(index, 'userName', e.target.value)
                         }
                         className="h-9 text-sm"
                       />

@@ -43,6 +43,7 @@ const expenseSchema = z.object({
     .number({ invalid_type_error: 'Amount must be a number' })
     .positive({ message: 'Amount must be greater than zero' }),
   remarks: z.string().optional(),
+  userName: z.string().optional(),
   accountId: z.coerce.number().min(1, { message: 'Account is required' }),
   categoryId: z.coerce.number().min(1, { message: 'Category is required' }),
 });
@@ -127,6 +128,7 @@ export function AddExpenseForm({
             date: new Date(expense.date),
             amount: expense.amount,
             remarks: expense.remarks || '',
+            userName: expense.userName || '',
             accountId: expense.accountId || 0,
             categoryId: expense.categoryId,
           }
@@ -134,6 +136,7 @@ export function AddExpenseForm({
             date: new Date(),
             amount: 0,
             remarks: '',
+            userName: '',
             accountId: firstAccountIdRef.current || 0,
             categoryId: 0,
           },
@@ -188,6 +191,7 @@ export function AddExpenseForm({
       date: format(data.date, 'yyyy-MM-dd'),
       amount: data.amount,
       remarks: data.remarks || undefined,
+      userName: data.userName || undefined,
       accountId: data.accountId,
       categoryId: data.categoryId,
     });
@@ -405,6 +409,22 @@ export function AddExpenseForm({
                 placeholder="Add a note about this expense..."
                 className="h-10 text-sm"
                 {...register('remarks')}
+              />
+            </div>
+
+            {/* Row 4: User Name (Who did you send money to) */}
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="userName"
+                className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
+                Sent To (User Name)
+              </Label>
+              <Input
+                id="userName"
+                placeholder="Who did you send money to?"
+                className="h-10 text-sm"
+                {...register('userName')}
               />
             </div>
 

@@ -247,6 +247,7 @@ export type ExpenseRow = {
   date: string;
   amount: number;
   remarks: string | null;
+  userName: string | null;
   accountId: number | null;
   accountName: string | null;
   categoryId: number;
@@ -278,6 +279,7 @@ export type CreateExpensePayload = {
   date: string; // yyyy-MM-dd
   amount: number;
   remarks?: string;
+  userName?: string;
   accountId: number;
   categoryId: number;
   emiPaymentId?: number;

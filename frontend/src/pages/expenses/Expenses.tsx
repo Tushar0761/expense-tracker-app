@@ -323,6 +323,7 @@ export function Expenses() {
                     Categories
                   </th>
                   <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
+                  <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
                   <th className="py-1.5 px-3 text-xs font-semibold text-right">
                     Amount
                   </th>
@@ -335,7 +336,7 @@ export function Expenses() {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="py-12 text-center text-muted-foreground animate-pulse"
                     >
                       Loading amazing data...
@@ -379,6 +380,9 @@ export function Expenses() {
                       </td>
                       <td className="py-1.5 px-3 max-w-[180px] truncate text-xs text-muted-foreground">
                         {tx.remarks || '—'}
+                      </td>
+                      <td className="py-1.5 px-3 max-w-[120px] truncate text-xs text-muted-foreground">
+                        {tx.userName || '—'}
                       </td>
                       <td className="py-1.5 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
                         ₹{tx.amount.toLocaleString()}

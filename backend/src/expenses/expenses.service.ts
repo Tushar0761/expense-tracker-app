@@ -21,6 +21,7 @@ export type ExpenseRow = {
   date: string;
   amount: number;
   remarks: string | null;
+  userName: string | null;
   accountId: number | null;
   accountName: string | null;
   categoryId: number;
@@ -47,6 +48,7 @@ export class ExpensesService {
           remarks: payload.remarks,
           accountId: payload.accountId,
           categoryId: payload.categoryId,
+          userName: payload.userName,
           emiPaymentId: payload.emiPaymentId,
         },
         include: {
@@ -70,6 +72,7 @@ export class ExpensesService {
               remarks: payload.remarks,
               accountId: payload.accountId,
               categoryId: payload.categoryId,
+              userName: payload.userName,
             },
           }),
         ),
@@ -122,6 +125,7 @@ export class ExpensesService {
       date: format(exp.date, 'yyyy-MM-dd'),
       amount: exp.amount,
       remarks: exp.remarks,
+      userName: exp.userName,
       accountId: exp.accountId,
       accountName: exp.account?.name ?? null,
       categoryId: exp.categoryId,
@@ -170,6 +174,7 @@ export class ExpensesService {
           remarks: payload.remarks,
           accountId: payload.accountId,
           categoryId: payload.categoryId,
+          userName: payload.userName,
         },
       });
     });

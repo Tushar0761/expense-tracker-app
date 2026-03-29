@@ -20,8 +20,8 @@ model asset_master {
 model category_master {
   id                   Int                    @id @default(autoincrement())
   name                 String
-  level                Int                    @default(1)
   parentId             Int?
+  level                Int                    @default(1)
   parent               category_master?       @relation("category_masterTocategory_master", fields: [parentId], references: [id], map: "Category_parentId_fkey")
   children             category_master[]      @relation("category_masterTocategory_master")
   expenses_data_master expenses_data_master[]
@@ -85,6 +85,7 @@ model expenses_data_master {
   createdAt        DateTime          @default(now())
   emiPaymentId     Int?
   categoryId       Int
+  userName         String?           @db.VarChar(100)
   account          account_master?   @relation(fields: [accountId], references: [id])
   category_master  category_master   @relation(fields: [categoryId], references: [id])
   emi_payment_data emi_payment_data? @relation(fields: [emiPaymentId], references: [id], map: "fk_expense_emiPayment")

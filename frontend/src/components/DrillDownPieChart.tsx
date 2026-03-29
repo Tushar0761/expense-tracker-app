@@ -120,11 +120,6 @@ export function DrillDownPieChart({
   // Calculate total for center display
   const currentTotal = chartData.reduce((sum, item) => sum + item.value, 0);
 
-  // Get the current category name for display
-  const currentCategoryName = isRoot
-    ? 'Total'
-    : drillPath[drillPath.length - 1]?.name || 'Total';
-
   // Custom tooltip
   const CustomTooltip = useCallback(
     ({

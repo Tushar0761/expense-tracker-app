@@ -17,6 +17,7 @@ export interface ParsedRow {
   account: string;
   category: string;
   note: string;
+  userName: string;
   delete: string;
 }
 
@@ -101,6 +102,7 @@ export class ExpenseUploadService {
       accountId: number | null;
       categoryId: number;
       remarks: string | null;
+      userName: string | null;
     }[] = [];
 
     if (year && month) {
@@ -121,6 +123,7 @@ export class ExpenseUploadService {
           accountId: true,
           categoryId: true,
           remarks: true,
+          userName: true,
         },
         orderBy: { date: 'asc' },
       });
@@ -161,6 +164,7 @@ export class ExpenseUploadService {
       { header: 'account', key: 'account', width: 30 },
       { header: 'category', key: 'category', width: 40 },
       { header: 'note', key: 'note', width: 30 },
+      { header: 'userName', key: 'userName', width: 25 },
       { header: 'delete', key: 'delete', width: 10 },
     ];
 
@@ -175,7 +179,9 @@ export class ExpenseUploadService {
     headerRow.height = 25;
 
     dataSheet.getCell('A1').value = 'id (blank=new, filled=update)';
-    dataSheet.getCell('G1').value = 'delete (yes=delete if id provided)';
+    dataSheet.getCell('F1').value = 'note';
+    dataSheet.getCell('G1').value = 'userName (who you sent money to)';
+    dataSheet.getCell('H1').value = 'delete (yes=delete if id provided)';
 
     dataSheet.views = [{ state: 'frozen', ySplit: 1 }];
 
@@ -194,10 +200,12 @@ export class ExpenseUploadService {
         ? categoryMap.get(expense.categoryId) || ''
         : '';
       dataSheet.getCell(`F${rowIndex}`).value = expense.remarks || '';
+      dataSheet.getCell(`G${rowIndex}`).value = expense.userName || '';
     });
 
     const totalRows = Math.max(startRow + expenses.length, 100);
     for (let row = startRow + expenses.length; row <= totalRows; row++) {
+      // Column B: date - date validation
       const dateCell = dataSheet.getCell(`B${row}`);
       dateCell.dataValidation = {
         type: 'date',
@@ -206,6 +214,7 @@ export class ExpenseUploadService {
         allowBlank: true,
       };
 
+      // Column D: account - list validation
       const accountCell = dataSheet.getCell(`D${row}`);
       accountCell.dataValidation = {
         type: 'list',
@@ -216,6 +225,7 @@ export class ExpenseUploadService {
         error: 'Please select an account from the dropdown.',
       };
 
+      // Column E: category - list validation
       const categoryCell = dataSheet.getCell(`E${row}`);
       categoryCell.dataValidation = {
         type: 'list',
@@ -226,7 +236,8 @@ export class ExpenseUploadService {
         error: 'Please select a category from the dropdown.',
       };
 
-      const deleteCell = dataSheet.getCell(`G${row}`);
+      // Column H: delete - list validation (yes/no)
+      const deleteCell = dataSheet.getCell(`H${row}`);
       deleteCell.dataValidation = {
         type: 'list',
         allowBlank: true,
@@ -236,10 +247,13 @@ export class ExpenseUploadService {
         error: 'Enter "yes" to delete or leave blank.',
       };
 
+      // Initialize empty cells
       dataSheet.getCell(`F${row}`).value = '';
+      dataSheet.getCell(`G${row}`).value = '';
     }
 
     for (let row = startRow; row <= startRow + expenses.length - 1; row++) {
+      // Column B: date - date validation
       const dateCell = dataSheet.getCell(`B${row}`);
       dateCell.dataValidation = {
         type: 'date',
@@ -248,6 +262,7 @@ export class ExpenseUploadService {
         allowBlank: true,
       };
 
+      // Column D: account - list validation
       const accountCell = dataSheet.getCell(`D${row}`);
       accountCell.dataValidation = {
         type: 'list',
@@ -258,6 +273,7 @@ export class ExpenseUploadService {
         error: 'Please select an account from the dropdown.',
       };
 
+      // Column E: category - list validation
       const categoryCell = dataSheet.getCell(`E${row}`);
       categoryCell.dataValidation = {
         type: 'list',
@@ -268,7 +284,8 @@ export class ExpenseUploadService {
         error: 'Please select a category from the dropdown.',
       };
 
-      const deleteCell = dataSheet.getCell(`G${row}`);
+      // Column H: delete - list validation (yes/no)
+      const deleteCell = dataSheet.getCell(`H${row}`);
       deleteCell.dataValidation = {
         type: 'list',
         allowBlank: true,
@@ -323,22 +340,26 @@ export class ExpenseUploadService {
       'account',
       'category',
       'note',
+      'username', // lowercase for matching
       'delete',
     ];
     const headerRow = dataSheet.getRow(1);
     const headerValues = headerRow.values as
       | (string | number | null | undefined)[]
       | undefined;
+    console.log('Header values:', headerValues);
     if (headerValues) {
       headerValues.forEach((val, idx) => {
         if (val && typeof val === 'string') {
           const colName = val.toLowerCase().split('(')[0].trim();
+          console.log(`Column ${idx}: "${val}" -> "${colName}"`);
           if (validColNames.includes(colName)) {
             colIndex.set(colName, idx);
           }
         }
       });
     }
+    console.log('Column index map:', Object.fromEntries(colIndex));
 
     const getCellValue = (
       cells: (string | number | null | undefined)[],
@@ -366,6 +387,8 @@ export class ExpenseUploadService {
       const account = getCellValue(cells, 'account');
       const category = getCellValue(cells, 'category');
       const note = getCellValue(cells, 'note');
+      // Try both 'username' and 'userName' (case insensitive)
+      const userName = getCellValue(cells, 'username') || getCellValue(cells, 'userName');
       const deleteFlag = getCellValue(cells, 'delete').toLowerCase();
 
       const parsedRow: ParsedRow = {
@@ -376,6 +399,7 @@ export class ExpenseUploadService {
         account,
         category,
         note,
+        userName,
         delete: deleteFlag,
       };
 
@@ -513,6 +537,15 @@ export class ExpenseUploadService {
         });
       }
 
+      if (userName.length > 100) {
+        errors.push({
+          rowNumber,
+          field: 'userName',
+          value: userName.substring(0, 50) + '...',
+          error: 'UserName exceeds maximum length of 100 characters',
+        });
+      }
+
       if (deleteFlag && deleteFlag !== 'yes') {
         errors.push({
           rowNumber,
@@ -582,6 +615,7 @@ export class ExpenseUploadService {
               accountId: accountId || null,
               categoryId: categoryId!,
               remarks: row.note || null,
+              userName: row.userName || null,
             },
           });
           updated++;
@@ -593,6 +627,7 @@ export class ExpenseUploadService {
               accountId: accountId || null,
               categoryId: categoryId!,
               remarks: row.note || null,
+              userName: row.userName || null,
             },
           });
           inserted++;

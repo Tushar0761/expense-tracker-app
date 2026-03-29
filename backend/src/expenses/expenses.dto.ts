@@ -28,6 +28,10 @@ export class CreateExpenseDto {
   @IsNotEmpty()
   categoryId: number; // Single category (not array)
 
+  @IsString()
+  @IsOptional()
+  userName?: string;
+
   @IsNumber()
   @IsOptional()
   emiPaymentId?: number;
@@ -53,6 +57,10 @@ export class UpdateExpenseDto {
   @IsNumber()
   @IsOptional()
   categoryId?: number; // Single category (not array)
+
+  @IsString()
+  @IsOptional()
+  userName?: string;
 
   @IsNumber()
   @IsOptional()
