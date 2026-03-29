@@ -180,19 +180,23 @@ export function Expenses() {
                 Range
               </span>
               <div className="flex items-center gap-1">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="border rounded h-7 px-2 text-[11px] bg-background w-[110px]"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border rounded h-7 px-2 text-[11px] bg-background w-[110px] pr-6"
+                  />
+                </div>
                 <span className="text-muted-foreground text-[10px]">to</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="border rounded h-7 px-2 text-[11px] bg-background w-[110px]"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border rounded h-7 px-2 text-[11px] bg-background w-[110px] pr-6"
+                  />
+                </div>
               </div>
             </div>
 

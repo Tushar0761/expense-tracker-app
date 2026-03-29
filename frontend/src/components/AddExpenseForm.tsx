@@ -238,11 +238,12 @@ export function AddExpenseForm({
                 <div className="relative">
                   <Input
                     type="date"
-                    className="h-10 pr-9 text-sm font-medium cursor-pointer"
+                    className="h-10 pr-10 text-sm font-medium cursor-pointer z-[60]"
+                    style={{ position: 'relative' }}
                     value={watchedDate ? format(watchedDate, 'yyyy-MM-dd') : ''}
                     onChange={handleDateInput}
                   />
-                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 </div>
                 {/* Date shortcuts */}
                 <div className="flex items-center gap-1.5">

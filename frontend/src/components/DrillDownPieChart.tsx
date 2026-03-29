@@ -116,7 +116,14 @@ export function DrillDownPieChart({
 
     return data;
   })();
+
+  // Calculate total for center display
   const currentTotal = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  // Get the current category name for display
+  const currentCategoryName = isRoot
+    ? 'Total'
+    : drillPath[drillPath.length - 1]?.name || 'Total';
 
   // Custom tooltip
   const CustomTooltip = useCallback(
@@ -128,8 +135,6 @@ export function DrillDownPieChart({
       payload?: Array<{ name: string; value: number }>;
     }) => {
       if (active && payload && payload.length) {
-        console.log({ currentTotal, value: payload[0].value });
-
         return (
           <div className="bg-card border border-border rounded-lg shadow-lg p-3">
             <p className="font-medium text-sm">{payload[0].name}</p>
@@ -222,9 +227,6 @@ export function DrillDownPieChart({
   // Calculate total for center display
 
   // Get the current category name for display
-  const currentCategoryName = isRoot
-    ? 'Total'
-    : drillPath[drillPath.length - 1]?.name || 'Total';
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
@@ -308,16 +310,6 @@ export function DrillDownPieChart({
             />
           </PieChart>
         </ResponsiveContainer>
-
-        {/* Center Total Display */}
-        {/* <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">
-            {currentCategoryName}
-          </p>
-          <p className="text-lg font-bold text-foreground">
-            {formatCurrency(currentTotal)}
-          </p>
-        </div> */}
       </div>
 
       {/* Legend Grid - mobile: single column */}

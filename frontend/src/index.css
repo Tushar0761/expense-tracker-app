@@ -152,4 +152,20 @@
     .card-padding {
         @apply p-4 sm:p-5;
     }
+
+    /* Date input icon styling - show native calendar icon */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
+
+    /* Ensure date input has proper sizing */
+    input[type="date"] {
+        min-height: 40px;
+    }
 }
