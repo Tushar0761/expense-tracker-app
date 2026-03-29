@@ -11,6 +11,17 @@ import {
   UpdateCategoryDto,
 } from './categories.dto';
 
+// Type for hierarchical category totals
+export interface CategoryNode {
+  id: number;
+  name: string;
+  level: number;
+  parentId: number | null;
+  selfTotal: number;
+  total: number;
+  children: CategoryNode[];
+}
+
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
@@ -108,6 +119,14 @@ export class CategoriesService {
             id: true,
             name: true,
             level: true,
+            children: {
+              select: {
+                id: true,
+                name: true,
+                level: true,
+              },
+              orderBy: { name: 'asc' },
+            },
           },
           orderBy: { name: 'asc' },
         },
@@ -144,7 +163,18 @@ export class CategoriesService {
         parentName,
         parentLevel,
         fullPath,
-        subCategories: cat.children,
+        subCategories: cat.children.map((child) => ({
+          id: child.id,
+          name: child.name,
+          level: child.level,
+          parentId: cat.id,
+          subCategories: (child.children || []).map((gc) => ({
+            id: gc.id,
+            name: gc.name,
+            level: gc.level,
+            parentId: child.id,
+          })),
+        })),
       };
     });
   }
@@ -496,10 +526,78 @@ export class CategoriesService {
       };
     });
   }
-}
 
-(async () => {
-  const prisma = new PrismaService();
-  const serv = await new CategoriesService(prisma).getLeafCategories();
-  console.log({ serv });
-})();
+  async getHierarchicalCategoryTotals(
+    startDate?: string,
+    endDate?: string,
+  ): Promise<CategoryNode[]> {
+    // Build date filter - simple approach
+    const whereClause: { date?: { gte?: Date; lte?: Date } } = {};
+    if (startDate || endDate) {
+      whereClause.date = {};
+      if (startDate) {
+        whereClause.date.gte = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.date.lte = new Date(endDate);
+      }
+    }
+
+    // 1) Fetch all categories with parent relationships
+    const allCategories = await this.prisma.category_master.findMany({
+      select: {
+        id: true,
+        name: true,
+        level: true,
+        parentId: true,
+      },
+    });
+
+    // 2) Fetch expense sums grouped by categoryId using groupBy
+    const expenseGroups = await this.prisma.expenses_data_master.groupBy({
+      by: ['categoryId'],
+      where: whereClause.date ? whereClause : undefined,
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+        _sum: { categoryId: 'desc' },
+      },
+    });
+
+    // Create a map of categoryId -> sum
+    const expenseMap = new Map<number, number>();
+    for (const group of expenseGroups) {
+      if (group.categoryId !== null) {
+        expenseMap.set(group.categoryId, group._sum.amount || 0);
+      }
+    }
+
+    // 3) Build tree structure with selfTotal and total
+    const buildTree = (parentId: number | null): CategoryNode[] => {
+      return allCategories
+        .filter((cat) => cat.parentId === parentId)
+        .map((cat) => {
+          const selfTotal = expenseMap.get(cat.id) || 0;
+          const children = buildTree(cat.id);
+          const childrenTotal = children.reduce(
+            (sum, child) => sum + child.total,
+            0,
+          );
+          return {
+            id: cat.id,
+            name: cat.name,
+            level: cat.level,
+            parentId: cat.parentId,
+            selfTotal,
+            total: selfTotal + childrenTotal,
+            children,
+          };
+        });
+    };
+
+    // 4) Return only root-level nodes
+    const result = buildTree(null);
+    return result;
+  }
+}

@@ -1,6 +1,7 @@
 import { KpiCard } from '@/components/KPICard/KpiCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DrillDownPieChart } from '@/components/DrillDownPieChart';
 import {
   fetchCategoryTotals,
   fetchDashboardKPIs,
@@ -25,27 +26,11 @@ import { useMemo } from 'react';
 import {
   Bar,
   BarChart,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
-
-const COLORS = [
-  '#8b5cf6',
-  '#06b6d4',
-  '#f59e0b',
-  '#ef4444',
-  '#10b981',
-  '#ec4899',
-  '#6366f1',
-  '#14b8a6',
-  '#f97316',
-  '#84cc16',
-];
 
 export function Dashboard() {
   // Fetch dashboard KPIs
@@ -74,16 +59,6 @@ export function Dashboard() {
       amount: s.totalAmount,
     }));
   }, [monthlySummary]);
-
-  // Prepare pie chart data from category totals
-  const pieData = useMemo(() => {
-    if (!categoryTotals) return [];
-    return categoryTotals.map((cat) => ({
-      name: cat.name,
-      value: cat.total,
-      id: cat.id,
-    }));
-  }, [categoryTotals]);
 
   // Month-over-month change
   const monthChange = useMemo(() => {
@@ -272,7 +247,7 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Category Pie Chart */}
+        {/* Category Pie Chart - Drill Down */}
         <Card className="shadow-sm border-border/50 bg-card/30">
           <CardHeader className="p-4 pb-0">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -281,58 +256,7 @@ export function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            {pieData.length > 0 ? (
-              <div className="flex flex-col items-center">
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={45}
-                      outerRadius={65}
-                      paddingAngle={4}
-                    >
-                      {pieData.map((_, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: '8px',
-                        border: '1px solid var(--border)',
-                        fontSize: '11px',
-                      }}
-                      formatter={(value: number) =>
-                        `₹${value.toLocaleString()}`
-                      }
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1 w-full mt-2">
-                  {pieData.slice(0, 4).map((entry, index) => (
-                    <div key={entry.name} className="flex items-center gap-1.5">
-                      <div
-                        className="h-1.5 w-1.5 rounded-full"
-                        style={{
-                          backgroundColor: COLORS[index % COLORS.length],
-                        }}
-                      />
-                      <span className="text-[10px] truncate leading-tight text-muted-foreground">
-                        {entry.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-xs text-muted-foreground py-8 text-center">
-                No category data.
-              </div>
-            )}
+            <DrillDownPieChart className="mt-2" />
           </CardContent>
         </Card>
       </div>

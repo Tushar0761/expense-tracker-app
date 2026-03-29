@@ -299,6 +299,16 @@ export type ExpenseSummaryParams = {
 
 // ==================== CATEGORY TYPES ====================
 
+export interface CategoryNode {
+  id: number;
+  name: string;
+  level: number;
+  parentId: number | null;
+  selfTotal: number;
+  total: number;
+  children: CategoryNode[];
+}
+
 export type CategoryWithSubs = {
   id: number;
   name: string;
@@ -323,6 +333,7 @@ export type SubCategory = {
   name: string;
   level: number;
   parentId?: number;
+  subCategories?: SubCategory[];
 };
 
 // ==================== ACCOUNT API FUNCTIONS ====================
@@ -461,6 +472,23 @@ export async function fetchCategoryStats(query: {
 
   const queryString = params.toString();
   const url = `/api/categories/stats${queryString ? `?${queryString}` : ''}`;
+
+  const response = await api.get(url);
+  return response.data;
+}
+
+export async function fetchHierarchicalCategoryTotals(
+  startDate?: string,
+  endDate?: string,
+): Promise<CategoryNode[]> {
+  const params = new URLSearchParams();
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+
+  const queryString = params.toString();
+  const url = `/api/categories/hierarchical-totals${
+    queryString ? `?${queryString}` : ''
+  }`;
 
   const response = await api.get(url);
   return response.data;

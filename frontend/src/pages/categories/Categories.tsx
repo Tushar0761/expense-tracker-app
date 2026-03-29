@@ -174,32 +174,89 @@ export function Categories() {
                       </p>
                     ) : (
                       cat.subCategories.map((sub) => (
-                        <div
-                          key={sub.id}
-                          className="flex items-center justify-between p-3 ml-8 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {sub.name}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              Level {sub.level}
-                            </span>
+                        <div key={sub.id} className="border rounded-lg overflow-hidden">
+                          {/* Level 2 Row */}
+                          <div className="flex items-center justify-between p-3 ml-4 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => toggleExpand(sub.id)}
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                              >
+                                {expandedCats.has(sub.id) ? (
+                                  <ChevronDown size={16} />
+                                ) : (
+                                  <ChevronRight size={16} />
+                                )}
+                              </button>
+                              <div className="flex flex-col">
+                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                  {sub.name}
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  Level {sub.level}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/5"
+                                onClick={() => openAddDialog(sub.id, sub.level + 1)}
+                              >
+                                <Plus size={12} className="mr-1" /> Add Sub
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                                onClick={() => {
+                                  if (
+                                    confirm(`Delete subcategory "${sub.name}"?`)
+                                  ) {
+                                    deleteMutation.mutate(sub.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
-                            onClick={() => {
-                              if (
-                                confirm(`Delete subcategory "${sub.name}"?`)
-                              ) {
-                                deleteMutation.mutate(sub.id);
-                              }
-                            }}
-                          >
-                            <Trash2 size={14} />
-                          </Button>
+
+                          {/* Level 3 Children */}
+                          {expandedCats.has(sub.id) && sub.subCategories && sub.subCategories.length > 0 && (
+                            <div className="pb-2 ml-12">
+                              {sub.subCategories.map((sub3) => (
+                                <div
+                                  key={sub3.id}
+                                  className="flex items-center justify-between p-2 ml-4 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                                >
+                                  <div className="flex flex-col">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                      {sub3.name}
+                                    </span>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                                      Level {sub3.level}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                                    onClick={() => {
+                                      if (
+                                        confirm(`Delete sub-subcategory "${sub3.name}"?`)
+                                      ) {
+                                        deleteMutation.mutate(sub3.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 size={12} />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))
                     )}

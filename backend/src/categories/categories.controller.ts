@@ -9,12 +9,12 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
 import {
+  CategoryQueryDto,
   CreateCategoryDto,
   UpdateCategoryDto,
-  CategoryQueryDto,
 } from './categories.dto';
+import { CategoriesService } from './categories.service';
 
 @Controller('categories')
 export class CategoriesController {
@@ -49,6 +49,17 @@ export class CategoriesController {
   @Get('stats')
   getCategoryStats(@Query() query: CategoryQueryDto) {
     return this.categoriesService.getCategoryStats(query);
+  }
+
+  @Get('hierarchical-totals')
+  getHierarchicalCategoryTotals(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.categoriesService.getHierarchicalCategoryTotals(
+      startDate,
+      endDate,
+    );
   }
 
   @Get(':id')
