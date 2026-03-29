@@ -560,9 +560,6 @@ export class CategoriesService {
       _sum: {
         amount: true,
       },
-      orderBy: {
-        _sum: { categoryId: 'desc' },
-      },
     });
 
     // Create a map of categoryId -> sum
@@ -597,7 +594,9 @@ export class CategoriesService {
     };
 
     // 4) Return only root-level nodes
-    const result = buildTree(null);
+    const result = buildTree(null).sort((a, b) => {
+      return b.total - a.total;
+    });
     return result;
   }
 }

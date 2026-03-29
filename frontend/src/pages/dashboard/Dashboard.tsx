@@ -1,7 +1,7 @@
-import { KpiCard } from '@/components/KPICard/KpiCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { DrillDownPieChart } from '@/components/DrillDownPieChart';
+import { KpiCard } from '@/components/KPICard/KpiCard';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   fetchCategoryTotals,
   fetchDashboardKPIs,
@@ -13,14 +13,14 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
+  ArrowRightLeft,
+  Building2,
   CreditCard,
   Hash,
-  TrendingDown,
-  Building2,
-  Wallet,
   PiggyBank,
-  ArrowRightLeft,
   Tag,
+  TrendingDown,
+  Wallet,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import {
@@ -187,7 +187,7 @@ export function Dashboard() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid ">
         {/* Monthly Expenses Bar Chart */}
         <Card className="lg:col-span-2 shadow-sm border-border/50 bg-card/30">
           <CardHeader className="p-4 pb-0">
@@ -246,7 +246,9 @@ export function Dashboard() {
             )}
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid ">
         {/* Category Pie Chart - Drill Down */}
         <Card className="shadow-sm border-border/50 bg-card/30">
           <CardHeader className="p-4 pb-0">

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CategoryNode } from '@/lib/api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // Breadcrumb item type
 export interface BreadcrumbItem {

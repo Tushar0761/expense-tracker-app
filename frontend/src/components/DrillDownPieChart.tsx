@@ -11,6 +11,7 @@ import {
   PieChart,
   ResponsiveContainer,
   Tooltip,
+  type LegendPayload,
 } from 'recharts';
 
 interface DrillDownPieChartProps {
@@ -289,17 +290,27 @@ export function DrillDownPieChart({
               height={36}
               content={({ payload }) => (
                 <div className="flex flex-wrap justify-center gap-4 mt-2">
-                  {payload?.map((entry, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        {entry.value}
-                      </span>
-                    </div>
-                  ))}
+                  {(payload as LegendPayload[])
+                    .sort((a, b) => b.payload?.value - a.payload?.value)
+                    ?.map((entry, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          {entry.value}
+                        </span>
+                        <span className="text-xs   font-bold">
+                          {' '}
+                          {(
+                            (entry.payload?.value / currentTotal) *
+                            100
+                          ).toPrecision(3)}
+                          %
+                        </span>
+                      </div>
+                    ))}
                 </div>
               )}
             />
@@ -339,6 +350,9 @@ export function DrillDownPieChart({
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatCurrency(item.value)}
+                <span className="ps-4 text-xs   font-bold">
+                  ({((item.value / currentTotal) * 100).toPrecision(3)}% )
+                </span>
               </p>
             </div>
             {item.hasChildren && (
