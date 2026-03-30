@@ -320,7 +320,7 @@ export class CategoriesService {
   async getAllCategoriesFlat() {
     const categories = await this.prisma.category_master.findMany({
       select: { id: true, name: true, level: true, parentId: true },
-      orderBy: { name: 'asc' },
+      orderBy: { parentId: 'asc' },
     });
 
     const categoryMap = new Map(categories.map((c) => [c.id, c]));

@@ -248,13 +248,23 @@ export function Expenses() {
                 className="border rounded h-7 px-2 text-[11px] bg-background min-w-[130px]"
               >
                 <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={String(cat.id)}>
-                    {cat.parentName
-                      ? `${cat.name} (${cat.parentName})`
-                      : cat.name}
-                  </option>
-                ))}
+                {categories
+                  .sort((a, b) => {
+                    const nameA = a.parentName
+                      ? `${a.parentName} > ${a.name}`
+                      : a.name;
+                    const nameB = b.parentName
+                      ? `${b.parentName} > ${b.name}`
+                      : b.name;
+                    return nameA.localeCompare(nameB);
+                  })
+                  .map((cat) => (
+                    <option key={cat.id} value={String(cat.id)}>
+                      {cat.parentName
+                        ? `${cat.parentName} > ${cat.name}`
+                        : cat.name}
+                    </option>
+                  ))}
               </select>
             </div>
 

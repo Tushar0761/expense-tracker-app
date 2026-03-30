@@ -21,7 +21,7 @@ import {
   createCategory,
   createExpense,
   fetchAccounts,
-  fetchLeafCategories,
+  fetchCategoriesFlat,
   updateExpense,
   type Account,
   type CategoryFlat,
@@ -74,7 +74,7 @@ export function AddExpenseForm({
 
   const { data: categories = [] } = useQuery<CategoryFlat[]>({
     queryKey: ['categories-leaf'],
-    queryFn: fetchLeafCategories,
+    queryFn: fetchCategoriesFlat,
     enabled: isOpen,
   });
 
@@ -389,7 +389,7 @@ export function AddExpenseForm({
                       options={categories}
                       placeholder="Select category"
                       error={errors.categoryId?.message}
-                      showFullPath
+                      showFullPath={true}
                     />
                   )}
                 />

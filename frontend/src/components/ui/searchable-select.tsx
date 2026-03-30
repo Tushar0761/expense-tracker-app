@@ -230,35 +230,48 @@ function DropdownPanel({
             No results found
           </p>
         ) : (
-          filteredOptions.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => handleSelect(opt.id)}
-              className={cn(
-                'flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
-                opt.id === value && 'bg-accent/40',
-              )}
-            >
-              <span
+          filteredOptions
+            .sort((a, b) => {
+              const nameA = a.parentName
+                ? `${a.parentName} > ${a.name}`
+                : a.name;
+              const nameB = b.parentName
+                ? `${b.parentName} > ${b.name}`
+                : b.name;
+              return nameA.localeCompare(nameB);
+            })
+            .map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleSelect(opt.id)}
                 className={cn(
-                  'flex-1 text-left',
-                  opt.id === value && 'font-medium text-primary',
+                  'flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
+                  opt.id === value &&
+                    'bg-emerald-800/40  hover:bg-emerald-500/40 ',
                 )}
-                // style={{ paddingLeft: opt.level ? (opt.level - 1) * 14 : 0 }}
               >
-                {showFullPath && opt.fullPath ? opt.fullPath : opt.name}
-                {opt.parentName && !showFullPath && (
-                  <span className="ml-1.5 text-xs text-muted-foreground">
-                    {opt.parentName}
-                  </span>
+                <span
+                  className={cn(
+                    'flex-1 text-left',
+                    opt.id === value && 'font-medium text-primary',
+                  )}
+                  // style={{ paddingLeft: opt.level ? (opt.level - 1) * 14 : 0 }}
+                >
+                  {showFullPath && opt.parentName
+                    ? `${opt.parentName} > ${opt.name}`
+                    : opt.name}
+                  {opt.parentName && !showFullPath && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">
+                      {opt.parentName}
+                    </span>
+                  )}
+                </span>
+                {opt.id === value && (
+                  <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
                 )}
-              </span>
-              {opt.id === value && (
-                <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
-              )}
-            </button>
-          ))
+              </button>
+            ))
         )}
       </div>
     </div>
