@@ -1,4 +1,5 @@
 import { DrillDownPieChart } from '@/components/DrillDownPieChart';
+import { DatePickerInput } from '@/components/DatePickerInput';
 import { KpiCard } from '@/components/KPICard/KpiCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -176,29 +177,26 @@ export function Dashboard() {
           {/* Month Picker */}
           {filterType === 'month' && (
             <div className="flex items-center gap-1 ml-2">
-              <input
+              <DatePickerInput
                 type="month"
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="border rounded h-7 px-2 text-xs bg-background"
+                onChange={setSelectedMonth}
               />
             </div>
           )}
 
           {filterType === 'custom' && (
             <div className="flex items-center gap-1 ml-2">
-              <input
+              <DatePickerInput
                 type="date"
                 value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="border rounded h-7 px-2 text-xs bg-background"
+                onChange={setCustomStartDate}
               />
               <span className="text-xs text-muted-foreground">to</span>
-              <input
+              <DatePickerInput
                 type="date"
                 value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="border rounded h-7 px-2 text-xs bg-background"
+                onChange={setCustomEndDate}
               />
             </div>
           )}

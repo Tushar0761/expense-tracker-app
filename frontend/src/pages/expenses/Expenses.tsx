@@ -1,6 +1,7 @@
 import { AddExpenseForm } from '@/components/AddExpenseForm';
 import { BulkExpenseForm } from '@/components/BulkExpenseForm';
 import { BulkUpload } from '@/components/BulkUpload';
+import { DatePickerInput } from '@/components/DatePickerInput';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -203,23 +204,19 @@ export function Expenses() {
                 Range
               </span>
               <div className="flex items-center gap-1">
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded h-7 px-2 text-[11px] bg-background w-[110px] pr-6"
-                  />
-                </div>
+                <DatePickerInput
+                  type="date"
+                  value={startDate}
+                  onChange={setStartDate}
+                  className="w-[110px]"
+                />
                 <span className="text-muted-foreground text-[10px]">to</span>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded h-7 px-2 text-[11px] bg-background w-[110px] pr-6"
-                  />
-                </div>
+                <DatePickerInput
+                  type="date"
+                  value={endDate}
+                  onChange={setEndDate}
+                  className="w-[110px]"
+                />
               </div>
             </div>
 
