@@ -114,11 +114,8 @@ export function Expenses() {
   );
   const pagination = expenseData?.pagination;
 
-  // Calculate totals from current filtered data (not just the page)
+  // Total entries from current filtered data
   const totalEntries = pagination?.total ?? 0;
-  const totalSum = useMemo(() => {
-    return expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  }, [expenses]);
 
   const handleEdit = (expense: ExpenseRow) => {
     setEditingExpense(expense);
@@ -195,40 +192,6 @@ export function Expenses() {
             <Upload size={14} /> Bulk Upload
           </Button>
         </div>
-      </div>
-
-      {/* Insights Card */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="bg-gradient-to-br from-rose-50 to-rose-100/50 border-rose-200/50 shadow-sm">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-rose-500/10 flex items-center justify-center">
-              <span className="text-rose-600 font-bold text-lg">₹</span>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-rose-600/70 tracking-wider">
-                Total Sum
-              </p>
-              <p className="text-lg font-black text-rose-700">
-                ₹{sumOfExpense.toLocaleString()}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200/50 shadow-sm">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <span className="text-blue-600 font-bold text-lg">#</span>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-blue-600/70 tracking-wider">
-                Total Entries
-              </p>
-              <p className="text-lg font-black text-blue-700">
-                {totalEntries.toLocaleString()}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filters */}
@@ -351,6 +314,42 @@ export function Expenses() {
           </div>
         </Card>
       )}
+
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="border shadow-none  bg-muted/20 ">
+          <CardContent className="px-2.5 flex items-center justify-between">
+            <div className="">
+              <p className="text-[10px] uppercase font-medium text-muted-foreground tracking-wide">
+                Total Sum
+              </p>
+              <p className="text-base font-semibold">
+                ₹{sumOfExpense.toLocaleString()}
+              </p>
+            </div>
+
+            <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground">
+              ₹
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-none  bg-muted/20 ">
+          <CardContent className="px-2.5 flex items-center justify-between">
+            <div className="">
+              <p className="text-[10px] uppercase font-medium text-muted-foreground tracking-wide">
+                Total Entries
+              </p>
+              <p className="text-base font-semibold">
+                {totalEntries.toLocaleString()}
+              </p>
+            </div>
+
+            <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground">
+              #
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Table */}
       <Card className="overflow-hidden border border-border/50 shadow-sm bg-card/20">

@@ -12,12 +12,12 @@ import {
   type ExpenseSummaryPoint,
 } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { format, startOfMonth } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
 import {
   ArrowRightLeft,
+  Calendar,
   CreditCard,
   Hash,
-  PiggyBank,
   Tag,
   TrendingDown,
 } from 'lucide-react';
@@ -38,6 +38,12 @@ export function Dashboard() {
 
   // Date filter state
   const [filterType, setFilterType] = useState<DateFilterType>('month');
+
+  // Month picker state - default to current month
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    format(today, 'yyyy-MM'),
+  );
+
   const [customStartDate, setCustomStartDate] = useState<string>(
     format(startOfMonth(today), 'yyyy-MM-dd'),
   );
@@ -50,11 +56,16 @@ export function Dashboard() {
     switch (filterType) {
       case 'all':
         return { startDate: undefined, endDate: undefined };
-      case 'month':
+      case 'month': {
+        // Use selected month to calculate start and end dates
+        const [year, month] = selectedMonth.split('-').map(Number);
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = endOfMonth(monthStart);
         return {
-          startDate: format(startOfMonth(today), 'yyyy-MM-dd'),
-          endDate: format(today, 'yyyy-MM-dd'),
+          startDate: format(monthStart, 'yyyy-MM-dd'),
+          endDate: format(monthEnd, 'yyyy-MM-dd'),
         };
+      }
       case 'custom':
         return {
           startDate: customStartDate,
@@ -63,7 +74,7 @@ export function Dashboard() {
       default:
         return { startDate: undefined, endDate: undefined };
     }
-  }, [filterType, customStartDate, customEndDate, today]);
+  }, [filterType, selectedMonth, customStartDate, customEndDate]);
 
   // Fetch dashboard KPIs with date filter
   const { data: kpis } = useQuery<DashboardKPIs>({
@@ -121,15 +132,6 @@ export function Dashboard() {
     );
   }, [kpis]);
 
-  const totalBankBalance = useMemo(() => {
-    if (!kpis?.accounts) return 0;
-    return kpis.accounts.reduce(
-      (sum, acc) =>
-        acc.type === 'CREDIT' ? sum - acc.balance : sum + acc.balance,
-      0,
-    );
-  }, [kpis?.accounts]);
-
   return (
     <div className="space-y-6 animate-in fade-in duration-700 max-w-6xl mx-auto">
       {/* Header with Filter */}
@@ -157,9 +159,10 @@ export function Dashboard() {
             variant={filterType === 'month' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setFilterType('month')}
-            className="text-xs"
+            className="text-xs gap-1"
           >
-            This Month
+            <Calendar size={12} />
+            Month
           </Button>
           <Button
             variant={filterType === 'custom' ? 'default' : 'ghost'}
@@ -169,6 +172,18 @@ export function Dashboard() {
           >
             Custom
           </Button>
+
+          {/* Month Picker */}
+          {filterType === 'month' && (
+            <div className="flex items-center gap-1 ml-2">
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="border rounded h-7 px-2 text-xs bg-background"
+              />
+            </div>
+          )}
 
           {filterType === 'custom' && (
             <div className="flex items-center gap-1 ml-2">
@@ -188,28 +203,18 @@ export function Dashboard() {
             </div>
           )}
         </div>
-
-        <div className="bg-primary/5 border border-primary/10 rounded-xl px-4 py-2 flex gap-3 items-center">
-          <div className="text-right">
-            <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">
-              Net Liquidity
-            </p>
-            <p
-              className={`text-lg font-black ${totalBankBalance >= 0 ? 'text-primary' : 'text-rose-600'}`}
-            >
-              ₹{totalBankBalance.toLocaleString()}
-            </p>
-          </div>
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <PiggyBank className="h-4 w-4 text-primary" />
-          </div>
-        </div>
       </div>
 
       {/* KPI Cards Row - compact */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
-          title={filterType === 'all' ? 'Total Expenses' : 'This Period'}
+          title={
+            filterType === 'all'
+              ? 'Total Expenses'
+              : filterType === 'month'
+                ? format(new Date(selectedMonth + '-01'), 'MMMM yyyy')
+                : 'This Period'
+          }
           value={`₹${((filterType === 'all' ? kpis?.overall.total : kpis?.thisMonth.total) ?? 0).toLocaleString()}`}
           description={`${(filterType === 'all' ? kpis?.overall.count : kpis?.thisMonth.count) ?? 0} transactions`}
           Icon={<CreditCard size={16} className="text-rose-500" />}
@@ -237,7 +242,11 @@ export function Dashboard() {
           title="Comparison"
           value={`₹${(kpis?.lastMonth.total ?? 0).toLocaleString()}`}
           description={
-            filterType === 'all' ? 'Last period' : 'vs Previous period'
+            filterType === 'all'
+              ? 'Last period'
+              : filterType === 'month'
+                ? `vs ${format(new Date(new Date(selectedMonth + '-01').getTime() - 86400000), 'MMM yyyy')}`
+                : 'vs Previous period'
           }
           Icon={<Hash size={16} className="text-blue-500" />}
           indicatorColor="neutral"
