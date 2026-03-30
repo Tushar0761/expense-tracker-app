@@ -118,3 +118,17 @@ export class ExpenseSummaryQueryDto {
   @IsDateString()
   endDate?: string;
 }
+
+export class ExpenseDashboardSummaryQueryDto {
+  @IsOptional()
+  @IsString()
+  type?: 'all' | 'month' | 'custom';
+
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+}

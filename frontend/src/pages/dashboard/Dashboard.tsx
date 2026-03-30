@@ -31,13 +31,13 @@ import {
   YAxis,
 } from 'recharts';
 
-type DateFilterType = 'all' | 'month-wise' | 'custom';
+type DateFilterType = 'all' | 'month' | 'custom';
 
 export function Dashboard() {
   const today = new Date();
 
   // Date filter state
-  const [filterType, setFilterType] = useState<DateFilterType>('month-wise');
+  const [filterType, setFilterType] = useState<DateFilterType>('month');
   const [customStartDate, setCustomStartDate] = useState<string>(
     format(startOfMonth(today), 'yyyy-MM-dd'),
   );
@@ -50,7 +50,7 @@ export function Dashboard() {
     switch (filterType) {
       case 'all':
         return { startDate: undefined, endDate: undefined };
-      case 'month-wise':
+      case 'month':
         return {
           startDate: format(startOfMonth(today), 'yyyy-MM-dd'),
           endDate: format(today, 'yyyy-MM-dd'),
@@ -67,8 +67,14 @@ export function Dashboard() {
 
   // Fetch dashboard KPIs with date filter
   const { data: kpis } = useQuery<DashboardKPIs>({
-    queryKey: ['dashboard-kpis', dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchDashboardKPIs(dateRange.startDate, dateRange.endDate),
+    queryKey: [
+      'dashboard-kpis',
+      dateRange.startDate,
+      dateRange.endDate,
+      filterType,
+    ],
+    queryFn: () =>
+      fetchDashboardKPIs(dateRange.startDate, dateRange.endDate, filterType),
   });
 
   // Fetch category-wise totals with date filter
@@ -148,9 +154,9 @@ export function Dashboard() {
             All Time
           </Button>
           <Button
-            variant={filterType === 'month-wise' ? 'default' : 'ghost'}
+            variant={filterType === 'month' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setFilterType('month-wise')}
+            onClick={() => setFilterType('month')}
             className="text-xs"
           >
             This Month

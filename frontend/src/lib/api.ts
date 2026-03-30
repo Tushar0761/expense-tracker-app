@@ -550,10 +550,12 @@ export async function fetchCategoryTotals(params?: {
 export async function fetchDashboardKPIs(
   startDate?: string,
   endDate?: string,
+  type?: string,
 ): Promise<DashboardKPIs> {
   const params = new URLSearchParams();
   if (startDate) params.set('startDate', startDate);
   if (endDate) params.set('endDate', endDate);
+  if (type) params.set('type', type);
   const queryString = params.toString();
   const url = `/api/expenses/dashboard${queryString ? `?${queryString}` : ''}`;
   const response = await api.get(url);

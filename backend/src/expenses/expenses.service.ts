@@ -7,7 +7,6 @@ import {
   startOfMonth,
   startOfWeek,
   startOfYear,
-  subMonths,
 } from 'date-fns';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -286,13 +285,15 @@ export class ExpensesService {
       .sort((a, b) => b.total - a.total);
   }
 
-  async getDashboardKPIs(startDate?: string, endDate?: string) {
+  async getDashboardKPIs(
+    startDate?: string,
+    endDate?: string,
+    type?: 'all' | 'month' | 'custom',
+  ) {
     const now = new Date();
 
     // Build date filters
     const thisMonthStart = startOfMonth(now);
-    const lastMonthStart = startOfMonth(subMonths(now, 1));
-    const lastMonthEnd = endOfDay(subMonths(now, 1));
 
     let dateFilter: { date: { gte?: Date; lte?: Date } } | undefined;
     if (startDate || endDate) {
@@ -301,11 +302,47 @@ export class ExpensesService {
       if (endDate) dateFilter.date.lte = endOfDay(new Date(endDate));
     }
 
-    // Always compare with the full previous month
-    // This ensures Feb 1-28 compares with Jan 1-31 (full month)
-    const comparisonDateFilter: { date: { gte: Date; lte: Date } } = {
-      date: { gte: lastMonthStart, lte: lastMonthEnd },
-    };
+    let comparisonDateFilter:
+      | { date: { gte?: Date; lte?: Date; lt?: Date } }
+      | undefined;
+    if (startDate && endDate) {
+      if (type === 'custom') {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        // Calculate inclusive days (add 1 to include both start and end dates)
+        const rangeDays =
+          Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) +
+          1;
+        // Always compare with the full previous month
+        // This ensures Feb 1-28 compares with Jan 1-31 (full month)
+
+        // Comparison period is same duration before start date
+        comparisonDateFilter = {
+          date: {
+            gte: new Date(start.getTime() - rangeDays * 24 * 60 * 60 * 1000),
+            lte: endOfDay(new Date(start.getTime() - 24 * 60 * 60 * 1000)),
+          },
+        };
+      } else if (type === 'month') {
+        // clone first
+        const [year, month] = startDate.split('-').map(Number);
+
+        // Start of target month (IST safe)
+        const startOfMonth = new Date(year, month - 2, 1);
+
+        // Start of next month
+        const nextMonthStart = new Date(year, month - 1, 1);
+
+        comparisonDateFilter = {
+          date: {
+            gte: startOfMonth,
+            lt: nextMonthStart, // 👈 NOT lte
+          },
+        };
+      } else {
+        comparisonDateFilter = { date: { gte: thisMonthStart } };
+      }
+    }
 
     const [thisPeriod, lastPeriod, overall, recent, accounts] =
       await Promise.all([

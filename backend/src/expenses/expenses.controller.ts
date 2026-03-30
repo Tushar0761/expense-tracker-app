@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateExpenseDto,
+  ExpenseDashboardSummaryQueryDto,
   ExpenseQueryDto,
   ExpenseSummaryQueryDto,
   UpdateExpenseDto,
@@ -47,11 +48,12 @@ export class ExpensesController {
   }
 
   @Get('dashboard')
-  getDashboardKPIs(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    return this.expensesService.getDashboardKPIs(startDate, endDate);
+  getDashboardKPIs(@Query() query?: ExpenseDashboardSummaryQueryDto) {
+    return this.expensesService.getDashboardKPIs(
+      query?.startDate,
+      query?.endDate,
+      query?.type,
+    );
   }
 
   @Get()
