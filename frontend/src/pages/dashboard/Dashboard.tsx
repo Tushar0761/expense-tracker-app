@@ -1,5 +1,5 @@
-import { DrillDownPieChart } from '@/components/DrillDownPieChart';
 import { DatePickerInput } from '@/components/DatePickerInput';
+import { DrillDownPieChart } from '@/components/DrillDownPieChart';
 import { KpiCard } from '@/components/KPICard/KpiCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,9 @@ import {
 import { useMemo, useState } from 'react';
 import {
   Bar,
-  BarChart,
+  CartesianGrid,
+  ComposedChart,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -33,6 +35,7 @@ import {
 } from 'recharts';
 
 type DateFilterType = 'all' | 'month' | 'custom';
+type GranularityType = 'day' | 'week' | 'month' | 'year';
 
 export function Dashboard() {
   const today = new Date();
@@ -51,6 +54,28 @@ export function Dashboard() {
   const [customEndDate, setCustomEndDate] = useState<string>(
     format(today, 'yyyy-MM-dd'),
   );
+
+  // Chart granularity state
+  const [granularity, setGranularity] = useState<GranularityType>('month');
+
+  // Chart data points limit - default values per granularity
+  const [dataPointsLimit, setDataPointsLimit] = useState<string>('12');
+
+  // Get default limit based on granularity
+  const getDefaultLimit = (g: GranularityType): number => {
+    switch (g) {
+      case 'day':
+        return 30;
+      case 'week':
+        return 12;
+      case 'month':
+        return 12;
+      case 'year':
+        return 5;
+      default:
+        return 12;
+    }
+  };
 
   // Calculate date range based on filter type
   const dateRange = useMemo(() => {
@@ -99,29 +124,35 @@ export function Dashboard() {
       }),
   });
 
-  // Fetch monthly expense summary (last 12 months) - always from start for chart
-  const { data: monthlySummary } = useQuery<ExpenseSummaryPoint[]>({
+  // Fetch expense summary based on granularity
+  const { data: expenseSummary } = useQuery<ExpenseSummaryPoint[]>({
     queryKey: [
-      'expenses-summary-monthly',
+      'expenses-summary',
+      granularity,
       dateRange.startDate,
       dateRange.endDate,
     ],
     queryFn: () =>
       fetchExpenseSummary({
-        granularity: 'month',
+        granularity,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       }),
   });
 
-  // Prepare bar chart data from monthly summary
+  // Prepare bar chart data from expense summary
   const barData = useMemo(() => {
-    if (!monthlySummary) return [];
-    return monthlySummary.slice(-12).map((s) => ({
-      month: s.period,
+    if (!expenseSummary) return [];
+
+    // Parse limit - if empty or 0, show all (no slice)
+    const limit = dataPointsLimit ? parseInt(dataPointsLimit, 10) : 0;
+    const dataPoints = limit > 0 ? limit : expenseSummary.length;
+
+    return expenseSummary.slice(-dataPoints).map((s) => ({
+      period: s.period,
       amount: s.totalAmount,
     }));
-  }, [monthlySummary]);
+  }, [expenseSummary, dataPointsLimit]);
 
   // Month-over-month change
   const monthChange = useMemo(() => {
@@ -261,53 +292,99 @@ export function Dashboard() {
       {/* Monthly Trends Chart - Full Width */}
       <Card className="shadow-sm border-border/50 bg-card/30">
         <CardHeader className="p-4 pb-0">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <TrendingDown className="h-4 w-4 text-primary" />
-            Monthly Trends
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-primary" />
+              Trends
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <select
+                value={granularity}
+                onChange={(e) => {
+                  const newGranularity = e.target.value as GranularityType;
+                  setGranularity(newGranularity);
+                  // Set default limit when granularity changes
+                  setDataPointsLimit(String(getDefaultLimit(newGranularity)));
+                }}
+                className="border rounded h-7 px-2 text-xs bg-background"
+              >
+                <option value="day">Daily</option>
+                <option value="week">Weekly</option>
+                <option value="month">Monthly</option>
+                <option value="year">Yearly</option>
+              </select>
+              <input
+                type="number"
+                min={1}
+                value={dataPointsLimit}
+                onChange={(e) => setDataPointsLimit(e.target.value)}
+                placeholder="All"
+                className="border rounded h-7 px-2 text-xs bg-background w-[70px]"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-4 pt-4">
           {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart
                 data={barData}
-                margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                margin={{ top: 30, right: 15, left: -10, bottom: 0 }}
               >
+                <CartesianGrid strokeDasharray="9 9" />
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#a78bfa" stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
                 <XAxis
-                  dataKey="month"
+                  dataKey="period"
                   axisLine={false}
                   tickLine={false}
                   fontSize={10}
                   tick={{ fill: 'var(--muted-foreground)' }}
+                  dy={5}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
                   fontSize={10}
-                  tick={{ fill: 'var(--muted-foreground)' }}
                   tickFormatter={(v) =>
-                    `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`
+                    `₹${v >= 1000 ? `${(v / 1000).toLocaleString()}k` : v}`
                   }
+                  dx={-5}
+                  width={45}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                  cursor={{ fill: 'rgba(139, 92, 246, 0.08)' }}
                   contentStyle={{
                     borderRadius: '8px',
                     border: '1px solid var(--border)',
                     fontSize: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
                   formatter={(value: number) => [
-                    `₹${value.toLocaleString()}`,
+                    `${value.toLocaleString()} ₹`,
                     'Amount',
                   ]}
+                  labelStyle={{ fontWeight: 600, marginBottom: '4px' }}
                 />
                 <Bar
                   dataKey="amount"
-                  fill="#8b5cf6"
-                  radius={[4, 4, 0, 0]}
-                  maxBarSize={30}
-                />
-              </BarChart>
+                  fill="url(#barGradient)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={barData.length > 10 ? 30 : 40}
+                  minPointSize={5}
+                >
+                  <LabelList
+                    dataKey="amount"
+                    position="top"
+                    fontSize={12}
+                    // fill="var(--muted-foreground)"
+                  />
+                </Bar>
+              </ComposedChart>
             </ResponsiveContainer>
           ) : (
             <div className="text-xs text-muted-foreground py-8 text-center">
