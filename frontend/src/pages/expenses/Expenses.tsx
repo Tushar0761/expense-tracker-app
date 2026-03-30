@@ -3,11 +3,13 @@ import { BulkExpenseForm } from '@/components/BulkExpenseForm';
 import { BulkUpload } from '@/components/BulkUpload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   deleteExpense,
+  fetchAccounts,
   fetchCategoriesFlat,
   fetchExpenses,
+  type Account,
   type CategoryFlat,
   type ExpenseListResponse,
   type ExpenseQueryParams,
@@ -16,10 +18,13 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
+  ChevronsLeft,
+  ChevronsRight,
   Edit2,
   Filter,
   List,
-  PieChartIcon,
+  LucideChevronLeft,
+  LucideChevronRight,
   Plus,
   Trash2,
   Upload,
@@ -35,6 +40,8 @@ export function Expenses() {
 
   // Filter state
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [accountFilter, setAccountFilter] = useState('');
+  const [userNameFilter, setUserNameFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -44,6 +51,7 @@ export function Expenses() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(true);
+  const [jumpToPage, setJumpToPage] = useState('');
 
   // Build query params
   const queryParams: ExpenseQueryParams = useMemo(
@@ -53,9 +61,19 @@ export function Expenses() {
       ...(startDate && { startDate }),
       ...(endDate && { endDate }),
       ...(categoryFilter && { categoryId: Number(categoryFilter) }),
+      ...(accountFilter && { accountId: Number(accountFilter) }),
+      ...(userNameFilter && { userName: userNameFilter }),
       ...(search && { search }),
     }),
-    [page, startDate, endDate, categoryFilter, search],
+    [
+      page,
+      startDate,
+      endDate,
+      categoryFilter,
+      accountFilter,
+      userNameFilter,
+      search,
+    ],
   );
 
   // Fetch expenses from API
@@ -68,6 +86,12 @@ export function Expenses() {
   const { data: categories = [] } = useQuery<CategoryFlat[]>({
     queryKey: ['categories-flat'],
     queryFn: fetchCategoriesFlat,
+  });
+
+  // Fetch accounts for filter dropdown
+  const { data: accounts = [] } = useQuery<Account[]>({
+    queryKey: ['accounts'],
+    queryFn: fetchAccounts,
   });
 
   // Delete expense mutation
@@ -84,31 +108,17 @@ export function Expenses() {
   });
 
   const expenses = useMemo(() => expenseData?.data ?? [], [expenseData]);
+  const sumOfExpense = useMemo(
+    () => expenseData?.sumOfExpense ?? 0,
+    [expenseData],
+  );
   const pagination = expenseData?.pagination;
 
-  // Compute KPIs
-  const kpis = useMemo(() => {
-    const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
-    const numTransactions = pagination?.total ?? expenses.length;
-
-    const categoryTotals: Record<string, number> = {};
-    expenses.forEach((t) => {
-      if (t.categoryName) {
-        categoryTotals[t.categoryName] =
-          (categoryTotals[t.categoryName] || 0) + t.amount;
-      }
-    });
-    const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-
-    return {
-      totalExpense: Math.round(totalExpense * 100) / 100,
-      numTransactions,
-      topCategories: sorted.slice(0, 3).map(([name, value]) => ({
-        name,
-        value: Math.round(value * 100) / 100,
-      })),
-    };
-  }, [expenses, pagination]);
+  // Calculate totals from current filtered data (not just the page)
+  const totalEntries = pagination?.total ?? 0;
+  const totalSum = useMemo(() => {
+    return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  }, [expenses]);
 
   const handleEdit = (expense: ExpenseRow) => {
     setEditingExpense(expense);
@@ -125,9 +135,25 @@ export function Expenses() {
     setEditingExpense(null);
   };
 
+  const handleJumpToPage = (e: React.FormEvent) => {
+    e.preventDefault();
+    const pageNum = parseInt(jumpToPage, 10);
+    if (pageNum && pageNum >= 1 && pageNum <= (pagination?.totalPages ?? 1)) {
+      setPage(pageNum);
+      setJumpToPage('');
+    }
+  };
+
   React.useEffect(() => {
     setPage(1);
-  }, [categoryFilter, startDate, endDate, search]);
+  }, [
+    categoryFilter,
+    accountFilter,
+    userNameFilter,
+    startDate,
+    endDate,
+    search,
+  ]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
@@ -171,6 +197,40 @@ export function Expenses() {
         </div>
       </div>
 
+      {/* Insights Card */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="bg-gradient-to-br from-rose-50 to-rose-100/50 border-rose-200/50 shadow-sm">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-rose-500/10 flex items-center justify-center">
+              <span className="text-rose-600 font-bold text-lg">₹</span>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-rose-600/70 tracking-wider">
+                Total Sum
+              </p>
+              <p className="text-lg font-black text-rose-700">
+                ₹{sumOfExpense.toLocaleString()}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200/50 shadow-sm">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <span className="text-blue-600 font-bold text-lg">#</span>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-blue-600/70 tracking-wider">
+                Total Entries
+              </p>
+              <p className="text-lg font-black text-blue-700">
+                {totalEntries.toLocaleString()}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
       {showFilters && (
         <Card className="p-3 bg-muted/20 border-border/40">
@@ -202,6 +262,24 @@ export function Expenses() {
 
             <div className="grid gap-1">
               <span className="text-[9px] uppercase font-bold text-muted-foreground ml-0.5">
+                Account
+              </span>
+              <select
+                value={accountFilter}
+                onChange={(e) => setAccountFilter(e.target.value)}
+                className="border rounded h-7 px-2 text-[11px] bg-background min-w-[130px]"
+              >
+                <option value="">All Accounts</option>
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={String(acc.id)}>
+                    {acc.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid gap-1">
+              <span className="text-[9px] uppercase font-bold text-muted-foreground ml-0.5">
                 Category
               </span>
               <select
@@ -220,6 +298,19 @@ export function Expenses() {
               </select>
             </div>
 
+            <div className="grid gap-1">
+              <span className="text-[9px] uppercase font-bold text-muted-foreground ml-0.5">
+                Sent To
+              </span>
+              <input
+                type="text"
+                value={userNameFilter}
+                onChange={(e) => setUserNameFilter(e.target.value)}
+                className="border rounded h-7 px-2 text-[11px] bg-background w-[100px]"
+                placeholder="Username..."
+              />
+            </div>
+
             <div className="grid gap-1 flex-1">
               <span className="text-[9px] uppercase font-bold text-muted-foreground ml-0.5">
                 Search
@@ -233,7 +324,12 @@ export function Expenses() {
               />
             </div>
 
-            {(startDate || endDate || categoryFilter || search) && (
+            {(startDate ||
+              endDate ||
+              categoryFilter ||
+              accountFilter ||
+              userNameFilter ||
+              search) && (
               <div className="pt-5">
                 <Button
                   variant="ghost"
@@ -243,6 +339,8 @@ export function Expenses() {
                     setStartDate('');
                     setEndDate('');
                     setCategoryFilter('');
+                    setAccountFilter('');
+                    setUserNameFilter('');
                     setSearch('');
                   }}
                 >
@@ -253,62 +351,6 @@ export function Expenses() {
           </div>
         </Card>
       )}
-
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-card/30">
-          <CardHeader className="p-3 pb-1 flex flex-row items-center justify-between">
-            <CardTitle className="text-[11px] font-bold text-muted-foreground uppercase">
-              Total (Page)
-            </CardTitle>
-            <div className="h-6 w-6 rounded-full bg-rose-500/10 flex items-center justify-center">
-              <Trash2 className="h-3 w-3 text-rose-600 opacity-20" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="text-xl font-bold text-rose-600 tracking-tight">
-              ₹{kpis.totalExpense.toLocaleString()}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {kpis.numTransactions} transactions found
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2 bg-card/30">
-          <CardHeader className="p-3 pb-1">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-[11px] font-bold text-muted-foreground uppercase">
-                Spending by Category
-              </CardTitle>
-              <PieChartIcon className="h-3 w-3 text-primary opacity-40" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="flex gap-3 flex-wrap">
-              {kpis.topCategories.length > 0 ? (
-                kpis.topCategories.map((cat) => (
-                  <div
-                    key={cat.name}
-                    className="flex-1 min-w-[100px] bg-muted/20 px-2.5 py-1.5 rounded-lg border border-border/30"
-                  >
-                    <p className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">
-                      {cat.name}
-                    </p>
-                    <p className="text-sm font-bold tracking-tight">
-                      ₹{cat.value.toLocaleString()}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  No data for current filters
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Table */}
       <Card className="overflow-hidden border border-border/50 shadow-sm bg-card/20">
@@ -428,30 +470,88 @@ export function Expenses() {
 
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
-            <div className="p-4 border-t flex justify-between items-center bg-muted/10">
+            <div className="p-3 border-t flex justify-between items-center bg-muted/10">
               <span className="text-xs text-muted-foreground">
-                Showing {expenses.length} of {pagination.total} entries
+                Page {pagination.page} of {pagination.totalPages} •{' '}
+                {pagination.total} entries
               </span>
-              <div className="flex gap-2">
+
+              <div className="flex items-center gap-2">
+                {/* Jump to page */}
+                <form
+                  onSubmit={handleJumpToPage}
+                  className="flex items-center gap-1"
+                >
+                  <input
+                    type="number"
+                    min={1}
+                    max={pagination.totalPages}
+                    value={jumpToPage}
+                    onChange={(e) => setJumpToPage(e.target.value)}
+                    placeholder="#"
+                    className="w-12 h-7 text-xs border rounded px-1 bg-background"
+                  />
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                  >
+                    Go
+                  </Button>
+                </form>
+
+                <div className="h-4 w-px bg-border mx-1" />
+
+                {/* First */}
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-8 px-2"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                >
+                  <ChevronsLeft className="h-3 w-3" />
+                </Button>
+
+                {/* Previous */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
-                  Previous
+                  <LucideChevronLeft className="h-3 w-3" />
                 </Button>
+
+                {/* Page indicator */}
+                <span className="text-xs px-2 min-w-[60px] text-center">
+                  {page} / {pagination.totalPages}
+                </span>
+
+                {/* Next */}
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-8 px-2"
+                  size="icon"
+                  className="h-7 w-7"
                   onClick={() =>
                     setPage((p) => Math.min(pagination.totalPages, p + 1))
                   }
                   disabled={page >= pagination.totalPages}
                 >
-                  Next
+                  <LucideChevronRight className="h-3 w-3" />
+                </Button>
+
+                {/* Last */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setPage(pagination.totalPages)}
+                  disabled={page >= pagination.totalPages}
+                >
+                  <ChevronsRight className="h-3 w-3" />
                 </Button>
               </div>
             </div>

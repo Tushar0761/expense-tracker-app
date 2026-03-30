@@ -91,6 +91,10 @@ export class ExpenseQueryDto {
   accountId?: number;
 
   @IsOptional()
+  @IsString()
+  userName?: string;
+
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   page?: number = 1;

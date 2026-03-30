@@ -47,8 +47,11 @@ export class ExpensesController {
   }
 
   @Get('dashboard')
-  getDashboardKPIs() {
-    return this.expensesService.getDashboardKPIs();
+  getDashboardKPIs(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.expensesService.getDashboardKPIs(startDate, endDate);
   }
 
   @Get()

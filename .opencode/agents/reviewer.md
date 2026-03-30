@@ -6,6 +6,7 @@ permission:
     edit: allow
     bash:
         "*": deny
+        "cd backend && npm run lint:fix && npm run format && npm run lint": allow
         "cd backend && npm run lint*": allow
         "cd backend && npm run format": allow
         "cd backend && npm run build": allow
@@ -26,9 +27,9 @@ Run these commands in order and fix ALL errors before moving on:
 
 If any command fails:
 
-- Fix the errors directly in the files
-- Re-run that command to confirm it passes
-- Then continue to the next command
+-   Fix the errors directly in the files
+-   Re-run that command to confirm it passes
+-   Then continue to the next command
 
 When all 4 pass, report: "All clean. Call @coder for task [N+1]."
 

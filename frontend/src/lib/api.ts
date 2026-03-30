@@ -257,6 +257,7 @@ export type ExpenseRow = {
 
 export type ExpenseListResponse = {
   data: ExpenseRow[];
+  sumOfExpense: number;
   pagination: {
     page: number;
     limit: number;
@@ -270,6 +271,7 @@ export type ExpenseQueryParams = {
   endDate?: string;
   categoryId?: number;
   accountId?: number;
+  userName?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -545,8 +547,16 @@ export async function fetchCategoryTotals(params?: {
   return response.data;
 }
 
-export async function fetchDashboardKPIs(): Promise<DashboardKPIs> {
-  const response = await api.get('/api/expenses/dashboard');
+export async function fetchDashboardKPIs(
+  startDate?: string,
+  endDate?: string,
+): Promise<DashboardKPIs> {
+  const params = new URLSearchParams();
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+  const queryString = params.toString();
+  const url = `/api/expenses/dashboard${queryString ? `?${queryString}` : ''}`;
+  const response = await api.get(url);
   return response.data;
 }
 

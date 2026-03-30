@@ -7,6 +7,7 @@ import {
   startOfMonth,
   startOfWeek,
   startOfYear,
+  subMonths,
 } from 'date-fns';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -102,11 +103,15 @@ export class ExpensesService {
       where.accountId = Number(query.accountId);
     }
 
+    if (query.userName) {
+      where.userName = { contains: query.userName };
+    }
+
     if (query.search) {
       where.remarks = { contains: query.search };
     }
 
-    const [data, total] = await Promise.all([
+    const [data, total, sumOfExpense] = await Promise.all([
       this.prisma.expenses_data_master.findMany({
         where,
         include: {
@@ -118,6 +123,10 @@ export class ExpensesService {
         take: limit,
       }),
       this.prisma.expenses_data_master.count({ where }),
+      this.prisma.expenses_data_master.aggregate({
+        where,
+        _sum: { amount: true },
+      }),
     ]);
 
     const rows: ExpenseRow[] = data.map((exp) => ({
@@ -135,6 +144,7 @@ export class ExpensesService {
 
     return {
       data: rows,
+      sumOfExpense: sumOfExpense._sum.amount,
       pagination: {
         page,
         limit,
@@ -276,25 +286,36 @@ export class ExpensesService {
       .sort((a, b) => b.total - a.total);
   }
 
-  async getDashboardKPIs() {
+  async getDashboardKPIs(startDate?: string, endDate?: string) {
     const now = new Date();
-    const thisMonthStart = startOfMonth(now);
-    const lastMonthStart = startOfMonth(
-      new Date(now.getFullYear(), now.getMonth() - 1, 1),
-    );
-    const lastMonthEnd = endOfDay(
-      new Date(now.getFullYear(), now.getMonth(), 0),
-    );
 
-    const [thisMonth, lastMonth, overall, recent, accounts] = await Promise.all(
-      [
+    // Build date filters
+    const thisMonthStart = startOfMonth(now);
+    const lastMonthStart = startOfMonth(subMonths(now, 1));
+    const lastMonthEnd = endOfDay(subMonths(now, 1));
+
+    let dateFilter: { date: { gte?: Date; lte?: Date } } | undefined;
+    if (startDate || endDate) {
+      dateFilter = { date: {} };
+      if (startDate) dateFilter.date.gte = new Date(startDate);
+      if (endDate) dateFilter.date.lte = endOfDay(new Date(endDate));
+    }
+
+    // Always compare with the full previous month
+    // This ensures Feb 1-28 compares with Jan 1-31 (full month)
+    const comparisonDateFilter: { date: { gte: Date; lte: Date } } = {
+      date: { gte: lastMonthStart, lte: lastMonthEnd },
+    };
+
+    const [thisPeriod, lastPeriod, overall, recent, accounts] =
+      await Promise.all([
         this.prisma.expenses_data_master.aggregate({
-          where: { date: { gte: thisMonthStart } },
+          where: dateFilter ? dateFilter : { date: { gte: thisMonthStart } },
           _sum: { amount: true },
           _count: true,
         }),
         this.prisma.expenses_data_master.aggregate({
-          where: { date: { gte: lastMonthStart, lte: lastMonthEnd } },
+          where: comparisonDateFilter,
           _sum: { amount: true },
           _count: true,
         }),
@@ -310,17 +331,16 @@ export class ExpensesService {
           },
         }),
         this.prisma.account_master.findMany(),
-      ],
-    );
+      ]);
 
     return {
       thisMonth: {
-        total: thisMonth._sum.amount || 0,
-        count: thisMonth._count,
+        total: thisPeriod._sum.amount || 0,
+        count: thisPeriod._count,
       },
       lastMonth: {
-        total: lastMonth._sum.amount || 0,
-        count: lastMonth._count,
+        total: lastPeriod._sum.amount || 0,
+        count: lastPeriod._count,
       },
       overall: {
         total: overall._sum.amount || 0,

@@ -1,6 +1,7 @@
 import { DrillDownPieChart } from '@/components/DrillDownPieChart';
 import { KpiCard } from '@/components/KPICard/KpiCard';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   fetchCategoryTotals,
@@ -11,18 +12,16 @@ import {
   type ExpenseSummaryPoint,
 } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, startOfMonth } from 'date-fns';
 import {
   ArrowRightLeft,
-  Building2,
   CreditCard,
   Hash,
   PiggyBank,
   Tag,
   TrendingDown,
-  Wallet,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -32,23 +31,69 @@ import {
   YAxis,
 } from 'recharts';
 
+type DateFilterType = 'all' | 'month-wise' | 'custom';
+
 export function Dashboard() {
-  // Fetch dashboard KPIs
+  const today = new Date();
+
+  // Date filter state
+  const [filterType, setFilterType] = useState<DateFilterType>('month-wise');
+  const [customStartDate, setCustomStartDate] = useState<string>(
+    format(startOfMonth(today), 'yyyy-MM-dd'),
+  );
+  const [customEndDate, setCustomEndDate] = useState<string>(
+    format(today, 'yyyy-MM-dd'),
+  );
+
+  // Calculate date range based on filter type
+  const dateRange = useMemo(() => {
+    switch (filterType) {
+      case 'all':
+        return { startDate: undefined, endDate: undefined };
+      case 'month-wise':
+        return {
+          startDate: format(startOfMonth(today), 'yyyy-MM-dd'),
+          endDate: format(today, 'yyyy-MM-dd'),
+        };
+      case 'custom':
+        return {
+          startDate: customStartDate,
+          endDate: customEndDate,
+        };
+      default:
+        return { startDate: undefined, endDate: undefined };
+    }
+  }, [filterType, customStartDate, customEndDate, today]);
+
+  // Fetch dashboard KPIs with date filter
   const { data: kpis } = useQuery<DashboardKPIs>({
-    queryKey: ['dashboard-kpis'],
-    queryFn: fetchDashboardKPIs,
+    queryKey: ['dashboard-kpis', dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDashboardKPIs(dateRange.startDate, dateRange.endDate),
   });
 
-  // Fetch monthly expense summary (last 12 months)
-  const { data: monthlySummary } = useQuery<ExpenseSummaryPoint[]>({
-    queryKey: ['expenses-summary-monthly'],
-    queryFn: () => fetchExpenseSummary({ granularity: 'month' }),
-  });
-
-  // Fetch category-wise totals
+  // Fetch category-wise totals with date filter
   const { data: categoryTotals } = useQuery<CategoryTotal[]>({
-    queryKey: ['category-totals'],
-    queryFn: () => fetchCategoryTotals(),
+    queryKey: ['category-totals', dateRange.startDate, dateRange.endDate],
+    queryFn: () =>
+      fetchCategoryTotals({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      }),
+  });
+
+  // Fetch monthly expense summary (last 12 months) - always from start for chart
+  const { data: monthlySummary } = useQuery<ExpenseSummaryPoint[]>({
+    queryKey: [
+      'expenses-summary-monthly',
+      dateRange.startDate,
+      dateRange.endDate,
+    ],
+    queryFn: () =>
+      fetchExpenseSummary({
+        granularity: 'month',
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      }),
   });
 
   // Prepare bar chart data from monthly summary
@@ -79,21 +124,9 @@ export function Dashboard() {
     );
   }, [kpis?.accounts]);
 
-  const getAccountIcon = (type: string) => {
-    switch (type) {
-      case 'CASH':
-        return <Wallet className="h-4 w-4 text-emerald-500" />;
-      case 'BANK':
-        return <Building2 className="h-4 w-4 text-blue-500" />;
-      case 'CREDIT':
-        return <CreditCard className="h-4 w-4 text-rose-500" />;
-      default:
-        return <PiggyBank className="h-4 w-4" />;
-    }
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-700 max-w-6xl mx-auto">
+      {/* Header with Filter */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -103,6 +136,53 @@ export function Dashboard() {
             Keep track of your spending and balances at a glance.
           </p>
         </div>
+
+        {/* Date Filter */}
+        <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-lg">
+          <Button
+            variant={filterType === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterType('all')}
+            className="text-xs"
+          >
+            All Time
+          </Button>
+          <Button
+            variant={filterType === 'month-wise' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterType('month-wise')}
+            className="text-xs"
+          >
+            This Month
+          </Button>
+          <Button
+            variant={filterType === 'custom' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterType('custom')}
+            className="text-xs"
+          >
+            Custom
+          </Button>
+
+          {filterType === 'custom' && (
+            <div className="flex items-center gap-1 ml-2">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="border rounded h-7 px-2 text-xs bg-background"
+              />
+              <span className="text-xs text-muted-foreground">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="border rounded h-7 px-2 text-xs bg-background"
+              />
+            </div>
+          )}
+        </div>
+
         <div className="bg-primary/5 border border-primary/10 rounded-xl px-4 py-2 flex gap-3 items-center">
           <div className="text-right">
             <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">
@@ -120,47 +200,24 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Account Balances Row */}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
-        {(kpis?.accounts ?? []).map((acc) => (
-          <Card
-            key={acc.id}
-            className="overflow-hidden group hover:border-primary/40 transition-all bg-card/40"
-          >
-            <CardHeader className="p-3 pb-1.5 space-y-0 flex flex-row items-center justify-between">
-              <span className="text-[9px] uppercase font-bold text-muted-foreground">
-                {acc.type}
-              </span>
-              {getAccountIcon(acc.type)}
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <h3 className="text-xs font-semibold truncate mb-0.5">
-                {acc.name}
-              </h3>
-              <p
-                className={`text-base font-bold ${acc.type === 'CREDIT' ? 'text-rose-500' : 'text-emerald-500'}`}
-              >
-                ₹{acc.balance.toLocaleString()}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* KPI Cards Row */}
+      {/* KPI Cards Row - compact */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
-          title="Spending This Month"
-          value={`₹${(kpis?.thisMonth.total ?? 0).toLocaleString()}`}
-          description={`${kpis?.thisMonth.count ?? 0} transactions`}
+          title={filterType === 'all' ? 'Total Expenses' : 'This Period'}
+          value={`₹${((filterType === 'all' ? kpis?.overall.total : kpis?.thisMonth.total) ?? 0).toLocaleString()}`}
+          description={`${(filterType === 'all' ? kpis?.overall.count : kpis?.thisMonth.count) ?? 0} transactions`}
           Icon={<CreditCard size={16} className="text-rose-500" />}
           indicatorColor="red"
         />
         <KpiCard
-          title="M-o-M Change"
+          title="Change"
           value={`${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(1)}%`}
           description={
-            monthChange > 0 ? 'Increased spending' : 'Decreased spending'
+            monthChange > 0
+              ? 'Increased'
+              : monthChange < 0
+                ? 'Decreased'
+                : 'No change'
           }
           Icon={
             <TrendingDown
@@ -171,14 +228,16 @@ export function Dashboard() {
           indicatorColor={monthChange > 0 ? 'red' : 'green'}
         />
         <KpiCard
-          title="All-Time Expenses"
-          value={`₹${(kpis?.overall.total ?? 0).toLocaleString()}`}
-          description={`${kpis?.overall.count ?? 0} total entries`}
+          title="Comparison"
+          value={`₹${(kpis?.lastMonth.total ?? 0).toLocaleString()}`}
+          description={
+            filterType === 'all' ? 'Last period' : 'vs Previous period'
+          }
           Icon={<Hash size={16} className="text-blue-500" />}
           indicatorColor="neutral"
         />
         <KpiCard
-          title="Top Budget Burner"
+          title="Top Category"
           value={categoryTotals?.[0]?.name ?? '-'}
           description={`₹${(categoryTotals?.[0]?.total ?? 0).toLocaleString()}`}
           Icon={<Tag size={16} className="text-amber-500" />}
@@ -186,82 +245,81 @@ export function Dashboard() {
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid ">
-        {/* Monthly Expenses Bar Chart */}
-        <Card className="lg:col-span-2 shadow-sm border-border/50 bg-card/30">
-          <CardHeader className="p-4 pb-0">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-primary" />
-              Monthly Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-4">
-            {barData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart
-                  data={barData}
-                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-                >
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    fontSize={10}
-                    tick={{ fill: 'var(--muted-foreground)' }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    fontSize={10}
-                    tick={{ fill: 'var(--muted-foreground)' }}
-                    tickFormatter={(v) =>
-                      `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`
-                    }
-                  />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                    contentStyle={{
-                      borderRadius: '8px',
-                      border: '1px solid var(--border)',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: number) => [
-                      `₹${value.toLocaleString()}`,
-                      'Amount',
-                    ]}
-                  />
-                  <Bar
-                    dataKey="amount"
-                    fill="#8b5cf6"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={30}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-xs text-muted-foreground py-8 text-center">
-                No data found.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Monthly Trends Chart - Full Width */}
+      <Card className="shadow-sm border-border/50 bg-card/30">
+        <CardHeader className="p-4 pb-0">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <TrendingDown className="h-4 w-4 text-primary" />
+            Monthly Trends
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-4">
+          {barData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart
+                data={barData}
+                margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  fontSize={10}
+                  tick={{ fill: 'var(--muted-foreground)' }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  fontSize={10}
+                  tick={{ fill: 'var(--muted-foreground)' }}
+                  tickFormatter={(v) =>
+                    `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`
+                  }
+                />
+                <Tooltip
+                  cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    fontSize: '12px',
+                  }}
+                  formatter={(value: number) => [
+                    `₹${value.toLocaleString()}`,
+                    'Amount',
+                  ]}
+                />
+                <Bar
+                  dataKey="amount"
+                  fill="#8b5cf6"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={30}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-xs text-muted-foreground py-8 text-center">
+              No data found.
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <div className="grid ">
-        {/* Category Pie Chart - Drill Down */}
-        <Card className="shadow-sm border-border/50 bg-card/30">
-          <CardHeader className="p-4 pb-0">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Tag className="h-4 w-4 text-amber-500" />
-              Category Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <DrillDownPieChart className="mt-2" />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Category Pie Chart - Full Width */}
+      <Card className="shadow-sm border-border/50 bg-card/30">
+        <CardHeader className="p-4 pb-0">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Tag className="h-4 w-4 text-amber-500" />
+            Category Distribution
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <DrillDownPieChart
+            startDate={dateRange.startDate}
+            endDate={dateRange.endDate}
+            className="mt-2"
+          />
+        </CardContent>
+      </Card>
 
       {/* Recent Transactions */}
       <Card className="border border-border/50 shadow-sm overflow-hidden bg-card/20">
