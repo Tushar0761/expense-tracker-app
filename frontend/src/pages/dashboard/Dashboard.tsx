@@ -41,7 +41,7 @@ export function Dashboard() {
   const today = new Date();
 
   // Date filter state
-  const [filterType, setFilterType] = useState<DateFilterType>('month');
+  const [filterType, setFilterType] = useState<DateFilterType>('all');
 
   // Month picker state - default to current month
   const [selectedMonth, setSelectedMonth] = useState<string>(
@@ -56,7 +56,7 @@ export function Dashboard() {
   );
 
   // Chart granularity state
-  const [granularity, setGranularity] = useState<GranularityType>('month');
+  const [granularity, setGranularity] = useState<GranularityType>('week');
 
   // Chart data points limit - default values per granularity
   const [dataPointsLimit, setDataPointsLimit] = useState<string>('12');
