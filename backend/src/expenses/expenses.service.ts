@@ -95,7 +95,28 @@ export class ExpensesService {
     }
 
     if (query.categoryId) {
-      where.categoryId = Number(query.categoryId);
+      const categoryId = Number(query.categoryId);
+
+      where.OR = [
+        // Level 1 (selected)
+        { categoryId },
+
+        // Level 2 (children)
+        {
+          category_master: {
+            parentId: categoryId,
+          },
+        },
+
+        // Level 3 (grandchildren)
+        {
+          category_master: {
+            parent: {
+              parentId: categoryId,
+            },
+          },
+        },
+      ];
     }
 
     if (query.accountId) {
