@@ -406,7 +406,7 @@ export function Expenses() {
                       className="hover:bg-primary/[0.02] transition-colors group border-b border-border/10"
                     >
                       <td className="py-1.5 px-3 font-medium whitespace-nowrap text-muted-foreground tabular-nums text-xs">
-                        {format(new Date(tx.date), 'dd MMM yy')}
+                        {format(new Date(tx.date), 'dd MMM yy, E')}
                       </td>
                       <td className="py-1.5 px-3">
                         <div className="flex items-center gap-1.5">
