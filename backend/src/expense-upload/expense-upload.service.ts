@@ -52,31 +52,29 @@ export class ExpenseUploadService {
       orderBy: { name: 'asc' },
     });
 
-    return categories
-      .filter((cat) => cat.children.length === 0)
-      .map((cat) => {
-        let fullPath: string | null = null;
+    return categories.map((cat) => {
+      let fullPath: string | null = null;
 
-        if (cat.parent) {
-          if (cat.parent.level === 1) {
-            fullPath = `${cat.parent.name} > ${cat.name}`;
-          } else if (cat.parent.level === 2 && cat.parent.parent) {
-            fullPath = `${cat.parent.parent.name} > ${cat.parent.name} > ${cat.name}`;
-          } else if (cat.parent.level === 2) {
-            fullPath = `${cat.parent.name} > ${cat.name}`;
-          }
-        } else {
-          fullPath = cat.name;
+      if (cat.parent) {
+        if (cat.parent.level === 1) {
+          fullPath = `${cat.parent.name} > ${cat.name}`;
+        } else if (cat.parent.level === 2 && cat.parent.parent) {
+          fullPath = `${cat.parent.parent.name} > ${cat.parent.name} > ${cat.name}`;
+        } else if (cat.parent.level === 2) {
+          fullPath = `${cat.parent.name} > ${cat.name}`;
         }
+      } else {
+        fullPath = cat.name;
+      }
 
-        return {
-          id: cat.id,
-          name: cat.name,
-          level: cat.level,
-          parentId: cat.parentId,
-          fullPath,
-        };
-      });
+      return {
+        id: cat.id,
+        name: cat.name,
+        level: cat.level,
+        parentId: cat.parentId,
+        fullPath,
+      };
+    });
   }
 
   async generateTemplate(year?: number, month?: number): Promise<Buffer> {
@@ -105,29 +103,28 @@ export class ExpenseUploadService {
       userName: string | null;
     }[] = [];
 
-    if (year && month) {
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59);
+    const startDate = year && month ? new Date(year, month - 1, 1) : undefined;
+    const endDate =
+      year && month ? new Date(year, month, 0, 23, 59, 59) : undefined;
 
-      expenses = await this.prisma.expenses_data_master.findMany({
-        where: {
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
+    expenses = await this.prisma.expenses_data_master.findMany({
+      where: {
+        date: {
+          gte: startDate,
+          lte: endDate,
         },
-        select: {
-          id: true,
-          date: true,
-          amount: true,
-          accountId: true,
-          categoryId: true,
-          remarks: true,
-          userName: true,
-        },
-        orderBy: { date: 'asc' },
-      });
-    }
+      },
+      select: {
+        id: true,
+        date: true,
+        amount: true,
+        accountId: true,
+        categoryId: true,
+        remarks: true,
+        userName: true,
+      },
+      orderBy: { date: 'asc' },
+    });
 
     const workbook = new ExcelJS.Workbook();
 
@@ -388,7 +385,8 @@ export class ExpenseUploadService {
       const category = getCellValue(cells, 'category');
       const note = getCellValue(cells, 'note');
       // Try both 'username' and 'userName' (case insensitive)
-      const userName = getCellValue(cells, 'username') || getCellValue(cells, 'userName');
+      const userName =
+        getCellValue(cells, 'username') || getCellValue(cells, 'userName');
       const deleteFlag = getCellValue(cells, 'delete').toLowerCase();
 
       const parsedRow: ParsedRow = {
