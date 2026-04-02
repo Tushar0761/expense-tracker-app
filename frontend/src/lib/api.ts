@@ -275,6 +275,8 @@ export type ExpenseQueryParams = {
   search?: string;
   page?: number;
   limit?: number;
+  sortBy?: 'date' | 'amount';
+  sortOrder?: 'asc' | 'desc';
 };
 
 export type CreateExpensePayload = {

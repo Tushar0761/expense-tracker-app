@@ -19,6 +19,7 @@ interface DrillDownPieChartProps {
   endDate?: string;
   className?: string;
   onFilterChange?: () => void; // callback to reset drill state when date changes
+  onCategoryChange?: (categoryId: number | null, categoryName: string | null) => void;
 }
 
 // Color palette for pie slices
@@ -41,6 +42,7 @@ export function DrillDownPieChart({
   endDate,
   className,
   onFilterChange,
+  onCategoryChange,
 }: DrillDownPieChartProps) {
   // Fetch hierarchical data
   const { data: rootData = [], isLoading } = useQuery<CategoryNode[]>({
@@ -88,6 +90,17 @@ export function DrillDownPieChart({
     },
     [canDrillInto, drillInto],
   );
+
+  // Trigger onCategoryChange when drill path changes
+  useEffect(() => {
+    const currentItem = drillPath[drillPath.length - 1];
+    if (currentItem) {
+      onCategoryChange?.(
+        currentItem.id,
+        currentItem.id === null ? null : currentItem.name,
+      );
+    }
+  }, [drillPath, onCategoryChange]);
 
   // Format currency
   const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN')}`;

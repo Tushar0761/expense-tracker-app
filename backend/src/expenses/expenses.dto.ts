@@ -103,6 +103,14 @@ export class ExpenseQueryDto {
   @IsNumber()
   @Type(() => Number)
   limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: 'date' | 'amount';
+
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'asc' | 'desc';
 }
 
 export class ExpenseSummaryQueryDto {

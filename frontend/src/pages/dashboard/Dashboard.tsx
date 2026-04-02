@@ -8,8 +8,10 @@ import {
   fetchCategoryTotals,
   fetchDashboardKPIs,
   fetchExpenseSummary,
+  fetchExpenses,
   type CategoryTotal,
   type DashboardKPIs,
+  type ExpenseListResponse,
   type ExpenseSummaryPoint,
 } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +19,8 @@ import { endOfMonth, format, startOfMonth } from 'date-fns';
 import {
   ArrowRightLeft,
   Calendar,
+  ChevronDown,
+  ChevronUp,
   CreditCard,
   Hash,
   Tag,
@@ -61,6 +65,28 @@ export function Dashboard() {
   // Chart data points limit - default values per granularity
   const [dataPointsLimit, setDataPointsLimit] = useState<string>('12');
 
+  // Comparison state
+  const [showCompare, setShowCompare] = useState(false);
+  const [compareFilterType, setCompareFilterType] =
+    useState<DateFilterType>('month');
+  const [compareSelectedMonth, setCompareSelectedMonth] = useState<string>(
+    format(startOfMonth(today), 'yyyy-MM'),
+  );
+  const [compareStartDate, setCompareStartDate] = useState<string>(
+    format(startOfMonth(today), 'yyyy-MM-dd'),
+  );
+  const [compareEndDate, setCompareEndDate] = useState<string>(
+    format(today, 'yyyy-MM-dd'),
+  );
+
+  // Selected category from pie chart for filtering recent transactions
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
+  const [selectedCategoryName, setSelectedCategoryName] = useState<
+    string | null
+  >(null);
+
   // Get default limit based on granularity
   const getDefaultLimit = (g: GranularityType): number => {
     switch (g) {
@@ -102,6 +128,35 @@ export function Dashboard() {
     }
   }, [filterType, selectedMonth, customStartDate, customEndDate]);
 
+  // Calculate comparison date range based on filter type
+  const compareDateRange = useMemo(() => {
+    switch (compareFilterType) {
+      case 'all':
+        return { startDate: undefined, endDate: undefined };
+      case 'month': {
+        const [year, month] = compareSelectedMonth.split('-').map(Number);
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = endOfMonth(monthStart);
+        return {
+          startDate: format(monthStart, 'yyyy-MM-dd'),
+          endDate: format(monthEnd, 'yyyy-MM-dd'),
+        };
+      }
+      case 'custom':
+        return {
+          startDate: compareStartDate,
+          endDate: compareEndDate,
+        };
+      default:
+        return { startDate: undefined, endDate: undefined };
+    }
+  }, [
+    compareFilterType,
+    compareSelectedMonth,
+    compareStartDate,
+    compareEndDate,
+  ]);
+
   // Fetch dashboard KPIs with date filter
   const { data: kpis } = useQuery<DashboardKPIs>({
     queryKey: [
@@ -137,6 +192,25 @@ export function Dashboard() {
         granularity,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
+      }),
+  });
+
+  // Fetch filtered expenses for recent transactions (sorted by amount desc)
+  const { data: recentExpenses } = useQuery<ExpenseListResponse>({
+    queryKey: [
+      'recent-expenses',
+      dateRange.startDate,
+      dateRange.endDate,
+      selectedCategoryId,
+    ],
+    queryFn: () =>
+      fetchExpenses({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        categoryId: selectedCategoryId ?? undefined,
+        limit: 10,
+        sortBy: selectedCategoryId ? 'amount' : 'date',
+        sortOrder: 'desc',
       }),
   });
 
@@ -395,29 +469,121 @@ export function Dashboard() {
       </Card>
 
       {/* Category Pie Chart - Full Width */}
-      <Card className="shadow-sm border-border/50 bg-card/30">
+      <Card
+        className={`shadow-sm border-border/50 bg-card/30 ${showCompare ? 'w-50%' : ''} `}
+      >
         <CardHeader className="p-4 pb-0">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Tag className="h-4 w-4 text-amber-500" />
-            Category Distribution
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Tag className="h-4 w-4 text-amber-500" />
+              Category Distribution
+            </CardTitle>
+            <Button
+              variant={showCompare ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowCompare(!showCompare)}
+              className="text-xs gap-1"
+            >
+              {showCompare ? (
+                <ChevronUp size={14} />
+              ) : (
+                <ChevronDown size={14} />
+              )}
+              Compare
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-4">
           <DrillDownPieChart
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
             className="mt-2"
+            onCategoryChange={(categoryId, categoryName) => {
+              setSelectedCategoryId(categoryId);
+              setSelectedCategoryName(categoryName);
+            }}
           />
         </CardContent>
       </Card>
 
+      {/* Comparison Pie Chart */}
+      {showCompare && (
+        <Card className="shadow-sm border-border/50 bg-card/30">
+          <CardHeader className="p-4 pb-0">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Tag className="h-4 w-4 text-blue-500" />
+                Compare: Category Distribution
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <select
+                  value={compareFilterType}
+                  onChange={(e) =>
+                    setCompareFilterType(e.target.value as DateFilterType)
+                  }
+                  className="border rounded h-7 px-2 text-xs bg-background"
+                >
+                  <option value="all">All Time</option>
+                  <option value="month">Month</option>
+                  <option value="custom">Custom</option>
+                </select>
+                {compareFilterType === 'month' && (
+                  <DatePickerInput
+                    type="month"
+                    value={compareSelectedMonth}
+                    onChange={setCompareSelectedMonth}
+                  />
+                )}
+                {compareFilterType === 'custom' && (
+                  <div className="flex items-center gap-1">
+                    <DatePickerInput
+                      type="date"
+                      value={compareStartDate}
+                      onChange={setCompareStartDate}
+                    />
+                    <span className="text-xs text-muted-foreground">to</span>
+                    <DatePickerInput
+                      type="date"
+                      value={compareEndDate}
+                      onChange={setCompareEndDate}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <DrillDownPieChart
+              startDate={compareDateRange.startDate}
+              endDate={compareDateRange.endDate}
+              className="mt-2"
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent Transactions */}
       <Card className="border border-border/50 shadow-sm overflow-hidden bg-card/20">
         <CardHeader className="py-3 px-4 bg-muted/20 border-b">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <ArrowRightLeft className="h-4 w-4 text-blue-500" />
-            Recent Spending
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4 text-blue-500" />
+              Recent Spending
+            </CardTitle>
+            {(selectedCategoryName || selectedCategoryId) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs text-muted-foreground"
+                onClick={() => {
+                  setSelectedCategoryId(null);
+                  setSelectedCategoryName(null);
+                }}
+              >
+                Clear filter: {selectedCategoryName}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -431,7 +597,7 @@ export function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
-                {(kpis?.recentTransactions ?? []).map((tx) => (
+                {(recentExpenses?.data ?? []).map((tx) => (
                   <tr
                     key={tx.id}
                     className="hover:bg-muted/30 transition-colors"
@@ -441,20 +607,12 @@ export function Dashboard() {
                     </td>
                     <td className="py-2 px-4">
                       <div className="flex gap-1 flex-wrap">
-                        {tx.categories.map((c, i) => (
-                          <Badge
-                            key={i}
-                            variant="secondary"
-                            className="text-[9px] py-0 px-1 h-3.5 font-normal"
-                          >
-                            {c}
-                          </Badge>
-                        ))}
-                        {tx.categories.length === 0 && (
-                          <span className="text-[10px] text-muted-foreground italic">
-                            -
-                          </span>
-                        )}
+                        <Badge
+                          variant="secondary"
+                          className="text-[9px] py-0 px-1 h-3.5 font-normal"
+                        >
+                          {tx.categoryName}
+                        </Badge>
                       </div>
                     </td>
                     <td className="py-2 px-4 truncate max-w-[150px] text-xs">

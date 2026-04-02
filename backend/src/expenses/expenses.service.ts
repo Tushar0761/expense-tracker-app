@@ -138,7 +138,10 @@ export class ExpensesService {
           category_master: true,
           account: true,
         },
-        orderBy: { date: 'desc' },
+        orderBy: {
+          [query.sortBy === 'amount' ? 'amount' : 'date']:
+            query.sortOrder || 'desc',
+        },
         skip,
         take: limit,
       }),
