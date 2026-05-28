@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
   Injectable,
@@ -190,7 +189,6 @@ export class CategoriesService {
       orderBy: { name: 'asc' },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const buildTree = (parentId: number | null, level: number) => {
       const result: {
         id: number;

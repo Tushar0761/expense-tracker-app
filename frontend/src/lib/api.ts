@@ -434,6 +434,29 @@ export async function deleteExpense(id: number): Promise<void> {
   await api.delete(`/api/expenses/${id}`);
 }
 
+export async function fetchDuplicateExpenses(): Promise<ExpenseRow[][]> {
+  const response = await api.get('/api/expenses/duplicates');
+  return response.data;
+}
+
+export type SuggestionsResult = {
+  categories: { id: number; name: string; count: number }[];
+  remarks: string[];
+};
+
+export async function fetchSuggestionsForUser(userName: string): Promise<SuggestionsResult> {
+  const response = await api.get('/api/expenses/suggestions', { params: { userName } });
+  return response.data;
+}
+
+export async function bulkUpdateExpenses(
+  ids: number[],
+  data: { categoryId?: number; remarks?: string },
+): Promise<{ count: number }> {
+  const response = await api.put('/api/expenses/bulk-update', { ids, ...data });
+  return response.data;
+}
+
 export async function fetchExpenseSummary(
   params: ExpenseSummaryParams,
 ): Promise<ExpenseSummaryPoint[]> {

@@ -33,6 +33,16 @@ const Navbar = () => {
             Expenses
           </Button>
         </Link>
+        <Link to="/duplicates">
+          <Button variant="ghost" size="sm" className="h-8 text-xs">
+            Duplicates
+          </Button>
+        </Link>
+        <Link to="/refine">
+          <Button variant="ghost" size="sm" className="h-8 text-xs">
+            Refine
+          </Button>
+        </Link>
         <Link to="/categories">
           <Button variant="ghost" size="sm" className="h-8 text-xs">
             Categories

@@ -10,6 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  BulkUpdateExpenseDto,
   CreateExpenseDto,
   ExpenseDashboardSummaryQueryDto,
   ExpenseQueryDto,
@@ -54,6 +55,24 @@ export class ExpensesController {
       query?.endDate,
       query?.type,
     );
+  }
+
+  @Put('bulk-update')
+  bulkUpdate(@Body() body: BulkUpdateExpenseDto) {
+    return this.expensesService.bulkUpdateExpenses(body.ids, {
+      categoryId: body.categoryId,
+      remarks: body.remarks,
+    });
+  }
+
+  @Get('suggestions')
+  getSuggestions(@Query('userName') userName: string) {
+    return this.expensesService.getSuggestionsForUser(userName);
+  }
+
+  @Get('duplicates')
+  getDuplicates() {
+    return this.expensesService.getDuplicates();
   }
 
   @Get()

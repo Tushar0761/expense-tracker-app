@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsDateString,
   IsNotEmpty,
   IsNumber,
@@ -139,4 +140,18 @@ export class ExpenseDashboardSummaryQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+}
+
+export class BulkUpdateExpenseDto {
+  @IsArray()
+  @IsNumber({}, { each: true })
+  ids: number[];
+
+  @IsOptional()
+  @IsNumber()
+  categoryId?: number;
+
+  @IsOptional()
+  @IsString()
+  remarks?: string;
 }

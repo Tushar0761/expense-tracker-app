@@ -309,6 +309,98 @@ export class ExpensesService {
       .sort((a, b) => b.total - a.total);
   }
 
+  async getDuplicates(): Promise<ExpenseRow[][]> {
+    const all = await this.prisma.expenses_data_master.findMany({
+      include: {
+        category_master: true,
+        account: true,
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    const groups = new Map<string, typeof all>();
+    for (const expense of all) {
+      const dateStr = format(expense.date, 'yyyy-MM-dd');
+      const userKey = expense.userName ?? '__NULL__';
+      const key = `${dateStr}|${expense.amount}|${userKey}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(expense);
+    }
+
+    return Array.from(groups.values())
+      .filter((g) => g.length > 1)
+      .map((group) =>
+        group.map((exp) => ({
+          id: exp.id,
+          date: format(exp.date, 'yyyy-MM-dd'),
+          amount: exp.amount,
+          remarks: exp.remarks,
+          userName: exp.userName,
+          accountId: exp.accountId,
+          accountName: exp.account?.name ?? null,
+          categoryId: exp.categoryId,
+          categoryName: exp.category_master?.name ?? 'Unknown',
+          createdAt: exp.createdAt,
+        })),
+      );
+  }
+
+  async bulkUpdateExpenses(
+    ids: number[],
+    data: { categoryId?: number; remarks?: string },
+  ) {
+    return this.prisma.expenses_data_master.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
+        ...(data.remarks !== undefined && { remarks: data.remarks }),
+      },
+    });
+  }
+
+  async getSuggestionsForUser(userName: string) {
+    if (!userName?.trim()) return { categories: [], remarks: [] };
+
+    const expenses = await this.prisma.expenses_data_master.findMany({
+      where: { userName: { contains: userName } },
+      select: {
+        categoryId: true,
+        remarks: true,
+        category_master: { select: { name: true } },
+      },
+      orderBy: { date: 'desc' },
+      take: 200,
+    });
+
+    const catMap = new Map<number, { name: string; count: number }>();
+    const remarkCounts = new Map<string, number>();
+
+    for (const e of expenses) {
+      if (e.categoryId && e.category_master) {
+        const curr = catMap.get(e.categoryId) ?? {
+          name: e.category_master.name,
+          count: 0,
+        };
+        curr.count++;
+        catMap.set(e.categoryId, curr);
+      }
+      if (e.remarks?.trim()) {
+        remarkCounts.set(e.remarks, (remarkCounts.get(e.remarks) ?? 0) + 1);
+      }
+    }
+
+    return {
+      categories: Array.from(catMap.entries())
+        .map(([id, v]) => ({ id, name: v.name, count: v.count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5),
+      remarks: Array.from(remarkCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([r]) => r)
+        .slice(0, 8),
+    };
+  }
+
   async getDashboardKPIs(
     startDate?: string,
     endDate?: string,

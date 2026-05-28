@@ -4,7 +4,9 @@ import Navbar from './components/layout/Navbar';
 import NotFound from './pages/NotFound';
 import { Categories } from './pages/categories/Categories';
 import { Dashboard } from './pages/dashboard/Dashboard';
+import { DuplicateExpenses } from './pages/expenses/DuplicateExpenses';
 import { Expenses } from './pages/expenses/Expenses';
+import { RefineExpenses } from './pages/expenses/RefineExpenses';
 import { LoansPage } from './pages/loans/LoansPage';
 import Accounts from './pages/Accounts';
 import { Toaster } from 'sonner';
@@ -17,6 +19,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/expenses" element={<Expenses />} />
+          <Route path="/duplicates" element={<DuplicateExpenses />} />
+          <Route path="/refine" element={<RefineExpenses />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/loans" element={<LoansPage />} />

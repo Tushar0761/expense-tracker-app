@@ -262,6 +262,49 @@ cd frontend && npm run lint:fix && npm run format && npm run lint && npm run bui
 
 **Rule**: Balance is manual. User sets it directly. Transactions do NOT affect balance.
 
+### 2026-05-28: Refine & Bulk Edit Page + Skip Duplicates + Edit Suggestions
+
+**Description**: Three new features added across backend and frontend:
+
+1. **Skip duplicates** — "Skip — Not a duplicate" button on each duplicate group. Dismissed group keys are persisted to localStorage. "Show skipped (N)" toggle lets users undo dismissals.
+
+2. **Refine & Bulk Edit page** (`/refine`) — Toggle switch between two modes:
+   - *By Username*: groups all transactions by recipient (userName), lets user checkbox-select rows and bulk-assign category and/or notes via dialogs.
+   - *By Category*: groups by category, same bulk-assign actions available.
+   - Sticky action bar shows when items are selected. Groups are collapsible. "Select all" per group auto-expands it.
+
+3. **Edit form suggestions** — When editing/creating an expense and "Sent To" has ≥2 chars, fetches past categories and notes for that username and shows clickable chips. Clicking a chip auto-fills the field.
+
+**Backend endpoints added** (all placed before `/:id`):
+- `PUT /expenses/bulk-update` — updates categoryId and/or remarks for an array of IDs
+- `GET /expenses/suggestions?userName=X` — returns top 5 categories and up to 8 remarks used for that username
+
+**Files Changed**:
+- `backend/src/expenses/expenses.dto.ts` — added `BulkUpdateExpenseDto`
+- `backend/src/expenses/expenses.service.ts` — added `bulkUpdateExpenses()` and `getSuggestionsForUser()`
+- `backend/src/expenses/expenses.controller.ts` — added `PUT bulk-update` and `GET suggestions` routes
+- `frontend/src/lib/api.ts` — added `SuggestionsResult`, `fetchSuggestionsForUser()`, `bulkUpdateExpenses()`
+- `frontend/src/pages/expenses/DuplicateExpenses.tsx` — added skip/dismiss with localStorage persistence
+- `frontend/src/pages/expenses/RefineExpenses.tsx` — new page (created)
+- `frontend/src/components/AddExpenseForm.tsx` — added debounced suggestions UI
+- `frontend/src/App.tsx` — added `/refine` route
+- `frontend/src/components/layout/Navbar.tsx` — added Duplicates and Refine nav links
+
+### 2026-05-28: Duplicate Transactions Page
+
+**Description**: Added a new Duplicate Transactions screen that detects suspected duplicates (same date + amount + userName/recipient) and presents each duplicate group in its own table. Users can delete individual entries directly from the page.
+
+**Files Changed**:
+- `backend/src/expenses/expenses.service.ts` - Added `getDuplicates()` method
+- `backend/src/expenses/expenses.controller.ts` - Added `GET /expenses/duplicates` route (placed before `/:id`)
+- `frontend/src/lib/api.ts` - Added `fetchDuplicateExpenses()` function
+- `frontend/src/pages/expenses/DuplicateExpenses.tsx` - New page component
+- `frontend/src/App.tsx` - Added `/duplicates` route
+- `frontend/src/components/layout/Navbar.tsx` - Added Duplicates nav link
+- `frontend/src/components/ui/skeleton.tsx` - Fixed pre-existing empty interface lint error
+
+**Logic**: Groups all expenses by `DATE(date)|amount|userName`. Any group with 2+ entries is shown as a duplicate group, each in its own amber-highlighted table card.
+
 ### 2026-03-20: Stage 4 - Expense Form Category Dropdown Update
 **Change**: Updated expense forms to use leaf categories with hierarchical display.
 
