@@ -81,10 +81,10 @@ export function LoansPage() {
       value: string | number;
     }[] = [];
 
-    tableData.forEach(({ borrowerName, totalAmount }) => {
+    tableData.filter(({remainingAmount})=>Boolean(remainingAmount)).forEach(({ borrowerName, remainingAmount }) => {
       result.push({
         name: borrowerName,
-        value: totalAmount,
+        value: remainingAmount,
       });
     });
 

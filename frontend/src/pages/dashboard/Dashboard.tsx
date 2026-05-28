@@ -246,9 +246,6 @@ export function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">
             Financial Overview
           </h1>
-          <p className="text-[13px] text-muted-foreground">
-            Keep track of your spending and balances at a glance.
-          </p>
         </div>
 
         {/* Date Filter */}
@@ -365,9 +362,9 @@ export function Dashboard() {
 
       {/* Monthly Trends Chart - Full Width */}
       <Card className="shadow-sm border-border/50 bg-card/30">
-        <CardHeader className="p-4 pb-0">
+        <CardHeader className="px-4 py-1 pb-0">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-1">
               <TrendingDown className="h-4 w-4 text-primary" />
               Trends
             </CardTitle>
@@ -398,9 +395,9 @@ export function Dashboard() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-4">
+        <CardContent className="px-4 py-0">
           {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <ComposedChart
                 data={barData}
                 margin={{ top: 30, right: 15, left: -10, bottom: 0 }}
