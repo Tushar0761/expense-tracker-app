@@ -112,6 +112,16 @@ export class ExpenseQueryDto {
   @IsOptional()
   @IsString()
   sortOrder?: 'asc' | 'desc';
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  amountMin?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  amountMax?: number;
 }
 
 export class ExpenseSummaryQueryDto {

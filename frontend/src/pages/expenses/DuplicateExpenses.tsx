@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   deleteExpense,
   fetchDuplicateExpenses,
+  type DuplicateCriteria,
   type ExpenseRow,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -43,10 +44,19 @@ export function DuplicateExpenses() {
   const queryClient = useQueryClient();
   const [dismissed, setDismissed] = useState<Set<string>>(loadDismissed);
   const [showDismissed, setShowDismissed] = useState(false);
+  const [criteria, setCriteria] = useState<DuplicateCriteria>({
+    byDate: true,
+    byAmount: true,
+    byName: true,
+  });
+
+  const toggleCriteria = (key: keyof DuplicateCriteria) => {
+    setCriteria((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const { data: groups = [], isLoading } = useQuery<ExpenseRow[][]>({
-    queryKey: ['duplicate-expenses'],
-    queryFn: fetchDuplicateExpenses,
+    queryKey: ['duplicate-expenses', criteria],
+    queryFn: () => fetchDuplicateExpenses(criteria),
   });
 
   const deleteMutation = useMutation({
@@ -102,6 +112,58 @@ export function DuplicateExpenses() {
           </Button>
         )}
       </div>
+
+      {/* Criteria selector */}
+      <Card className="border border-border/50 bg-muted/20">
+        <CardContent className="px-4 py-3 space-y-2">
+          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">
+            Match duplicates by
+          </p>
+          <div className="flex flex-wrap gap-4">
+            {(
+              [
+                { key: 'byDate', label: 'Date' },
+                { key: 'byAmount', label: 'Amount' },
+                { key: 'byName', label: 'Name (Recipient)' },
+              ] as { key: keyof DuplicateCriteria; label: string }[]
+            ).map(({ key, label }) => (
+              <label
+                key={key}
+                className="flex items-center gap-2 cursor-pointer select-none"
+                onClick={() => toggleCriteria(key)}
+              >
+                <div
+                  className={`h-4 w-4 rounded border flex items-center justify-center transition-colors ${
+                    criteria[key]
+                      ? 'bg-primary border-primary'
+                      : 'border-border bg-background'
+                  }`}
+                >
+                  {criteria[key] && (
+                    <svg
+                      className="h-2.5 w-2.5 text-primary-foreground"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm font-medium">{label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Uncheck <strong>Name</strong> to find same-day same-amount entries regardless of recipient — useful when the same transaction appears in both a bank statement and Google Pay import with different names.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Dismissed list */}
       {showDismissed && dismissedGroups.length > 0 && (

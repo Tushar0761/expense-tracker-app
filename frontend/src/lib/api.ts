@@ -277,6 +277,8 @@ export type ExpenseQueryParams = {
   limit?: number;
   sortBy?: 'date' | 'amount';
   sortOrder?: 'asc' | 'desc';
+  amountMin?: number;
+  amountMax?: number;
 };
 
 export type CreateExpensePayload = {
@@ -434,8 +436,20 @@ export async function deleteExpense(id: number): Promise<void> {
   await api.delete(`/api/expenses/${id}`);
 }
 
-export async function fetchDuplicateExpenses(): Promise<ExpenseRow[][]> {
-  const response = await api.get('/api/expenses/duplicates');
+export type DuplicateCriteria = {
+  byDate?: boolean;
+  byAmount?: boolean;
+  byName?: boolean;
+};
+
+export async function fetchDuplicateExpenses(
+  criteria?: DuplicateCriteria,
+): Promise<ExpenseRow[][]> {
+  const params: Record<string, string> = {};
+  if (criteria?.byDate === false) params.byDate = 'false';
+  if (criteria?.byAmount === false) params.byAmount = 'false';
+  if (criteria?.byName === false) params.byName = 'false';
+  const response = await api.get('/api/expenses/duplicates', { params });
   return response.data;
 }
 

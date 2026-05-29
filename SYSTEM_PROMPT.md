@@ -262,6 +262,28 @@ cd frontend && npm run lint:fix && npm run format && npm run lint && npm run bui
 
 **Rule**: Balance is manual. User sets it directly. Transactions do NOT affect balance.
 
+### 2026-05-28: Amount Filter + Sorting on Expenses Page + Flexible Duplicate Criteria
+
+**Description**: Two enhancements:
+
+1. **Expenses page** — New filters and sorting in the filter bar:
+   - Amount filter: dropdown selects "Greater than / Less than / Between", then numeric input(s). Maps to `amountMin`/`amountMax` backend params.
+   - Sort controls: "Date | Amount" × "Newest/High first | Oldest/Low first". The backend already supported these params; the UI now exposes them.
+   - Reset button now also clears amount filters.
+
+2. **Duplicates page** — Three custom checkboxes at the top: **Date**, **Amount**, **Name (Recipient)**. All checked by default (original behavior). Unchecking Name lets the user find same-day same-amount entries regardless of recipient name — solves the problem of the same transaction appearing in both a bank statement import and a Google Pay import with different recipient strings.
+
+**Backend changes:**
+- `ExpenseQueryDto` — added `amountMin?: number` and `amountMax?: number`
+- `getExpenses()` — applies `where.amount.gte/lte` when these params are provided
+- `getDuplicates(criteria)` — now accepts `{ byDate, byAmount, byName }` booleans and builds the group key from only the selected fields
+- Controller `getDuplicates` route — reads `?byDate=&byAmount=&byName=` query params (default true)
+
+**Frontend changes:**
+- `api.ts` — added `amountMin`, `amountMax` to `ExpenseQueryParams`; added `DuplicateCriteria` type; updated `fetchDuplicateExpenses` to pass criteria params
+- `Expenses.tsx` — added `amountType`, `amountMin`, `amountMax`, `sortBy`, `sortOrder` state; included in queryParams and page-reset effect; added Amount and Sort UI blocks
+- `DuplicateExpenses.tsx` — added `criteria` state and custom checkbox UI panel with explanatory text
+
 ### 2026-05-28: Refine & Bulk Edit Page + Skip Duplicates + Edit Suggestions
 
 **Description**: Three new features added across backend and frontend:

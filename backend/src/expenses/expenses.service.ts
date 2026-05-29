@@ -131,6 +131,12 @@ export class ExpensesService {
       where.remarks = { contains: query.search };
     }
 
+    if (query.amountMin !== undefined || query.amountMax !== undefined) {
+      where.amount = {};
+      if (query.amountMin !== undefined) where.amount.gte = query.amountMin;
+      if (query.amountMax !== undefined) where.amount.lte = query.amountMax;
+    }
+
     const [data, total, sumOfExpense] = await Promise.all([
       this.prisma.expenses_data_master.findMany({
         where,
@@ -309,7 +315,13 @@ export class ExpensesService {
       .sort((a, b) => b.total - a.total);
   }
 
-  async getDuplicates(): Promise<ExpenseRow[][]> {
+  async getDuplicates(criteria: {
+    byDate: boolean;
+    byAmount: boolean;
+    byName: boolean;
+  }): Promise<ExpenseRow[][]> {
+    if (!criteria.byDate && !criteria.byAmount && !criteria.byName) return [];
+
     const all = await this.prisma.expenses_data_master.findMany({
       include: {
         category_master: true,
@@ -320,9 +332,11 @@ export class ExpensesService {
 
     const groups = new Map<string, typeof all>();
     for (const expense of all) {
-      const dateStr = format(expense.date, 'yyyy-MM-dd');
-      const userKey = expense.userName ?? '__NULL__';
-      const key = `${dateStr}|${expense.amount}|${userKey}`;
+      const parts: string[] = [];
+      if (criteria.byDate) parts.push(format(expense.date, 'yyyy-MM-dd'));
+      if (criteria.byAmount) parts.push(String(expense.amount));
+      if (criteria.byName) parts.push(expense.userName ?? '__NULL__');
+      const key = parts.join('|');
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(expense);
     }

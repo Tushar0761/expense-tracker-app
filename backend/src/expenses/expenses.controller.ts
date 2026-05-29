@@ -71,8 +71,16 @@ export class ExpensesController {
   }
 
   @Get('duplicates')
-  getDuplicates() {
-    return this.expensesService.getDuplicates();
+  getDuplicates(
+    @Query('byDate') byDate?: string,
+    @Query('byAmount') byAmount?: string,
+    @Query('byName') byName?: string,
+  ) {
+    return this.expensesService.getDuplicates({
+      byDate: byDate !== 'false',
+      byAmount: byAmount !== 'false',
+      byName: byName !== 'false',
+    });
   }
 
   @Get()

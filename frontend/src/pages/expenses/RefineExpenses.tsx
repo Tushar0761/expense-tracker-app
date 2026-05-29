@@ -116,7 +116,11 @@ export function RefineExpenses() {
               ? 'No Recipient'
               : key
             : exps[0].categoryName,
-        expenses: exps,
+        expenses: [...exps].sort(
+          (a, b) =>
+            a.categoryName.localeCompare(b.categoryName) ||
+            b.amount - a.amount,
+        ),
       }))
       .sort((a, b) => b.expenses.length - a.expenses.length);
   }, [allExpenses, mode, search]);
