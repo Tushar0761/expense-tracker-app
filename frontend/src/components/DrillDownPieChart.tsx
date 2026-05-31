@@ -11,12 +11,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 import {
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  type LegendPayload,
 } from 'recharts';
 
 interface DrillDownPieChartProps {
@@ -27,7 +25,6 @@ interface DrillDownPieChartProps {
   onCategoryChange?: (categoryId: number | null, categoryName: string | null) => void;
 }
 
-// Outer ring — category colours
 const CAT_COLORS = [
   '#6366f1', // indigo
   '#10b981', // emerald
@@ -39,7 +36,6 @@ const CAT_COLORS = [
   '#84cc16', // lime
 ];
 
-// Inner ring — account colours (distinct, muted)
 const ACC_COLORS = [
   '#3b82f6', // blue
   '#14b8a6', // teal
@@ -49,7 +45,28 @@ const ACC_COLORS = [
   '#22c55e', // green
 ];
 
-const DIRECT_COLOR = '#94a3b8';
+const fmt = (v: number) => `₹${v.toLocaleString('en-IN')}`;
+
+function PieTooltip({
+  active,
+  payload,
+  total,
+}: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number }>;
+  total: number;
+}) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
+  return (
+    <div className="bg-card border border-border rounded-xl shadow-lg px-3 py-2.5 text-sm pointer-events-none">
+      <p className="font-semibold text-foreground mb-0.5 truncate max-w-[180px]">{item.name}</p>
+      <p className="text-primary font-bold">{fmt(item.value)}</p>
+      <p className="text-muted-foreground text-xs">{pct}% of total</p>
+    </div>
+  );
+}
 
 export function DrillDownPieChart({
   startDate,
@@ -70,10 +87,9 @@ export function DrillDownPieChart({
 
   const isLoading = catLoading || accLoading;
 
-  const { currentNodes, drillPath, drillInto, drillBack, canDrillInto, isRoot } =
+  const { currentNodes, drillPath, drillInto, drillBack, canDrillInto } =
     useCategoryDrill(rootData);
 
-  // Reset drill on date change
   const prevDateRef = { startDate, endDate };
   useEffect(() => {
     if (startDate !== prevDateRef.startDate || endDate !== prevDateRef.endDate) {
@@ -83,7 +99,7 @@ export function DrillDownPieChart({
     }
   }, [startDate, endDate, onFilterChange]);
 
-  const handleBreadcrumbClick = useCallback((index: number) => drillBack(index), [drillBack]);
+  const handleBreadcrumbClick = useCallback((i: number) => drillBack(i), [drillBack]);
 
   const handleSliceClick = useCallback(
     (data: { id: number }) => { if (canDrillInto(data.id)) drillInto(data.id); },
@@ -95,252 +111,238 @@ export function DrillDownPieChart({
     if (current) onCategoryChange?.(current.id, current.id === null ? null : current.name);
   }, [drillPath, onCategoryChange]);
 
-  const fmt = (v: number) => `₹${v.toLocaleString('en-IN')}`;
-
-  // Outer ring data (categories)
-  const outerData = (() => {
-    const filtered = currentNodes.filter((n) => n.total > 0);
-    return filtered.map((n) => ({
+  const catData = currentNodes
+    .filter((n) => n.total > 0)
+    .map((n) => ({
       id: n.id,
       name: n.name,
       value: n.total,
-      selfTotal: n.selfTotal,
       hasChildren: n.children.length > 0 && n.children.some((c) => c.total > 0),
-      isDirect: false as boolean,
     }));
-  })();
 
-  // Inner ring data (accounts)
-  const innerData = accountData
+  const accData = accountData
     .filter((a) => a.total > 0)
     .map((a) => ({ id: a.id, name: a.name, value: a.total }));
 
-  const outerTotal = outerData.reduce((s, i) => s + i.value, 0);
-  const innerTotal = innerData.reduce((s, i) => s + i.value, 0);
-
-  // Custom tooltip — shows whichever ring is hovered
-  const CustomTooltip = useCallback(
-    ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload?: { isAccount?: boolean } }> }) => {
-      if (!active || !payload?.length) return null;
-      const item = payload[0];
-      const total = item.payload?.isAccount ? innerTotal : outerTotal;
-      const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
-      return (
-        <div className="bg-card border border-border rounded-xl shadow-lg px-4 py-3 text-sm">
-          <p className="font-semibold text-foreground mb-1">{item.name}</p>
-          <p className="text-primary font-bold text-lg">{fmt(item.value)}</p>
-          <p className="text-muted-foreground text-xs">{pct}% of total</p>
-        </div>
-      );
-    },
-    [outerTotal, innerTotal],
-  );
+  const catTotal = catData.reduce((s, i) => s + i.value, 0);
+  const accTotal = accData.reduce((s, i) => s + i.value, 0);
 
   if (isLoading) {
     return (
-      <div className={cn('flex flex-col gap-4', className)}>
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-[320px] w-full rounded-xl" />
+      <div className={cn('space-y-3', className)}>
+        <div className="grid grid-cols-2 gap-4">
+          <Skeleton className="h-[260px] rounded-xl" />
+          <Skeleton className="h-[260px] rounded-xl" />
+        </div>
         <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
         </div>
       </div>
     );
   }
 
-  if (outerData.length === 0) {
+  if (catData.length === 0) {
     return (
-      <div className={cn('flex items-center justify-center p-8', className)}>
+      <div className={cn('flex items-center justify-center py-10', className)}>
         <p className="text-muted-foreground text-sm">No expenses found for this period.</p>
       </div>
     );
   }
 
-  if (!isRoot && currentNodes.length === 0) {
-    return (
-      <div className={cn('flex flex-col items-center justify-center p-8', className)}>
-        <Breadcrumb drillPath={drillPath} onBreadcrumbClick={handleBreadcrumbClick} total={outerTotal} fmt={fmt} />
-        <p className="text-muted-foreground text-sm mt-4">No expenses in this category.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
-      <Breadcrumb drillPath={drillPath} onBreadcrumbClick={handleBreadcrumbClick} total={outerTotal} fmt={fmt} />
-
-      {/* Dual-ring chart */}
-      <div className="relative" style={{ height: 320 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            {/* Inner ring — accounts */}
-            <Pie
-              data={innerData.map((d) => ({ ...d, isAccount: true }))}
-              cx="50%"
-              cy="50%"
-              innerRadius={42}
-              outerRadius={68}
-              paddingAngle={2}
-              dataKey="value"
-              animationBegin={0}
-              animationDuration={600}
-            >
-              {innerData.map((entry, i) => (
-                <Cell
-                  key={`acc-${entry.id ?? i}`}
-                  fill={ACC_COLORS[i % ACC_COLORS.length]}
-                  stroke="transparent"
-                  opacity={0.85}
-                />
-              ))}
-            </Pie>
-
-            {/* Outer ring — categories */}
-            <Pie
-              key={drillPath.length}
-              data={outerData}
-              cx="50%"
-              cy="50%"
-              innerRadius={74}
-              outerRadius={118}
-              paddingAngle={2}
-              dataKey="value"
-              onClick={(data) => handleSliceClick(data as unknown as { id: number })}
-              animationBegin={0}
-              animationDuration={800}
-              animationEasing="ease-out"
-            >
-              {outerData.map((entry, i) => (
-                <Cell
-                  key={`cat-${entry.id}`}
-                  fill={entry.isDirect ? DIRECT_COLOR : CAT_COLORS[i % CAT_COLORS.length]}
-                  stroke="transparent"
-                  className={cn(
-                    'transition-opacity duration-150',
-                    entry.hasChildren ? 'cursor-pointer hover:opacity-75' : '',
-                  )}
-                />
-              ))}
-            </Pie>
-
-            <Tooltip content={<CustomTooltip />} />
-
-            {/* Legend — only for outer ring */}
-            <Legend
-              verticalAlign="bottom"
-              height={40}
-              content={({ payload }) => (
-                <div className="flex flex-wrap justify-center gap-3 mt-2">
-                  {(payload as LegendPayload[])
-                    .sort((a, b) => (b.payload?.value ?? 0) - (a.payload?.value ?? 0))
-                    .map((entry, i) => (
-                      <div key={i} className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                        <span className="text-xs text-muted-foreground">{entry.value}</span>
-                        <span className="text-xs font-bold">
-                          {outerTotal > 0 ? ((entry.payload?.value / outerTotal) * 100).toFixed(1) : 0}%
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              )}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-
-        {/* Centre label */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, bottom: 40 }}>
-          <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Total</p>
-          <p className="text-lg font-bold text-foreground tabular-nums">{fmt(outerTotal)}</p>
-        </div>
-      </div>
-
-      {/* Account ring legend */}
-      {innerData.length > 0 && (
-        <div className="flex flex-wrap gap-2 justify-center">
-          {innerData.map((acc, i) => (
-            <div key={acc.id ?? i} className="flex items-center gap-1.5 text-xs">
-              <div
-                className="w-2.5 h-2.5 rounded-sm shrink-0"
-                style={{ backgroundColor: ACC_COLORS[i % ACC_COLORS.length] }}
-              />
-              <span className="text-muted-foreground">{acc.name}</span>
-              <span className="font-semibold">{fmt(acc.value)}</span>
-              <span className="text-muted-foreground">
-                ({innerTotal > 0 ? ((acc.value / innerTotal) * 100).toFixed(1) : 0}%)
-              </span>
-            </div>
+    <div className={cn('space-y-4', className)}>
+      {/* Breadcrumb */}
+      {drillPath.length > 1 && (
+        <div className="flex items-center gap-1 flex-wrap text-sm">
+          {drillPath.map((item, index) => (
+            <span key={index} className="flex items-center">
+              {index > 0 && <span className="mx-1.5 text-muted-foreground">›</span>}
+              <button
+                onClick={() => handleBreadcrumbClick(index)}
+                className={cn(
+                  'transition-colors hover:underline',
+                  index === drillPath.length - 1
+                    ? 'font-semibold text-primary'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {item.name}
+                {index === drillPath.length - 1 && ` (${fmt(catTotal)})`}
+              </button>
+            </span>
           ))}
         </div>
       )}
 
-      {/* Category grid */}
-      <div className="grid grid-cols-2 gap-2">
-        {outerData.map((item, i) => (
-          <button
-            key={item.id}
-            onClick={() => item.hasChildren && handleSliceClick({ id: item.id })}
-            disabled={!item.hasChildren}
-            className={cn(
-              'flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all duration-150',
-              item.hasChildren
-                ? 'hover:bg-primary/5 hover:border-primary/30 hover:shadow-sm cursor-pointer'
-                : 'opacity-70 cursor-default',
-            )}
-          >
-            <div
-              className="w-3 h-3 rounded-full shrink-0"
-              style={{ backgroundColor: item.isDirect ? DIRECT_COLOR : CAT_COLORS[i % CAT_COLORS.length] }}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{item.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {fmt(item.value)}
-                <span className="ml-2 font-bold text-foreground">
-                  {outerTotal > 0 ? ((item.value / outerTotal) * 100).toFixed(1) : 0}%
-                </span>
-              </p>
-            </div>
-            {item.hasChildren && <span className="text-muted-foreground text-sm shrink-0">›</span>}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
+      {/* Side-by-side charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-// ── Breadcrumb helper ────────────────────────────────────────────────────────
-function Breadcrumb({
-  drillPath,
-  onBreadcrumbClick,
-  total,
-  fmt,
-}: {
-  drillPath: { id: number | null; name: string }[];
-  onBreadcrumbClick: (i: number) => void;
-  total: number;
-  fmt: (v: number) => string;
-}) {
-  if (drillPath.length <= 1) return null;
-  return (
-    <div className="flex items-center gap-1 flex-wrap text-sm">
-      {drillPath.map((item, index) => (
-        <span key={index} className="flex items-center">
-          {index > 0 && <span className="mx-1.5 text-muted-foreground">›</span>}
-          <button
-            onClick={() => onBreadcrumbClick(index)}
-            className={cn(
-              'transition-colors hover:underline',
-              index === drillPath.length - 1
-                ? 'font-semibold text-primary'
-                : 'text-muted-foreground hover:text-foreground',
+        {/* ── Left: Category pie ── */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">By Category</p>
+            <p className="text-sm font-bold text-primary">{fmt(catTotal)}</p>
+          </div>
+
+          <div className="relative h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  key={drillPath.length}
+                  data={catData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  paddingAngle={2}
+                  dataKey="value"
+                  onClick={(data) => handleSliceClick(data as unknown as { id: number })}
+                  animationBegin={0}
+                  animationDuration={700}
+                  animationEasing="ease-out"
+                >
+                  {catData.map((entry, i) => (
+                    <Cell
+                      key={`cat-${entry.id}`}
+                      fill={CAT_COLORS[i % CAT_COLORS.length]}
+                      stroke="transparent"
+                      className={cn(
+                        'transition-opacity duration-150',
+                        entry.hasChildren ? 'cursor-pointer hover:opacity-70' : '',
+                      )}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => (
+                    <PieTooltip active={active} payload={payload as any} total={catTotal} />
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Centre label */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                {drillPath.length > 1 ? drillPath[drillPath.length - 1].name : 'Total'}
+              </p>
+              <p className="text-base font-bold tabular-nums">{fmt(catTotal)}</p>
+            </div>
+          </div>
+
+          {/* Category legend list */}
+          <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
+            {catData
+              .slice()
+              .sort((a, b) => b.value - a.value)
+              .map((item) => {
+                const idx = catData.indexOf(item);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => item.hasChildren && handleSliceClick({ id: item.id })}
+                    disabled={!item.hasChildren}
+                    className={cn(
+                      'w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all duration-150 text-sm',
+                      item.hasChildren
+                        ? 'hover:bg-primary/5 hover:border-primary/20 cursor-pointer'
+                        : 'cursor-default opacity-80',
+                    )}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: CAT_COLORS[idx % CAT_COLORS.length] }}
+                    />
+                    <span className="flex-1 truncate font-medium">{item.name}</span>
+                    <span className="text-muted-foreground tabular-nums text-xs shrink-0">{fmt(item.value)}</span>
+                    <span className="font-bold text-xs w-10 text-right shrink-0">
+                      {catTotal > 0 ? ((item.value / catTotal) * 100).toFixed(1) : 0}%
+                    </span>
+                    {item.hasChildren && <span className="text-muted-foreground shrink-0">›</span>}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+
+        {/* ── Right: Account pie ── */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">By Account</p>
+            <p className="text-sm font-bold text-blue-500">{fmt(accTotal)}</p>
+          </div>
+
+          <div className="relative h-[220px]">
+            {accData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={accData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={2}
+                    dataKey="value"
+                    animationBegin={0}
+                    animationDuration={700}
+                    animationEasing="ease-out"
+                  >
+                    {accData.map((entry, i) => (
+                      <Cell
+                        key={`acc-${entry.id ?? i}`}
+                        fill={ACC_COLORS[i % ACC_COLORS.length]}
+                        stroke="transparent"
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => (
+                      <PieTooltip active={active} payload={payload as any} total={accTotal} />
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-muted-foreground text-sm">No account data</p>
+              </div>
             )}
-          >
-            {item.name}
-            {index === drillPath.length - 1 && ` (${fmt(total)})`}
-          </button>
-        </span>
-      ))}
+            {accData.length > 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Total</p>
+                <p className="text-base font-bold tabular-nums">{fmt(accTotal)}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Account legend list */}
+          <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
+            {accData
+              .slice()
+              .sort((a, b) => b.value - a.value)
+              .map((acc) => {
+                const idx = accData.indexOf(acc);
+                return (
+                  <div
+                    key={acc.id ?? idx}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm"
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: ACC_COLORS[idx % ACC_COLORS.length] }}
+                    />
+                    <span className="flex-1 truncate font-medium">{acc.name}</span>
+                    <span className="text-muted-foreground tabular-nums text-xs shrink-0">{fmt(acc.value)}</span>
+                    <span className="font-bold text-xs w-10 text-right shrink-0">
+                      {accTotal > 0 ? ((acc.value / accTotal) * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
