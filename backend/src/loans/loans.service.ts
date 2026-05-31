@@ -12,6 +12,7 @@ import {
   BulkCreateFuturePaymentDto,
   CreateLoanDto,
   RecordPaymentDto,
+  UpdateFuturePaymentDto,
 } from './loans.dto';
 
 export type LoanGraphPoint = {
@@ -411,6 +412,106 @@ group by
         ...loan,
         paidAmount,
         remainingAmount: loan.totalAmount - paidAmount,
+      };
+    });
+  }
+
+  async updateFuturePayment(id: number, dto: UpdateFuturePaymentDto) {
+    const fp = await this.prisma.future_payment_data_master.findUnique({ where: { id } });
+    if (!fp) throw new Error('Future payment not found');
+
+    const updated = await this.prisma.future_payment_data_master.update({
+      where: { id },
+      data: {
+        ...(dto.totalAmount !== undefined && { totalAmount: dto.totalAmount }),
+        ...(dto.principalAmount !== undefined && { principalAmount: dto.principalAmount }),
+        ...(dto.interestAmount !== undefined && { interestAmount: dto.interestAmount }),
+        ...(dto.plannedDate !== undefined && { plannedDate: new Date(dto.plannedDate) }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        updatedAt: new Date(),
+      },
+    });
+
+    return { ...updated, plannedDate: format(updated.plannedDate, 'dd MMM yyyy') };
+  }
+
+  /**
+   * Mark a future payment as repaid.
+   * - Creates an EMI payment record for the amount
+   * - Marks the future payment as completed
+   * - If there's a remaining balance after this payment, creates a new future
+   *   payment scheduled one month after the last pending one
+   */
+  async markFuturePaymentRepaid(
+    id: number,
+    overrides: { totalAmount?: number; paymentMethod?: string; notes?: string },
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const fp = await tx.future_payment_data_master.findUnique({
+        where: { id },
+        include: { loans_master: { include: { emi_payment_data: true } } },
+      });
+      if (!fp) throw new Error('Future payment not found');
+
+      const amount = overrides.totalAmount ?? fp.totalAmount;
+      const method = (overrides.paymentMethod as any) ?? 'upi';
+
+      // Create EMI record
+      const emi = await tx.emi_payment_data.create({
+        data: {
+          loanId: fp.loanId,
+          paymentDate: new Date(),
+          totalAmount: amount,
+          principalAmount: fp.principalAmount,
+          interestAmount: fp.interestAmount,
+          paymentMethod: method,
+          notes: overrides.notes ?? fp.notes,
+          futurePaymentId: fp.id,
+        },
+      });
+
+      // Mark future payment completed
+      await tx.future_payment_data_master.update({
+        where: { id },
+        data: { status: 'completed', emiPaymentId: emi.id, updatedAt: new Date() },
+      });
+
+      // Check if loan still has remaining balance — if so add next month slot
+      const loan = fp.loans_master;
+      const totalPaid = loan.emi_payment_data.reduce((s, e) => s + e.totalAmount, 0) + amount;
+      const remaining = loan.totalAmount - totalPaid;
+
+      let nextPayment: { id: number; plannedDate: string; totalAmount: number } | null = null;
+      if (remaining > 0.01) {
+        const latestPending = await tx.future_payment_data_master.findFirst({
+          where: { loanId: fp.loanId, status: 'pending' },
+          orderBy: { plannedDate: 'desc' },
+        });
+        const baseDate = latestPending?.plannedDate ?? fp.plannedDate;
+        const nextDate = addMonths(new Date(baseDate), 1);
+
+        const created = await tx.future_payment_data_master.create({
+          data: {
+            loanId: fp.loanId,
+            plannedDate: nextDate,
+            totalAmount: Math.min(remaining, fp.totalAmount),
+            principalAmount: Math.min(remaining, fp.principalAmount),
+            interestAmount: fp.interestAmount,
+            status: 'pending',
+            notes: fp.notes,
+          },
+        });
+        nextPayment = {
+          id: created.id,
+          plannedDate: format(created.plannedDate, 'dd MMM yyyy'),
+          totalAmount: created.totalAmount,
+        };
+      }
+
+      return {
+        emiId: emi.id,
+        remaining: Math.max(0, remaining),
+        nextPayment,
       };
     });
   }

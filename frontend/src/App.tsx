@@ -14,9 +14,9 @@ import { Toaster } from 'sonner';
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 p-4 w-full max-w-7xl mx-auto">
+      <main className="flex-1 px-6 py-6 w-full page-enter">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/expenses" element={<Expenses />} />

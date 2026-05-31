@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
 import {
   BulkCreateFuturePaymentDto,
   CreateLoanDto,
   RecordPaymentDto,
+  UpdateFuturePaymentDto,
 } from './loans.dto';
 import {
   EmiPaymentRow,
@@ -80,6 +81,23 @@ export class LoansController {
   @Get(':loanId/future-payments')
   async getFuturePaymentsByLoan(@Param('loanId') loanId: string): Promise<any> {
     return await this.loansService.getFuturePaymentsByLoan(Number(loanId));
+  }
+
+  @Put('future-payment/:id')
+  updateFuturePayment(
+    @Param('id') id: string,
+    @Body() dto: UpdateFuturePaymentDto,
+  ) {
+    return this.loansService.updateFuturePayment(Number(id), dto);
+  }
+
+  @Post('future-payment/:id/mark-repaid')
+  @HttpCode(200)
+  markFuturePaymentRepaid(
+    @Param('id') id: string,
+    @Body() body: { totalAmount?: number; paymentMethod?: string; notes?: string },
+  ) {
+    return this.loansService.markFuturePaymentRepaid(Number(id), body);
   }
 
   @Get(':loanId/planning-summary')

@@ -191,6 +191,28 @@ export type BulkCreateFuturePaymentPayload = {
   items: FuturePaymentItem[];
 };
 
+export async function updateFuturePayment(
+  id: number,
+  data: {
+    totalAmount?: number;
+    principalAmount?: number;
+    interestAmount?: number;
+    plannedDate?: string;
+    notes?: string;
+  },
+): Promise<FuturePaymentRow> {
+  const response = await api.put(`/api/loans/future-payment/${id}`, data);
+  return response.data;
+}
+
+export async function markFuturePaymentRepaid(
+  id: number,
+  data?: { totalAmount?: number; paymentMethod?: string; notes?: string },
+): Promise<{ emiId: number; remaining: number; nextPayment: FuturePaymentRow | null }> {
+  const response = await api.post(`/api/loans/future-payment/${id}/mark-repaid`, data ?? {});
+  return response.data;
+}
+
 export async function bulkCreateFuturePayments(
   payload: BulkCreateFuturePaymentPayload,
 ): Promise<{ count: number }> {
@@ -743,6 +765,20 @@ export type DashboardKPIs = {
     categories: string[];
   }[];
 };
+
+export type AccountTotal = {
+  id: number | null;
+  name: string;
+  total: number;
+};
+
+export async function fetchAccountTotals(params?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<AccountTotal[]> {
+  const response = await api.get('/api/expenses/account-totals', { params });
+  return response.data;
+}
 
 export async function fetchCategoryTotals(params?: {
   startDate?: string;

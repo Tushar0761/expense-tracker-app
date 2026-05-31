@@ -41,6 +41,14 @@ export class ExpensesController {
     return this.expensesService.getExpenseSummary(query);
   }
 
+  @Get('account-totals')
+  getAccountTotals(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.expensesService.getAccountWiseTotals(startDate, endDate);
+  }
+
   @Get('category-totals')
   getCategoryTotals(
     @Query('startDate') startDate?: string,

@@ -201,7 +201,14 @@ export class GpayImportService {
       byUser.get(row.userName)!.push({ categoryId: row.categoryId, count: row._count.id });
     }
 
-    const results = [];
+    const results: {
+      userName: string;
+      canonicalName: string | null;
+      categories: { categoryId: number; categoryName: string; count: number }[];
+      recommendedCategoryId: number | null;
+      recommendedCategoryName: string | null;
+      totalExpenses: number;
+    }[] = [];
     for (const [userName, cats] of byUser) {
       if (cats.length <= 1) continue; // only one category — no inconsistency
 

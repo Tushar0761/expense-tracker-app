@@ -360,6 +360,37 @@ export class ExpensesService {
       );
   }
 
+  async getAccountWiseTotals(startDate?: string, endDate?: string) {
+    const where: Prisma.expenses_data_masterWhereInput = {};
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) where.date.gte = new Date(startDate);
+      if (endDate) where.date.lte = endOfDay(new Date(endDate));
+    }
+
+    const expenses = await this.prisma.expenses_data_master.findMany({
+      where,
+      select: { amount: true, accountId: true, account: { select: { name: true } } },
+    });
+
+    const accountMap = new Map<string, { name: string; total: number }>();
+    for (const exp of expenses) {
+      const key = exp.accountId != null ? String(exp.accountId) : '__none__';
+      const name = exp.account?.name ?? 'Unlinked';
+      const cur = accountMap.get(key) ?? { name, total: 0 };
+      cur.total += exp.amount;
+      accountMap.set(key, cur);
+    }
+
+    return Array.from(accountMap.entries())
+      .map(([id, v]) => ({
+        id: id === '__none__' ? null : Number(id),
+        name: v.name,
+        total: Math.round(v.total * 100) / 100,
+      }))
+      .sort((a, b) => b.total - a.total);
+  }
+
   async splitExpense(id: number, dto: SplitExpenseDto) {
     return this.prisma.$transaction(async (tx) => {
       const original = await tx.expenses_data_master.findUnique({

@@ -101,6 +101,28 @@ export class FuturePaymentItemDto {
   interestAmount?: number;
 }
 
+export class UpdateFuturePaymentDto {
+  @IsOptional()
+  @IsNumber()
+  totalAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  principalAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  interestAmount?: number;
+
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'plannedDate must be yyyy-mm-dd' })
+  plannedDate?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
 export class BulkCreateFuturePaymentDto {
   @IsNotEmpty()
   @IsNumber()
