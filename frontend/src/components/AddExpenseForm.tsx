@@ -1,3 +1,4 @@
+import { MerchantSuggestionPanel } from '@/components/MerchantSuggestionPanel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,18 +18,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useMerchantSuggestion } from '@/hooks/use-merchant-suggestion';
 import {
   createCategory,
   createExpense,
   fetchAccounts,
   fetchCategoriesFlat,
-  fetchSuggestionsForUser,
   updateExpense,
   type Account,
   type CategoryFlat,
   type CreateExpensePayload,
   type ExpenseRow,
-  type SuggestionsResult,
 } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -113,19 +113,8 @@ export function AddExpenseForm({
 
   const watchedDate = watch('date');
 
-  const [debouncedUserName, setDebouncedUserName] = useState('');
   const watchedUserName = watch('userName');
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedUserName(watchedUserName || ''), 400);
-    return () => clearTimeout(timer);
-  }, [watchedUserName]);
-
-  const { data: suggestions } = useQuery<SuggestionsResult>({
-    queryKey: ['expense-suggestions', debouncedUserName],
-    queryFn: () => fetchSuggestionsForUser(debouncedUserName),
-    enabled: debouncedUserName.length >= 2,
-  });
+  const suggestions = useMerchantSuggestion(watchedUserName ?? '');
 
   useEffect(() => {
     if (isOpen) {
@@ -428,48 +417,12 @@ export function AddExpenseForm({
               />
             </div>
 
-            {/* Suggestions based on userName */}
-            {suggestions && (suggestions.categories.length > 0 || suggestions.remarks.length > 0) && (
-              <div className="rounded-md border border-border/40 bg-muted/20 px-3 py-2 space-y-2">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">
-                  Suggestions for "{debouncedUserName}"
-                </p>
-                {suggestions.categories.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-muted-foreground font-medium">Common categories</p>
-                    <div className="flex flex-wrap gap-1">
-                      {suggestions.categories.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => setValue('categoryId', c.id, { shouldValidate: true })}
-                          className="text-[10px] px-2 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
-                        >
-                          {c.name} <span className="opacity-60">×{c.count}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {suggestions.remarks.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-muted-foreground font-medium">Recent notes</p>
-                    <div className="flex flex-wrap gap-1">
-                      {suggestions.remarks.map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => setValue('remarks', r, { shouldValidate: true })}
-                          className="text-[10px] px-2 py-0.5 rounded-full border border-border bg-muted/40 text-muted-foreground hover:bg-muted transition-colors"
-                        >
-                          {r}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Suggestions based on merchant / userName */}
+            <MerchantSuggestionPanel
+              suggestions={suggestions}
+              onSelectCategory={(id) => setValue('categoryId', id, { shouldValidate: true })}
+              onSelectRemark={(r) => setValue('remarks', r, { shouldValidate: true })}
+            />
 
             {/* Row 4: User Name (Who did you send money to) */}
             <div className="space-y-1.5">

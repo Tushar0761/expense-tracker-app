@@ -15,6 +15,7 @@ import {
   ExpenseDashboardSummaryQueryDto,
   ExpenseQueryDto,
   ExpenseSummaryQueryDto,
+  SplitExpenseDto,
   UpdateExpenseDto,
 } from './expenses.dto';
 import { ExpensesService } from './expenses.service';
@@ -91,6 +92,15 @@ export class ExpensesController {
   @Get(':id')
   getExpenseById(@Param('id') id: string) {
     return this.expensesService.getExpenseById(Number(id));
+  }
+
+  @Post(':id/split')
+  @HttpCode(201)
+  splitExpense(
+    @Param('id') id: string,
+    @Body() splitExpenseDto: SplitExpenseDto,
+  ) {
+    return this.expensesService.splitExpense(Number(id), splitExpenseDto);
   }
 
   @Put(':id')

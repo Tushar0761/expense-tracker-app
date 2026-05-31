@@ -58,6 +58,11 @@ const Navbar = () => {
             Accounts
           </Button>
         </Link>
+        <Link to="/clinic">
+          <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-400">
+            🩺 Clinic
+          </Button>
+        </Link>
         <div className="w-px h-4 bg-border mx-2" />
         <Link to="/login">
           <Button size="sm" className="h-8 text-xs px-4">

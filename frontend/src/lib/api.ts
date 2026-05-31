@@ -463,6 +463,172 @@ export async function fetchSuggestionsForUser(userName: string): Promise<Suggest
   return response.data;
 }
 
+// ==================== SPLIT EXPENSE ====================
+
+export type SplitItem = {
+  amount: number;
+  categoryId: number;
+  remarks?: string;
+  accountId?: number;
+  date?: string;
+};
+
+export async function splitExpense(
+  id: number,
+  items: SplitItem[],
+): Promise<ExpenseRow[]> {
+  const response = await api.post(`/api/expenses/${id}/split`, { items });
+  return response.data;
+}
+
+// ==================== OCR RECEIPT ====================
+
+export type OcrCategoryPrediction = {
+  categoryId: number;
+  categoryName: string;
+  confidence: number;
+};
+
+export type OcrLineItem = {
+  name: string;
+  amount: number;
+  predictions?: OcrCategoryPrediction[];
+};
+
+export type OcrReceiptResult = {
+  items: OcrLineItem[];
+  total: number | null;
+  rawText: string;
+};
+
+const OCR_BASE_URL =
+  import.meta.env.VITE_OCR_SERVICE_URL || 'http://localhost:8000';
+
+export async function scanReceipt(file: File): Promise<OcrReceiptResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axios.post<OcrReceiptResult>(
+    `${OCR_BASE_URL}/ocr/receipt`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return response.data;
+}
+
+// ==================== GPAY IMPORT ====================
+
+export type GpayPreviewRow = {
+  rowIndex: number;
+  date: string;
+  amount: number;
+  account: string;
+  accountId: number | null;
+  note: string;
+  userName: string;
+  categoryId: number | null;
+  categoryName: string | null;
+  remarks: string | null;
+  canonicalName: string | null;
+  confidence: 'high' | 'medium' | 'low' | null;
+  isTransfer: boolean;
+  financeSubtype: string | null;
+  needsReview: boolean;
+  reviewReason: string | null;
+};
+
+export type GpayConfirmRow = {
+  date: string;
+  amount: number;
+  account: string;
+  accountId?: number;
+  note?: string;
+  userName: string;
+  categoryId?: number;
+  remarks?: string;
+  skip?: boolean;
+};
+
+export type GpayImportResult = {
+  inserted: number;
+  skipped: number;
+};
+
+export type NameVariant = {
+  userName: string;
+  count: number;
+  canonicalName: string | null;
+  categoryId: number | null;
+};
+
+export async function previewGpayImport(file: File): Promise<GpayPreviewRow[]> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post<GpayPreviewRow[]>(
+    '/api/gpay-import/preview',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return response.data;
+}
+
+export async function confirmGpayImport(
+  rows: GpayConfirmRow[],
+): Promise<GpayImportResult> {
+  const response = await api.post<GpayImportResult>('/api/gpay-import/confirm', {
+    rows,
+  });
+  return response.data;
+}
+
+export async function fetchNameVariants(): Promise<NameVariant[]> {
+  const response = await api.get<NameVariant[]>('/api/gpay-import/name-variants');
+  return response.data;
+}
+
+export function downloadGpayCsvTemplate(): void {
+  const url = `${API_BASE_URL}/api/gpay-import/template`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gpay_import_template.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+export type CategoryInconsistency = {
+  userName: string;
+  canonicalName: string | null;
+  categories: { categoryId: number; categoryName: string; count: number }[];
+  recommendedCategoryId: number | null;
+  recommendedCategoryName: string | null;
+  totalExpenses: number;
+};
+
+export async function fetchInconsistencies(): Promise<CategoryInconsistency[]> {
+  const response = await api.get<CategoryInconsistency[]>('/api/gpay-import/inconsistencies');
+  return response.data;
+}
+
+export async function fixInconsistency(
+  userName: string,
+  categoryId: number,
+): Promise<{ updated: number }> {
+  const response = await api.put(`/api/gpay-import/fix-inconsistency/${encodeURIComponent(userName)}`, {
+    categoryId,
+  });
+  return response.data;
+}
+
+export async function trainOcrModel(): Promise<{
+  status: string;
+  count?: number;
+  categories?: number;
+  message?: string;
+}> {
+  const response = await axios.post(`${OCR_BASE_URL}/ocr/train`);
+  return response.data;
+}
+
 export async function bulkUpdateExpenses(
   ids: number[],
   data: { categoryId?: number; remarks?: string },

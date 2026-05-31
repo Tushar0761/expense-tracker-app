@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateExpenseDto {
@@ -164,4 +165,33 @@ export class BulkUpdateExpenseDto {
   @IsOptional()
   @IsString()
   remarks?: string;
+}
+
+export class SplitItemDto {
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  categoryId: number;
+
+  @IsString()
+  @IsOptional()
+  remarks?: string;
+
+  @IsNumber()
+  @IsOptional()
+  accountId?: number;
+
+  @IsDateString()
+  @IsOptional()
+  date?: string;
+}
+
+export class SplitExpenseDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SplitItemDto)
+  items: SplitItemDto[];
 }

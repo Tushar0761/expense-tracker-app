@@ -1,6 +1,7 @@
 import { AddExpenseForm } from '@/components/AddExpenseForm';
 import { BulkExpenseForm } from '@/components/BulkExpenseForm';
 import { BulkUpload } from '@/components/BulkUpload';
+import { SplitExpenseDialog } from '@/components/SplitExpenseDialog';
 import { DatePickerInput } from '@/components/DatePickerInput';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ import {
   LucideChevronLeft,
   LucideChevronRight,
   Plus,
+  ScissorsLineDashed,
   Search,
   Tag,
   Trash2,
@@ -54,6 +56,7 @@ export function Expenses() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseRow | null>(null);
+  const [splittingExpense, setSplittingExpense] = useState<ExpenseRow | null>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(true);
@@ -488,8 +491,18 @@ export function Expenses() {
                             size="icon"
                             className="h-6 w-6 text-blue-500 hover:text-blue-700 hover:bg-blue-50/50"
                             onClick={() => handleEdit(tx)}
+                            title="Edit"
                           >
                             <Edit2 className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-amber-500 hover:text-amber-700 hover:bg-amber-50/50"
+                            onClick={() => setSplittingExpense(tx)}
+                            title="Split expense"
+                          >
+                            <ScissorsLineDashed className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -500,6 +513,7 @@ export function Expenses() {
                                 deleteMutation.mutate(tx.id);
                               }
                             }}
+                            title="Delete"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -581,6 +595,11 @@ export function Expenses() {
       </Card>
 
       {/* Modals */}
+      <SplitExpenseDialog
+        expense={splittingExpense}
+        isOpen={!!splittingExpense}
+        onClose={() => setSplittingExpense(null)}
+      />
       <AddExpenseForm isOpen={showModal} onClose={handleCloseModal} expense={editingExpense} />
       <BulkExpenseForm
         isOpen={showBulkModal}

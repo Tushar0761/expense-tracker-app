@@ -3,6 +3,7 @@ import './App.css';
 import Navbar from './components/layout/Navbar';
 import NotFound from './pages/NotFound';
 import { Categories } from './pages/categories/Categories';
+import { DataClinic } from './pages/clinic/DataClinic';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { DuplicateExpenses } from './pages/expenses/DuplicateExpenses';
 import { Expenses } from './pages/expenses/Expenses';
@@ -24,6 +25,7 @@ function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/loans" element={<LoansPage />} />
+          <Route path="/clinic" element={<DataClinic />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

@@ -1,6 +1,8 @@
+import { MerchantSuggestionPanel } from '@/components/MerchantSuggestionPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useMerchantSuggestion } from '@/hooks/use-merchant-suggestion';
 import {
   bulkCreateExpenses,
   fetchLeafCategories,
@@ -12,7 +14,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { X, Plus, Copy, Trash2, Check, Loader2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface BulkExpenseRow {
@@ -41,6 +43,7 @@ export function BulkExpenseForm({
 }: BulkExpenseFormProps) {
   const [rows, setRows] = useState<BulkExpenseRow[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
 
   const { data: categories = [] } = useQuery<CategoryFlat[]>({
     queryKey: ['categories-leaf'],
@@ -53,6 +56,10 @@ export function BulkExpenseForm({
     queryFn: fetchAccounts,
     enabled: isOpen,
   });
+
+  const activeUserName =
+    activeRowIndex !== null ? (rows[activeRowIndex]?.userName ?? '') : '';
+  const suggestions = useMerchantSuggestion(activeUserName);
 
   const createEmptyRow = useCallback<() => BulkExpenseRow>(
     () => ({
@@ -251,8 +258,8 @@ export function BulkExpenseForm({
               </thead>
               <tbody>
                 {rows.map((row, index) => (
+                  <React.Fragment key={row.id}>
                   <tr
-                    key={row.id}
                     className={`border-b border-border/40 ${
                       row.hasError && hasSubmitted
                         ? 'bg-red-50 dark:bg-red-950/20'
@@ -289,6 +296,7 @@ export function BulkExpenseForm({
                         onChange={(e) =>
                           updateRow(index, 'userName', e.target.value)
                         }
+                        onFocus={() => setActiveRowIndex(index)}
                         className="h-9 text-sm"
                       />
                     </td>
@@ -378,6 +386,25 @@ export function BulkExpenseForm({
                       </div>
                     </td>
                   </tr>
+                  {/* Suggestion row — only for the focused row */}
+                  {activeRowIndex === index &&
+                    (suggestions.categories.length > 0 || suggestions.remarks.length > 0) && (
+                      <tr>
+                        <td colSpan={8} className="px-3 pb-2 pt-0">
+                          <MerchantSuggestionPanel
+                            suggestions={suggestions}
+                            compact
+                            onSelectCategory={(id) => {
+                              updateRow(index, 'categoryId', id);
+                            }}
+                            onSelectRemark={(r) => {
+                              updateRow(index, 'description', r);
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

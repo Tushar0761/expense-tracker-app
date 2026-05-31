@@ -1,0 +1,55 @@
+categoryId	mainCategory	subParentCategory	parentCategory
+26	Activa	Transport	[NULL]
+60	Breakfast	Outside with Wife	Food & Dining
+56	Breakfast	Personal Meals	Food & Dining
+30	Cab & Auto	Transport	[NULL]
+69	Cloths	Wife's Shopping	Shopping
+71	Cloths	Personal Shopping	Shopping
+66	Credit Card Bills	Financial Commitments	[NULL]
+61	Dinner	Outside with Wife	Food & Dining
+57	Dinner	Personal Meals	Food & Dining
+42	Entertainment	Leisure	[NULL]
+63	Fast food	Outside with Wife	Food & Dining
+59	Fast food	Personal Meals	Food & Dining
+65	Fast food with colleges	Office	Food & Dining
+19	Financial Commitments	[NULL]	[NULL]
+16	Food & Dining	[NULL]	[NULL]
+43	Gifts	Leisure	[NULL]
+21	Groceries	Home	[NULL]
+37	Grooming	Personal Wellbeing	[NULL]
+38	Health	Personal Wellbeing	[NULL]
+14	Home	[NULL]	[NULL]
+34	Household Items	Shopping	[NULL]
+20	Leisure	[NULL]	[NULL]
+41	LIC Premium	Financial Commitments	[NULL]
+40	Loan EMI	Financial Commitments	[NULL]
+58	Lunch	Personal Meals	Food & Dining
+62	Lunch	Outside with Wife	Food & Dining
+64	Lunch	Office	Food & Dining
+24	Maintenance	Home	[NULL]
+67	Medical Sickness	Health	Personal Wellbeing
+29	Metro	Transport	[NULL]
+22	Milk & Dairy	Home	[NULL]
+48	Misc	Financial Commitments	[NULL]
+49	Misc	Food & Dining	[NULL]
+51	Misc	Leisure	[NULL]
+52	Misc	Personal Wellbeing	[NULL]
+53	Misc	Shopping	[NULL]
+54	Misc	Transport	[NULL]
+50	Misc	Home	[NULL]
+68	Misc	Health	Personal Wellbeing
+31	Office	Food & Dining	[NULL]
+32	Outside with Wife	Food & Dining	[NULL]
+33	Personal Meals	Food & Dining	[NULL]
+36	Personal Shopping	Shopping	[NULL]
+18	Personal Wellbeing	[NULL]	[NULL]
+45	Petrol	Activa	Transport
+25	Rent	Home	[NULL]
+47	Repairs	Activa	Transport
+46	Servicing	Activa	Transport
+17	Shopping	[NULL]	[NULL]
+15	Transport	[NULL]	[NULL]
+44	Travel	Leisure	[NULL]
+55	Unknown	[NULL]	[NULL]
+23	Utilities	Home	[NULL]
+35	Wife's Shopping	Shopping	[NULL]

@@ -1,0 +1,94 @@
+id,userName,amount,date,currentParent,currentSubParent,currentMainCategory,remarks,recommendedCategory,recommendedParent,recommendedSubParent,recommendedMainCategory,categoryId,notes
+341,Mahendra Gurjar,20,18-03-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Small snacks from vendor
+349,RAHUL KUSHVAHA,50,15-03-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+381,Ma Vindheswari Fruit And Juice Center,40,04-03-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Fruit/Juice center
+388,RAHUL KUSHVAHA,30,04-03-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+391,Sharad Mohanlal Vaishy,10,03-03-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+404,MR ASHOK RADHESHYAM AGRAWAL,40,01-03-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+407,ANKIT KUMAR,70,28-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+408,RAMESHBHAI RUPLAL TAILI,60,28-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+409,Day Night Dabeli Vastral,30,28-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Dabeli
+411,New Karnavati Fast Food,45,26-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Fast food
+414,RAHUL KUSHVAHA,40,25-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+416,NARSINHBHAI POPATBHAI KACHHADIYA,20,24-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+418,Vi Prepaid,860.9,24-02-2026,Unknown,[NULL],Unknown,Mobile Recharge,Home,Utilities,Utilities,Home,23,Mobile recharge - personal phone bill
+419,CHAMUNDA GENERAL STORE,10,23-02-2026,Unknown,[NULL],Unknown,[NULL],Home,Groceries,Groceries,Home,21,General store item
+422,MANOJ,60,23-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+423,Rajendra singh,70,23-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+427,Sharad Mohanlal Vaishy,20,22-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+428,KRISHNA PAN PARLOUR RESTAURANT,20,22-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Pan Parlour - couple outing
+429,KRISHNA PAN PARLOUR RESTAURANT,20,22-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Pan Parlour - couple outing
+430,Maheshbhai Chhanabhai Patani,160,22-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+431,JIGNESHBHAI SANTOSHBHAI RAJPUT,60,21-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+432,Amar karpa dairy,234,21-02-2026,Unknown,[NULL],Unknown,Groceries and milk,Home,Milk & Dairy,Milk & Dairy,Home,22,Dairy items
+435,Sharad Mohanlal Vaishy,20,19-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+437,Mrs Neetu Sharma,20,19-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+439,NIRAJ,50,17-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+444,Mrs Neetu Sharma,20,16-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+445,JALARAM KATHIYAWADI DHABA,258,16-02-2026,Unknown,[NULL],Unknown,Dinner,Food & Dining,Outside with Wife,Dinner,Food & Dining,61,Dinner with wife
+446,Bharat Singh,10,16-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Small item
+447,Vishalkumar Sheevarambhai Chaudhari,20,16-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+448,Vishalkumar Sheevarambhai Chaudhari,20,16-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+449,Vishalkumar Sheevarambhai Chaudhari,20,16-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+450,SANGITABEN PRAVINBHAI VASAIYA,100,15-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+451,MAHESHBHAI BHURABHAI RAVAL,60,15-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+452,Bhagvatiben Govindji Thakor,70,15-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+453,Rabari Sedhabhai Dhanjibhai,245,14-02-2026,Unknown,[NULL],Unknown,Nasto,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Nasto
+454,Ambika Medical Store,70,13-02-2026,Unknown,[NULL],Unknown,[NULL],Personal Wellbeing,Health,Medical Sickness,Personal Wellbeing,68,Medical store
+455,TEJASKUMAR KANAIYALAL THAKKAR,60,13-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+456,MANGLESHWAR BAKERY,40,13-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+459,SHREE RAM MOBILE COVER HOUSE,400,13-02-2026,Unknown,[NULL],Unknown,Mobile cover,Shopping,Household Items,Household Items,Shopping,34,Mobile cover case
+461,Baghel Rajiv Singh,90,12-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+464,MANGLESHWAR BAKERY,70,11-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+468,ARVIND SINGH,30,09-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+471,ZOMATO LIMITED,319,09-02-2026,Unknown,[NULL],Unknown,Zomato,Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Zomato - dinner with wife
+473,MR AMITKUMAR MADHUVAN MAURYA,60,07-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+474,AMITKUMAR MADHUVAN MAURYA,60,07-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+475,New Karnavati Fast Food,25,06-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Fast food
+479,MANISH MEGHWAL,90,04-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+480,ANKIT KUMAR,70,04-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+482,SURESH DHOBI,20,04-02-2026,Unknown,[NULL],Unknown,[NULL],Home,Misc,Misc,Home,50,Dhobi service
+491,Nirpat Singh,250,01-02-2026,Unknown,[NULL],Unknown,Dosa with Jelly,Food & Dining,Personal Meals,Dinner,Food & Dining,57,Dosa with Jelly
+494,MR AMITKUMAR MADHUVAN MAURYA,70,01-02-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+499,Swiggy Limited,137,31-01-2026,Unknown,[NULL],Unknown,Groceries,Home,Groceries,Groceries,Home,21,Swiggy Instamart
+500,Swiggy Limited,137,31-01-2026,Unknown,[NULL],Unknown,Groceries,Home,Groceries,Groceries,Home,21,Swiggy Instamart
+502,Rajkumar,80,31-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+503,Rajkumar,80,31-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+504,Bundl Technologies pvt Ltd,153,31-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Swiggy
+510,PRAVINBHAI AMBALAL PATEL,20,30-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+513,RAHUL KUSHVAHA,40,28-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+514,RAHUL KUSHVAHA,40,28-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+515,NAGESHVARI FLOOR FACTORY,90,27-01-2026,Unknown,[NULL],Unknown,[NULL],Home,Household Items,Household Items,Shopping,34,Flour mill
+516,CHAMUNDA GENERAL STORE,110,27-01-2026,Unknown,[NULL],Unknown,[NULL],Home,Groceries,Groceries,Home,21,General store
+518,Trends Ahmedabad TWQS,752,26-01-2026,Unknown,[NULL],Unknown,Cloths,Shopping,Wife's Shopping,Cloths,Shopping,66,Cloths from Trends
+520,SHREE UDIPI RESTAURANT,165,24-01-2026,Unknown,[NULL],Unknown,Dosa,Food & Dining,Personal Meals,Dinner,Food & Dining,57,Dosa
+521,Indian Railways,270,24-01-2026,Unknown,[NULL],Unknown,Valsad Train,Leisure,Travel,Travel,Leisure,44,Train fare - Valsad
+525,INUPANURI SUHASINI,150,23-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+527,PITHA SURI BABU,60,22-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Pitha Suri
+531,Blinkit,152,20-01-2026,Unknown,[NULL],Unknown,Groceries,Home,Groceries,Groceries,Home,21,Blinkit groceries
+532,MR SANGEM SRIKANTH,75,20-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+534,SAHARSH EXECUTIVE ME,160,19-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Executive meal
+537,Sangam Srikanth,75,19-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+541,OSIA HYPER RETAIL VASTRAL 2,232.5,18-01-2026,Unknown,[NULL],Unknown,Groceries,Home,Groceries,Groceries,Home,21,OSIA Hyper Retail
+542,Balaji Pauva House,40,18-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Balaji Pauva
+544,SANJAYKUMAR CHHAGANBHAI DESAI,10,18-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+545,Rajeshwari Agarbati Shop,40,17-01-2026,Unknown,[NULL],Unknown,[NULL],Home,Household Items,Household Items,Shopping,34,Agarbatti
+546,Rajeshwari Agarbati Shop,40,17-01-2026,Unknown,[NULL],Unknown,[NULL],Home,Household Items,Household Items,Shopping,34,Agarbatti
+547,INDRAJEET TEEKARAM BAGHEL,40,17-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+548,PURNIMA MOTORS,190,17-01-2026,Unknown,[NULL],Unknown,Petrol,Transport,Activa,Petrol,Transport,46,Purnima Motors Petrol
+549,Krishna Dairy,40,16-01-2026,Home,Milk & Dairy,,Home,Milk & Dairy,Milk & Dairy,Home,22,Already correct,
+557,Ahmedabad municipal corporation,30,15-01-2026,Unknown,[NULL],Unknown,[NULL],Home,Utilities,Utilities,Home,23,Municipal tax
+558,Varma Suraj,95,14-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+560,PRAKASH PRAJAPATI,80,14-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+561,Mr HIMMATSIH BHERUSIH RATHOD,40,14-01-2026,Home,Milk & Dairy,,Home,Milk & Dairy,Milk & Dairy,Home,22,Already correct,
+562,LALJIBHAICPATEL,70,14-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+563,KHODIYAR PAN PARLOUR,150,14-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Pan Parlour with wife
+564,VIJAYBHAI RAJESHBHAI PATANI HATHIJAN,300,14-01-2026,Unknown,[NULL],Unknown,Kites,Leisure,Leisure,Leisure,Leisure,20,Kites
+572,RUDRA FASHION,4400,11-01-2026,Unknown,[NULL],Unknown,Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes
+573,RUDRA FASHION,1,11-01-2026,Unknown,[NULL],Unknown,Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes (trial)
+575,MR ASHOK RADHESHYAM AGRAWAL,80,10-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+580,Blinkit,138,09-01-2026,Unknown,[NULL],Unknown,[NULL],Home,Groceries,Groceries,Home,21,Blinkit groceries
+582,Sangam Srikanth,30,08-01-2026,Unknown,[NULL],Unknown,[NULL],Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+583,SHREYA MEDICAL STORES,850,06-01-2026,Unknown,[NULL],Unknown,Medical,Personal Wellbeing,Health,Medical Sickness,Personal Wellbeing,68,Medical store
+585,DILIP PAINTS,350,05-01-2026,Unknown,[NULL],Unknown,Safety Shoes for AMNS,Home,Household Items,Household Items,Shopping,34,Safety equipment
+590,GUJARAT METRO RAIL CORPORATION LIMITED,25,02-01-2026,Unknown,[NULL],Unknown,[NULL],Transport,Metro,Metro,Transport,29,Metro Rail ticket

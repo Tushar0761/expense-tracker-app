@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
   endOfDay,
@@ -13,6 +13,7 @@ import {
   CreateExpenseDto,
   ExpenseQueryDto,
   ExpenseSummaryQueryDto,
+  SplitExpenseDto,
   UpdateExpenseDto,
 } from './expenses.dto';
 
@@ -357,6 +358,55 @@ export class ExpensesService {
           createdAt: exp.createdAt,
         })),
       );
+  }
+
+  async splitExpense(id: number, dto: SplitExpenseDto) {
+    return this.prisma.$transaction(async (tx) => {
+      const original = await tx.expenses_data_master.findUnique({
+        where: { id },
+      });
+      if (!original) throw new NotFoundException(`Expense #${id} not found`);
+
+      const itemsTotal = dto.items.reduce((sum, i) => sum + i.amount, 0);
+      const rounded = Math.round(itemsTotal * 100) / 100;
+      const originalRounded = Math.round(original.amount * 100) / 100;
+      if (Math.abs(rounded - originalRounded) > 0.01) {
+        throw new BadRequestException(
+          `Split items total (${rounded}) must equal the original amount (${originalRounded})`,
+        );
+      }
+
+      await tx.expenses_data_master.delete({ where: { id } });
+
+      const created = await Promise.all(
+        dto.items.map((item) =>
+          tx.expenses_data_master.create({
+            data: {
+              date: item.date ? new Date(item.date) : original.date,
+              amount: item.amount,
+              remarks: item.remarks ?? original.remarks,
+              accountId: item.accountId ?? original.accountId,
+              categoryId: item.categoryId,
+              userName: original.userName,
+            },
+            include: { category_master: true, account: true },
+          }),
+        ),
+      );
+
+      return created.map((exp) => ({
+        id: exp.id,
+        date: format(exp.date, 'yyyy-MM-dd'),
+        amount: exp.amount,
+        remarks: exp.remarks,
+        userName: exp.userName,
+        accountId: exp.accountId,
+        accountName: exp.account?.name ?? null,
+        categoryId: exp.categoryId,
+        categoryName: exp.category_master?.name ?? 'Unknown',
+        createdAt: exp.createdAt,
+      }));
+    });
   }
 
   async bulkUpdateExpenses(

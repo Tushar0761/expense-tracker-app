@@ -25,7 +25,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-*.txt
-*.xlsx
-*.csv

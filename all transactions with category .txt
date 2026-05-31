@@ -1,0 +1,272 @@
+id	userName	amount	date	parent	subParent	mainCategory	remarks
+481	Raja Babu	80	2026-02-04 00:00:00	[NULL]	[NULL]	Food & Dining	Potato Twister
+493	Raja Babu	90	2026-02-01 00:00:00	[NULL]	[NULL]	Food & Dining	Potato Twister
+551	DELISH HOSPITALITY P	90	2026-01-15 00:00:00	[NULL]	[NULL]	Food & Dining	lapinoz dinner With jelly & isha
+552	DELISH HOSPITALITY PRIVATE LIMITED	145.95	2026-01-15 00:00:00	[NULL]	[NULL]	Food & Dining	lapinoz dinner With jelly & isha
+553	DELISH HOSPITALITY PRIVATE LIMITED	624.75	2026-01-15 00:00:00	[NULL]	[NULL]	Food & Dining	lapinoz dinner With jelly & isha
+306	STAR BAZAAR	275.2	2026-03-29 00:00:00	[NULL]	Home	Groceries	Groceries
+308	BFT FURIT TREDARS	470	2026-03-29 00:00:00	[NULL]	Home	Groceries	Fruits
+313	M S RATIONAL HANDLOOM COMPANY PRIVATE LIMITED	1,588	2026-03-28 00:00:00	[NULL]	Home	Groceries	Groceries
+314	M S RATIONAL HANDLOOM COMPANY PRIVATE LIMITED	629	2026-03-28 00:00:00	[NULL]	Home	Groceries	Groceries
+319	KSHETRAPAL PROVISION STORES	50	2026-03-27 00:00:00	[NULL]	Home	Groceries	Groceries
+324	Mr HIMMATSIH BHERUSIH RATHOD	75	2026-03-26 00:00:00	[NULL]	Home	Groceries	Breads
+340	Chamunda Anaj Bhandar	620	2026-03-18 00:00:00	[NULL]	Home	Groceries	Groceries
+344	Krishna Dairy	60	2026-03-16 00:00:00	[NULL]	Home	Groceries	Chass
+347	STAR BAZAAR	276.08	2026-03-15 00:00:00	[NULL]	Home	Groceries	Groceries
+348	Prajapati Taraben Bharatbha	100	2026-03-15 00:00:00	[NULL]	Home	Groceries	Coconut
+359	KSHETRAPAL PROVISION STORES	940	2026-03-12 00:00:00	[NULL]	Home	Groceries	Ghau
+362	Mr HIMMATSIH BHERUSIH RATHOD	80	2026-03-11 00:00:00	[NULL]	Home	Groceries	Dahi & Bread
+367	PATNILALIBEN	100	2026-03-08 00:00:00	[NULL]	Home	Groceries	Coconut
+375	PARSHOTAMBHAI NATHABHAI GADHIYA	230	2026-03-05 00:00:00	[NULL]	Home	Groceries	Mob Cleaner
+376	CHAURASIYA DILIP RAMNARAYAN	100	2026-03-05 00:00:00	[NULL]	Home	Groceries	Coconut
+382	AVENUE SUPERMARTS LTD	1,422	2026-03-04 00:00:00	[NULL]	Home	Groceries	Groceries
+400	STAR BAZAAR	1,012.96	2026-03-01 00:00:00	[NULL]	Home	Groceries	Groceries
+433	ZEPTO MARKETPLACE PRIVATE LIMITED	188	2026-02-20 00:00:00	[NULL]	Home	Groceries	Groceries
+442	Amazon Pay Groceries	769	2026-02-17 00:00:00	[NULL]	Home	Groceries	Groceries
+465	STAR BAZAAR	267.64	2026-02-10 00:00:00	[NULL]	Home	Groceries	Groceries
+469	AVENUE SUPERMARTS LTD	3,014.46	2026-02-09 00:00:00	[NULL]	Home	Groceries	Groceries
+476	STAR BAZAAR	557.58	2026-02-06 00:00:00	[NULL]	Home	Groceries	Groceries
+485	Amazon Pay Groceries	312	2026-02-04 00:00:00	[NULL]	Home	Groceries	Groceries
+489	Amazon Pay Groceries	823.3	2026-02-02 00:00:00	[NULL]	Home	Groceries	Groceries
+497	VANITABEN CHANDRAKAN	170	2026-02-01 00:00:00	[NULL]	Home	Groceries	Nasto for meman
+501	STAR BAZAAR	480	2026-01-31 00:00:00	[NULL]	Home	Groceries	Groceries
+517	STAR BAZAAR	1,506.47	2026-01-26 00:00:00	[NULL]	Home	Groceries	Groceries
+524	ZEPTO MARKETPLACE PRIVATE LIMITED	109	2026-01-23 00:00:00	[NULL]	Home	Groceries	Groceries
+528	ZEPTO MARKETPLACE PRIVATE LIMITED	105	2026-01-21 00:00:00	[NULL]	Home	Groceries	Groceries
+566	STAR BAZAAR	474.74	2026-01-12 00:00:00	[NULL]	Home	Groceries	Groceries
+567	STAR BAZAAR	474.74	2026-01-12 00:00:00	[NULL]	Home	Groceries	Groceries
+584	M S RATIONAL HANDLOOM COMPANY PRIVATE LIMITED	856	2026-01-06 00:00:00	[NULL]	Home	Groceries	Groceries
+594	M/S.RATIONAL HANDLOOM COMPANY PRIVATE LIMITED	1,084	2026-01-01 00:00:00	[NULL]	Home	Groceries	Groceries
+309	Gopi Sweet Dairy Parlour	200	2026-03-28 00:00:00	[NULL]	Home	Milk & Dairy	Keri no ras
+337	Krishna Dairy	70	2026-03-19 00:00:00	[NULL]	Home	Milk & Dairy	Dahi & Chhas
+345	Krishna Dairy	50	2026-03-15 00:00:00	[NULL]	Home	Milk & Dairy	Chass
+346	Krishna Dairy	1,368	2026-03-15 00:00:00	[NULL]	Home	Milk & Dairy	Milk Bills
+356	Amul	80	2026-03-12 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+357	Amul	30	2026-03-12 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+420	Amul	10	2026-02-23 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+421	Amul	30	2026-02-23 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+440	Amul	30	2026-02-17 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+460	Krishna Dairy	1,600	2026-02-12 00:00:00	[NULL]	Home	Milk & Dairy	Milk Bill
+463	Krishna Dairy	44	2026-02-11 00:00:00	[NULL]	Home	Milk & Dairy	Chass
+495	Ms SMITABAHEN NINAMA	124	2026-02-01 00:00:00	[NULL]	Home	Milk & Dairy	Coffee
+505	Amul	70	2026-01-31 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+506	Amul	60	2026-01-31 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+538	Krishna Dairy	40	2026-01-18 00:00:00	[NULL]	Home	Milk & Dairy	Chass
+539	Ms SMITABAHEN NINAMA	45	2026-01-18 00:00:00	[NULL]	Home	Milk & Dairy	Paneer
+540	Ms SMITABAHEN NINAMA	280	2026-01-18 00:00:00	[NULL]	Home	Milk & Dairy	Bread /Butter/Jam
+549	Krishna Dairy	40	2026-01-16 00:00:00	[NULL]	Home	Milk & Dairy	Chass
+561	Mr HIMMATSIH BHERUSIH RATHOD	40	2026-01-14 00:00:00	[NULL]	Home	Milk & Dairy	Breads
+587	Gopi Sweet Dairy Parlour	50	2026-01-04 00:00:00	[NULL]	Home	Milk & Dairy	Milk
+368	Jayshree hardware and paint mart	200	2026-03-07 00:00:00	[NULL]	Home	Utilities	Motor Repair Material
+369	Jayshree hardware and paint mart	20	2026-03-07 00:00:00	[NULL]	Home	Utilities	[NULL]
+371	BOSCH HOME COMFORT INDIA LTD	353	2026-03-07 00:00:00	[NULL]	Home	Utilities	AC insurance
+372	Jayshree hardware and paint mart	100	2026-03-07 00:00:00	[NULL]	Home	Utilities	Water pipe
+373	JAY AMBE ELECTRICA	80	2026-03-07 00:00:00	[NULL]	Home	Utilities	Plug
+328	Giriraj Vasan Bhandar	110	2026-03-24 00:00:00	[NULL]	Home	Maintenance	Utensils
+329	Giriraj Vasan Bhandar	110	2026-03-24 00:00:00	[NULL]	Home	Maintenance	Utensils
+330	Rudransh R.O Sales & Service	250	2026-03-23 00:00:00	[NULL]	Home	Maintenance	RO service
+370	JAY AMBE ELECTRICA	750	2026-03-07 00:00:00	[NULL]	Home	Maintenance	Motor Repair
+593	Giriraj Vasan Bhandar	370	2026-01-01 00:00:00	[NULL]	Home	Maintenance	Utensils
+595	Jay Shree Bhavani Store	1,200	2026-01-01 00:00:00	[NULL]	Transport	Activa	Activa New tire
+320	Airtel NCMC	201.18	2026-03-27 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+331	Airtel NCMC	200	2026-03-23 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+360	Airtel NCMC	200	2026-03-11 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+361	Airtel NCMC	200	2026-03-11 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+397	Airtel NCMC	200	2026-03-02 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+401	GUJARAT METRO RAIL C	25	2026-03-01 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+415	Airtel NCMC	200	2026-02-25 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+438	Airtel NCMC	200	2026-02-17 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+457	GUJARAT METRO RAIL C	25	2026-02-13 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+458	GUJARAT METRO RAIL C	25	2026-02-13 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+467	Airtel NCMC	200	2026-02-10 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+509	Airtel NCMC	200	2026-01-31 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+550	Airtel NCMC	200	2026-01-16 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+570	Airtel Payments Bank	150	2026-01-12 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+591	GUJARAT METRO RAIL C	25	2026-01-02 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+592	GUJARAT METRO RAIL C	15	2026-01-02 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+596	Airtel NCMC	200	2026-01-01 00:00:00	[NULL]	Transport	Metro	Metro Recharge
+322	ROPPEN TRANSPORTATION SERVICES PRIVATE LIMITED	25	2026-03-27 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+332	Rapido	25	2026-03-23 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+335	ROPPEN TRANSPORTATION SERVICES PRIVATE LIMITED	25	2026-03-21 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+336	Rapido	25	2026-03-20 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+342	Rapido	25	2026-03-18 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+343	ROPPEN TRANSPORTATION SERVICES PRIVATE LIMITED	25	2026-03-17 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+358	Rapido	25	2026-03-12 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+396	Rapido	25	2026-03-02 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+413	Rapido	30	2026-02-25 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+424	Rapido	25	2026-02-23 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+466	Rapido	28	2026-02-10 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+530	Rapido	45	2026-01-21 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+565	Rapido	28	2026-01-13 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+568	Rapido	53	2026-01-12 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+569	Rapido	28	2026-01-12 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+586	Rapido	25	2026-01-05 00:00:00	[NULL]	Transport	Cab & Auto	Rapido
+483	RAMESH POCHAJI GHANCHI	60	2026-02-04 00:00:00	[NULL]	Food & Dining	Outside with Wife	Morning Breakfast
+512	RAMESH POCHAJI GHANCHI	60	2026-01-29 00:00:00	[NULL]	Food & Dining	Outside with Wife		Morning Breakfast
+377	CROMA	2,464.8	2026-03-05 00:00:00	[NULL]	Shopping	Household Items	AC Down payment
+392	Padamavati Vasan Bhandar	1,150	2026-03-02 00:00:00	[NULL]	Shopping	Household Items	Utensils
+365	Vishal The Unisex Salon	280	2026-03-08 00:00:00	[NULL]	Personal Wellbeing	Grooming	Haircut
+543	Vishal The Unisex Salon	280	2026-01-18 00:00:00	[NULL]	Personal Wellbeing	Grooming	Haircut
+412	KATHVADIYA BHAVESHKUMAR	120	2026-02-25 00:00:00	[NULL]	Personal Wellbeing	Health	Medicine
+574	KATHVADIYA BHAVESHKUMAR	120	2026-01-10 00:00:00	[NULL]	Personal Wellbeing	Health		Medicine
+554	BALVATIKA FUN CARNIVAL	80	2026-01-15 00:00:00	[NULL]	Leisure	Entertainment	Kankariya with isha
+555	BALVATIKA FUN CARNIVAL	240	2026-01-15 00:00:00	[NULL]	Leisure	Entertainment	Kankariya with isha
+556	BALVATIKA FUN CARNIVAL	240	2026-01-15 00:00:00	[NULL]	Leisure	Entertainment	Kankariya with isha
+577	THE LAL STREET	3,000	2026-01-09 00:00:00	[NULL]	Leisure	Entertainment	Club
+519	JAVER RAMNIKLAL GADA	750	2026-01-24 00:00:00	[NULL]	Leisure	Gifts	Gifts for Deep for his birthday
+522	KARACHI BAKERY	400	2026-01-23 00:00:00	[NULL]	Leisure	Gifts	Buiscuit
+523	KARACHI BAKERY	700	2026-01-23 00:00:00	[NULL]	Leisure	Gifts	Buiscuit
+327	M M PETROLEUM	240	2026-03-25 00:00:00	Transport	Activa	Petrol	petrol
+351	ARJUN PETROLEUM	190	2026-03-14 00:00:00	Transport	Activa	Petrol	Petrol
+352	ARJUN PETROLEUM	190	2026-03-14 00:00:00	Transport	Activa	Petrol	Petrol
+363	ARJUN PETROLEUM	190	2026-03-10 00:00:00	Transport	Activa	Petrol	Petrol
+387	ARJUN PETROLEUM	260	2026-03-04 00:00:00	Transport	Activa	Petrol	Petrol
+405	ARJUN PETROLEUM	190	2026-02-28 00:00:00	Transport	Activa	Petrol	Petrol
+417	ARJUN PETROLEUM	190	2026-02-24 00:00:00	Transport	Activa	Petrol	Petrol
+462	BPCL UFILL 2	190	2026-02-12 00:00:00	Transport	Activa	Petrol	Petrol
+477	Vrundavan Petrolium	190	2026-02-05 00:00:00	Transport	Activa	Petrol	Petrol
+490	BPCL UFILL 2	190	2026-02-01 00:00:00	Transport	Activa	Petrol	Petrol
+559	ARJUN PETROLEUM	190	2026-01-14 00:00:00	Transport	Activa	Petrol	Petrol
+571	ARJUN PETROLEUM	190	2026-01-11 00:00:00	Transport	Activa	Petrol	Petrol
+588	M M PETROLEUM	190	2026-01-04 00:00:00	Transport	Activa	Petrol	Petrol
+307	KUSHWAH GAURISHANKAR	170	2026-03-29 00:00:00	[NULL]	Home	Misc	Plants
+326	Rajendra	35	2026-03-26 00:00:00	[NULL]	Home	Misc	Unknown
+334	POOJA NOVELTY	40	2026-03-22 00:00:00	[NULL]	Home	Misc	Sports: Shutter for Badminton
+394	Shree Umiya Fashion	400	2026-03-02 00:00:00	[NULL]	Home	Misc	Shivu na kpda
+410	KUSHWAH GAURISHANKAR	450	2026-02-28 00:00:00	[NULL]	Home	Misc	Plants
+507	Rajendra	30	2026-01-31 00:00:00	[NULL]	Home	Misc	
+508	Rajendra	30	2026-01-31 00:00:00	[NULL]	Home	Misc	
+323	Zepto Marketplace Private Limited	135	2026-03-26 00:00:00	[NULL]	Personal Wellbeing	Misc	Zepto
+325	ZEPTO MARKETPLACE PRIVATE LIMITED	258	2026-03-26 00:00:00	[NULL]	Personal Wellbeing	Misc	Zepto
+338	ZEPTO	709	2026-03-18 00:00:00	[NULL]	Personal Wellbeing	Misc	Personal Welbeing
+339	ZEPTO	709	2026-03-18 00:00:00	[NULL]	Personal Wellbeing	Misc	Personal Welbeing
+379	ZEPTO MARKETPLACE PRIVATE LIMITED	161	2026-03-05 00:00:00	[NULL]	Personal Wellbeing	Misc	Zepto
+383	ZEPTO MARKETPLACE PRIVATE LIMITED	169	2026-03-04 00:00:00	[NULL]	Personal Wellbeing	Misc	Zepto
+385	ZEPTO MARKETPLACE PRIVATE LIMITED	169	2026-03-04 00:00:00	[NULL]	Personal Wellbeing	Misc	Zepto
+395	SHIV SHAKTI MOBILE	350	2026-03-02 00:00:00	[NULL]	Personal Wellbeing	Misc	Mobile Cover
+526	Zepto	122	2026-01-22 00:00:00	[NULL]	Personal Wellbeing	Misc	Personal Welbeing
+341	Mahendra Gurjar	20	2026-03-18 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+349	RAHUL KUSHVAHA	50	2026-03-15 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+381	Ma Vindheswari Fruit And Juice Center	40	2026-03-04 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+388	RAHUL KUSHVAHA	30	2026-03-04 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+391	Sharad Mohanlal Vaishy	10	2026-03-03 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+404	MR ASHOK RADHESHYAM AGRAWAL	40	2026-03-01 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+407	ANKIT KUMAR	70	2026-02-28 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+408	RAMESHBHAI RUPLAL TAILI	60	2026-02-28 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+409	Day Night Dabeli Vastral	30	2026-02-28 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+411	New Karnavati Fast Food	45	2026-02-26 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+414	RAHUL KUSHVAHA	40	2026-02-25 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+416	NARSINHBHAI POPATBHAI KACHHADIYA	20	2026-02-24 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+418	Vi Prepaid	860.9	2026-02-24 00:00:00	[NULL]	[NULL]	Unknown	Mobile Recharge
+419	CHAMUNDA GENERAL STORE	10	2026-02-23 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+422	MANOJ	60	2026-02-23 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+423	Rajendra singh	70	2026-02-23 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+427	Sharad Mohanlal Vaishy	20	2026-02-22 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+428	KRISHNA PAN PARLOUR RESTAURANT	20	2026-02-22 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+429	KRISHNA PAN PARLOUR RESTAURANT	20	2026-02-22 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+430	Maheshbhai Chhanabhai Patani	160	2026-02-22 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+431	JIGNESHBHAI SANTOSHBHAI RAJPUT	60	2026-02-21 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+432	Amar karpa dairy	234	2026-02-21 00:00:00	[NULL]	[NULL]	Unknown	Groceries and milk
+435	Sharad Mohanlal Vaishy	20	2026-02-19 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+437	Mrs Neetu Sharma	20	2026-02-19 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+439	NIRAJ	50	2026-02-17 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+444	Mrs Neetu Sharma	20	2026-02-16 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+445	JALARAM KATHIYAWADI DHABA	258	2026-02-16 00:00:00	[NULL]	[NULL]	Unknown	Dinner
+446	Bharat Singh	10	2026-02-16 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+447	Vishalkumar Sheevarambhai Chaudhari	20	2026-02-16 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+448	Vishalkumar Sheevarambhai Chaudhari	20	2026-02-16 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+449	Vishalkumar Sheevarambhai Chaudhari	20	2026-02-16 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+450	SANGITABEN PRAVINBHAI VASAIYA	100	2026-02-15 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+451	MAHESHBHAI BHURABHAI RAVAL	60	2026-02-15 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+452	Bhagvatiben Govindji Thakor	70	2026-02-15 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+453	Rabari Sedhabhai Dhanjibhai	245	2026-02-14 00:00:00	[NULL]	[NULL]	Unknown	Nasto
+454	Ambika Medical Store	70	2026-02-13 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+455	TEJASKUMAR KANAIYALAL THAKKAR	60	2026-02-13 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+456	MANGLESHWAR BAKERY	40	2026-02-13 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+459	SHREE RAM MOBILE COVER HOUSE	400	2026-02-13 00:00:00	[NULL]	[NULL]	Unknown	Mobile cover
+461	Baghel Rajiv Singh	90	2026-02-12 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+464	MANGLESHWAR BAKERY	70	2026-02-11 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+468	ARVIND SINGH	30	2026-02-09 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+471	ZOMATO LIMITED	319	2026-02-09 00:00:00	[NULL]	[NULL]	Unknown	Zomato
+473	MR AMITKUMAR MADHUVAN MAURYA	60	2026-02-07 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+474	AMITKUMAR MADHUVAN MAURYA	60	2026-02-07 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+475	New Karnavati Fast Food	25	2026-02-06 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+479	MANISH MEGHWAL	90	2026-02-04 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+480	ANKIT KUMAR	70	2026-02-04 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+482	SURESH DHOBI	20	2026-02-04 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+491	Nirpat Singh	250	2026-02-01 00:00:00	[NULL]	[NULL]	Unknown	Dosa with Jelly
+494	MR AMITKUMAR MADHUVAN MAURYA	70	2026-02-01 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+499	Swiggy Limited	137	2026-01-31 00:00:00	[NULL]	[NULL]	Unknown	Groceries
+500	Swiggy Limited	137	2026-01-31 00:00:00	[NULL]	[NULL]	Unknown	Groceries
+502	Rajkumar	80	2026-01-31 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+503	Rajkumar	80	2026-01-31 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+504	Bundl Technologies pvt Ltd	153	2026-01-31 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+510	PRAVINBHAI AMBALAL PATEL	20	2026-01-30 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+513	RAHUL KUSHVAHA	40	2026-01-28 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+514	RAHUL KUSHVAHA	40	2026-01-28 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+515	NAGESHVARI FLOOR FACTORY	90	2026-01-27 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+516	CHAMUNDA GENERAL STORE	110	2026-01-27 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+518	Trends Ahmedabad TWQS	752	2026-01-26 00:00:00	[NULL]	[NULL]	Unknown	Cloths
+520	SHREE UDIPI RESTAURANT	165	2026-01-24 00:00:00	[NULL]	[NULL]	Unknown	Dosa
+521	Indian Railways	270	2026-01-24 00:00:00	[NULL]	[NULL]	Unknown	Valsad Train
+525	INUPANURI SUHASINI	150	2026-01-23 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+527	PITHA SURI BABU	60	2026-01-22 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+531	Blinkit	152	2026-01-20 00:00:00	[NULL]	[NULL]	Unknown	Groceries
+532	MR SANGEM SRIKANTH	75	2026-01-20 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+534	SAHARSH EXECUTIVE ME	160	2026-01-19 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+537	Sangam Srikanth	75	2026-01-19 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+541	OSIA HYPER RETAIL VASTRAL 2	232.5	2026-01-18 00:00:00	[NULL]	[NULL]	Unknown	Groceries
+542	Balaji Pauva House	40	2026-01-18 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+544	SANJAYKUMAR CHHAGANBHAI DESAI	10	2026-01-18 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+545	Rajeshwari Agarbati Shop	40	2026-01-17 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+546	Rajeshwari Agarbati Shop	40	2026-01-17 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+547	INDRAJEET TEEKARAM BAGHEL	40	2026-01-17 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+548	PURNIMA MOTORS	190	2026-01-17 00:00:00	[NULL]	[NULL]	Unknown	Petrol
+557	Ahmedabad municipal corporation	30	2026-01-15 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+558	Varma Suraj	95	2026-01-14 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+560	PRAKASH PRAJAPATI	80	2026-01-14 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+562	LALJIBHAICPATEL	70	2026-01-14 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+563	KHODIYAR PAN PARLOUR	150	2026-01-14 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+564	VIJAYBHAI RAJESHBHAI PATANI HATHIJAN	300	2026-01-14 00:00:00	[NULL]	[NULL]	Unknown	Kites
+572	RUDRA FASHION	4,400	2026-01-11 00:00:00	[NULL]	[NULL]	Unknown	Nilu na Kapda
+573	RUDRA FASHION	1	2026-01-11 00:00:00	[NULL]	[NULL]	Unknown	Nilu na Kapda
+575	MR ASHOK RADHESHYAM AGRAWAL	80	2026-01-10 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+580	Blinkit	138	2026-01-09 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+582	Sangam Srikanth	30	2026-01-08 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+583	SHREYA MEDICAL STORES	850	2026-01-06 00:00:00	[NULL]	[NULL]	Unknown	Medical
+585	DILIP PAINTS	350	2026-01-05 00:00:00	[NULL]	[NULL]	Unknown	Safety Shoes for AMNS
+590	GUJARAT METRO RAIL CORPORATION LIMITED	25	2026-01-02 00:00:00	[NULL]	[NULL]	Unknown	[NULL]
+321	RAMESH KUMAR MEENA	40	2026-03-27 00:00:00	Food & Dining	Personal Meals	Breakfast	Dabeli
+364	THE GREEN CHILLY	290	2026-03-08 00:00:00	Food & Dining	Personal Meals	Dinner	Dinner
+398	VIPULBHAI PADHIYAR	220	2026-03-01 00:00:00	Food & Dining	Personal Meals	Dinner	Pizza with mates
+399	Gohil Bhartiben	140	2026-03-01 00:00:00	Food & Dining	Personal Meals	Dinner	Dora Cake
+443	THE GREEN CHILLY	90	2026-02-16 00:00:00	Food & Dining	Personal Meals	Dinner	Dinner
+315	SIDDHIVINAYAK VADA PAV	70	2026-03-27 00:00:00	Food & Dining	Outside with Wife	Dinner	Waffles
+316	The Maggie House	90	2026-03-27 00:00:00	Food & Dining	Outside with Wife	Dinner	Waffles
+389	SIDDHIVINAYAK VADA PAV	70	2026-03-03 00:00:00	Food & Dining	Outside with Wife	Dinner	Waffles
+390	Mr Rathaur Surajkumar Ramganesh	130	2026-03-03 00:00:00	Food & Dining	Outside with Wife	Dinner	Dinner
+425	The Maggie House	120	2026-02-22 00:00:00	Food & Dining	Outside with Wife	Dinner	Dinner
+426	Mr Rathaur Surajkumar Ramganesh	110	2026-02-22 00:00:00	Food & Dining	Outside with Wife	Dinner	Dinner
+434	SIDDHIVINAYAK VADA PAV	50	2026-02-19 00:00:00	Food & Dining	Outside with Wife	Dinner	Dinner
+436	The Maggie House	50	2026-02-19 00:00:00	Food & Dining	Outside with Wife	Dinner	Dinner
+384	KANZARIYA PANKAJBHAI CHHANABHAI	150	2026-03-04 00:00:00	Food & Dining	Outside with Wife	Lunch	Office Lunch
+305	YOGESH KUMAR	100	2026-03-29 00:00:00	Food & Dining	Outside with Wife	Fast food	Juice pineapple
+312	VINAY GUPTA	110	2026-03-28 00:00:00	Food & Dining	Outside with Wife	Fast food	Pakodi
+317	DODIYA RAJ MANOJBHAI	80	2026-03-27 00:00:00	Food & Dining	Outside with Wife	Fast food	Khavsa
+318	RADHE GOPI DAIRY	40	2026-03-27 00:00:00	Food & Dining	Outside with Wife	Fast food	Chass
+333	Mr Vyas Gopal	80	2026-03-22 00:00:00	Food & Dining	Outside with Wife	Fast food	Sherdi no Ras
+386	YOGESH KUMAR	100	2026-03-04 00:00:00	Food & Dining	Outside with Wife	Fast food	Juice pineapple
+393	Mr Vyas Gopal	40	2026-03-02 00:00:00	Food & Dining	Outside with Wife	Fast food	Sherdi no Ras
+402	DODIYA RAJ MANOJBHAI	10	2026-03-01 00:00:00	Food & Dining	Outside with Wife	Fast food	Khavsa
+403	DODIYA RAJ MANOJBHAI	60	2026-03-01 00:00:00	Food & Dining	Outside with Wife	Fast food	Khavsa
+406	Mr Vyas Gopal	20	2026-02-28 00:00:00	Food & Dining	Outside with Wife	Fast food	Sherdi no Ras
+355	RAGHAVENDRA PUJARI	130	2026-03-12 00:00:00	Food & Dining	Office	Lunch	Dosa
+441	RAGHAVENDRA PUJARI	160	2026-02-17 00:00:00	Food & Dining	Office	Lunch	Dosa
+486	RAGHAVENDRA PUJARI	20	2026-02-03 00:00:00	Food & Dining	Office	Lunch	Dosa
+487	RAGHAVENDRA PUJARI	50	2026-02-03 00:00:00	Food & Dining	Office	Lunch	Dosa
+350	AAVKAR_MEDICAL_STORES_	210	2026-03-14 00:00:00	Personal Wellbeing	Health	Medical Sickness	Medical
+353	M/S.ASHA PHARMACY	250	2026-03-14 00:00:00	Personal Wellbeing	Health	Medical Sickness	Ear Cleaning
+354	M S ASHA SURGICAL GYNEC AND ENT HOSPITAL	300	2026-03-14 00:00:00	Personal Wellbeing	Health	Medical Sickness	Ear Cleaning
+366	AAVKAR_MEDICAL_STORES_	20	2026-03-08 00:00:00	Personal Wellbeing	Health	Medical Sickness	Medical
+374	AAVKAR_MEDICAL_STORES_	90	2026-03-05 00:00:00	Personal Wellbeing	Health	Medical Sickness	Medical
+311	SHREE KAMBESHWAR C	100	2026-03-28 00:00:00	Shopping	Wife's Shopping	Cloths	Cutlery

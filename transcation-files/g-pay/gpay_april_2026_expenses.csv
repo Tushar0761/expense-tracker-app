@@ -1,0 +1,101 @@
+﻿id, date      , amount  , account              , category, note            , userName
+  , 2026-04-01,    25   , Bank of Baroda 9136  ,         , UPI:609183475135, MrAjayNaranbhaiPatel
+  , 2026-04-02,    68   , SBI Credit Card XX76 ,         , UPI:645800827361, KrishnaDairy
+  , 2026-04-02,   300   , Bank of Baroda 9136  ,         , UPI:645865755028, PatelHarshil
+  , 2026-04-02,   505   , HDFC Credit Card XX66,         , UPI:120979880521, ZEPTOMARKETPLACEPRIVATELIMITED
+  , 2026-04-03,    28   , HDFC Credit Card XX66,         , UPI:120998336896, ROPPENTRANSPORTATIONSERVICESPRIVATELIMITED
+  , 2026-04-03,   201.18, Bank of Baroda 9136  ,         , UPI:609339558583, AirtelNCMC
+  , 2026-04-04,    40   , Bank of Baroda 9136  ,         , UPI:609418288147, TARUNBHAIMANILALPRAJAPATI
+  , 2026-04-04,    70   , HDFC Credit Card XX66,         , UPI:121072913485, Maharajsandwich
+  , 2026-04-04,   250   , SBI Credit Card XX76 ,         , UPI:646057236377, ARJUNPETROLEUM
+  , 2026-04-05,  1597   , SBI Credit Card XX76 ,         , UPI:609529306899, STARBAZAAR
+  , 2026-04-05,    20   , SBI Credit Card XX76 ,         , UPI:609596004822, VadilalScoopShopKankubag
+  , 2026-04-05,   959.40, SBI Credit Card XX76 ,         , UPI:646128198231, STARBAZAAR
+  , 2026-04-05,   200   , SBI Credit Card XX76 ,         , UPI:609580805884, KUSHWAHGAURISHANKAR
+  , 2026-04-05,    40   , SBI Credit Card XX76 ,         , UPI:609543004452, BARIYASACHINKUMAR
+  , 2026-04-05,   110   , HDFC Credit Card XX66,         , UPI:121135737181, M/S.RATIONALHANDLOOMCOMPANYPRIVATELIMITED
+  , 2026-04-06,    60   , HDFC Credit Card XX66,         , UPI:121174043503, MAHESHSHIVAJITHAKOR
+  , 2026-04-06,    60   , HDFC Credit Card XX66,         , UPI:121189943742, KrishnaDairy
+  , 2026-04-07,    25   , HDFC Credit Card XX66,         , UPI:121209175175, Rapido
+  , 2026-04-07,    50   , HDFC Credit Card XX66,         , UPI:121224230237, PAPPUKUMAR
+  , 2026-04-07,    75   , Bank of Baroda 9136  ,         , UPI:646374351393, RAMESHKUMARDEVAJIPRAJAPATI
+  , 2026-04-07,   150   , HDFC Credit Card XX66,         , UPI:121241854724, KrishnaDairy
+  , 2026-04-08,    64   , Bank of Baroda 9136  ,         , UPI:609851348208, KrishnaDairy
+  , 2026-04-09,   100   , HDFC Credit Card XX66,         , UPI:121305518348, PrajapatiTarabenBharatbha
+  , 2026-04-09,   120   , HDFC Credit Card XX66,         , UPI:121341342703, KATHVADIYABHAVESHKUMAR
+  , 2026-04-09,   269.58, HDFC Credit Card XX66,         , UPI:121343949919, Zomato
+  , 2026-04-10,  1865   , SBI Credit Card XX76 ,         , UPI:646699040427, KrishnaDairy
+  , 2026-04-10,    28   , HDFC Credit Card XX66,         , UPI:121364941548, Rapido
+  , 2026-04-10,   201.18, Bank of Baroda 9136  ,         , UPI:646636374872, AirtelNCMC
+  , 2026-04-10,   201.18, Bank of Baroda 9136  ,         , UPI:646691490826, AirtelNCMC
+  , 2026-04-11,    40   , Bank of Baroda 9136  ,         , UPI:610123839410, PATILPRAVINDILIPBHAI
+  , 2026-04-11,  1740   , Bank of Baroda 9136  ,         , UPI:610149445342, VAISHALIBENDIPAKBHAICHAUHAN
+  , 2026-04-11,   190   , SBI Credit Card XX76 ,         , UPI:610198751804, PURNIMAMOTORS
+  , 2026-04-11,    20   , Bank of Baroda 9136  ,         , UPI:610173746497, Narpat Singh
+  , 2026-04-11,   877   , SBI Credit Card XX76 ,         , UPI:610153159199, WESTSIDEUNITOFTRENTLIMITED
+  , 2026-04-11,  2349.82, SBI Credit Card XX76 ,         , UPI:610114562040, AVENUESUPERMARTSLTD
+  , 2026-04-12,    10   , SBI Credit Card XX76 ,         , UPI:646805517280, DIPIKABENJASVANTBHAIRATHOD
+  , 2026-04-12,   100   , SBI Credit Card XX76 ,         , UPI:646800110295, PrajapatiTarabenBharatbha
+  , 2026-04-12,    50   , SBI Credit Card XX76 ,         , UPI:646861445646, MSISHANIRAMESHBHAIPATEL
+  , 2026-04-13,    25   , Bank of Baroda 9136  ,         , UPI:646923768678, KapilPatidar
+  , 2026-04-13,    30   , SBI Credit Card XX76 ,         , UPI:646927299478, BadamiDevi
+  , 2026-04-13,   300   , SBI Credit Card XX76 ,         , UPI:610315829761, NAGVADIYAAMRUTACHIRAGBHA
+  , 2026-04-13,    40   , SBI Credit Card XX76 ,         , UPI:610313528918, MrVyas Gopal
+  , 2026-04-15, 20803   , Bank of Baroda 9136  ,         , UPI:647179078364, SBIcardsandPaymentservicesPvtLtd
+  , 2026-04-15, 10000   , Bank of Baroda 9136  ,         , UPI:647114970876, UtsavPandya
+  , 2026-04-15, 10000   , Bank of Baroda 9136  ,         , UPI:647126083780, RajShah
+  , 2026-04-16,    25   , Bank of Baroda 9136  ,         , UPI:610656800020, GUJARATMETRORAILC
+  , 2026-04-16,    25   , Bank of Baroda 9136  ,         , UPI:647279199461, SatishKumar
+  , 2026-04-16,    10   , Bank of Baroda 9136  ,         , UPI:610605625307, CHAMUNDAGENERALSTORE
+  , 2026-04-16,    25   , Bank of Baroda 9136  ,         , UPI:610683638704, GUJARATMETRORAILC
+  , 2026-04-17,    50   , Bank of Baroda 9136  ,         , UPI:610746968134, BFTFRUITTRADERS
+  , 2026-04-17,    33   , SBI Credit Card XX76 ,         , UPI:610746677142, ROPPENTRANSPORTATIONSERVICESPRIVATELIMITED
+  , 2026-04-17,    50   , Bank of Baroda 9136  ,         , UPI:610796869056, Rajendrasingh
+  , 2026-04-17,    80   , Bank of Baroda 9136  ,         , UPI:610794885856, Amul
+  , 2026-04-17,    90   , SBI Credit Card XX76 ,         , UPI:610717173033, RAGHAVENDRAPUJARI
+  , 2026-04-17,   201.18, Bank of Baroda 9136  ,         , UPI:647353312337, AirtelNCMC
+  , 2026-04-17,   201.18, Bank of Baroda 9136  ,         , UPI:647317202400, AirtelNCMC
+  , 2026-04-18,    20   , Bank of Baroda 9136  ,         , UPI:647408393837, KrishnaDairy
+  , 2026-04-19,   572.58, HDFC Credit Card XX66,         , UPI:121840276106, Zomato
+  , 2026-04-19,  4650   , Bank of Baroda 9136  ,         , UPI:610985535568, VISHWAPROVISIONSTORE
+  , 2026-04-19,   190   , SBI Credit Card XX76 ,         , UPI:610993178932, ARJUNPETROLEUM
+  , 2026-04-20,    34   , Bank of Baroda 9136  ,         , UPI:611068093443, KAHARPRAKASHBHAIMILAN
+  , 2026-04-20,    25   , SBI Credit Card XX76 ,         , UPI:647632721435, Rapido
+  , 2026-04-20,    60   , SBI Credit Card XX76 ,         , UPI:647648826602, LALITBHAIRAMANBHAINAGAR
+  , 2026-04-20,   650   , SBI Credit Card XX76 ,         , UPI:647644415788, SHREYAMEDICALSTORE
+  , 2026-04-20,   200   , Bank of Baroda 9136  ,         , UPI:647671037190, HetalPrajapati
+  , 2026-04-20,   100   , SBI Credit Card XX76 ,         , UPI:647665453164, SACHINBHAIBHAGAVANB
+  , 2026-04-21,    64   , SBI Credit Card XX76 ,         , UPI:611119009103, KrishnaDairy
+  , 2026-04-22,  5973   , Bank of Baroda 9136  ,         , UPI:611270370228, PANCHALGEETABENBABALDAS
+  , 2026-04-23,    65   , SBI Credit Card XX76 ,         , UPI:647902048797, MrHIMMATSIHBHERUSIHRATHOD
+  , 2026-04-24,    50   , SBI Credit Card XX76 ,         , UPI:648048060395, BalajiPauvaHouse
+  , 2026-04-24,   280   , SBI Credit Card XX76 ,         , UPI:648098971507, VishalTheUnisexSalon
+  , 2026-04-24,   200   , SBI Credit Card XX76 ,         , UPI:648004370763, PrajapatiTarabenBharatbha
+  , 2026-04-24,   130   , SBI Credit Card XX76 ,         , UPI:611466321937, AayushMedicalAndGeneralStores
+  , 2026-04-24,   105   , SBI Credit Card XX76 ,         , UPI:611477325701, MukeshKumar
+  , 2026-04-25,  4800   , Bank of Baroda 9136  ,         , UPI:611583051241, GirirajVasanBhandar
+  , 2026-04-25,   250   , SBI Credit Card XX76 ,         , UPI:611506238132, MAHENDRABHAIKANJIBHAIPATEL
+  , 2026-04-25,   108   , SBI Credit Card XX76 ,         , UPI:611576351448, MrHIMMATSIHBHERUSIHRATHOD
+  , 2026-04-25,  1600   , Bank of Baroda 9136  ,         , UPI:611563332458, Adanigaslimited
+  , 2026-04-25,   135   , SBI Credit Card XX76 ,         , UPI:611527455242, TEJASKUMARKANAIYALALTHAKKAR
+  , 2026-04-25,   120   , SBI Credit Card XX76 ,         , UPI:611553873947, DASLIVEDHOKL
+  , 2026-04-25,   135   , Bank of Baroda 9136  ,         , UPI:611518388692, Rana Priyeshkumar
+  , 2026-04-25,    44   , SBI Credit Card XX76 ,         , UPI:611567088519, RAMESHKUMARDEVAJIPRAJAPATI
+  , 2026-04-26,   190   , SBI Credit Card XX76 ,         , UPI:648285428072, ARJUNPETROLEUM
+  , 2026-04-26,   603   , SBI Credit Card XX76 ,         , UPI:648239519503, DARSHANDEVELOPERS
+  , 2026-04-26,   419.25, SBI Credit Card XX76 ,         , UPI:648269245560, OSIAHYPERRETAILVASTRAL1
+  , 2026-04-26,   100   , SBI Credit Card XX76 ,         , UPI:648238523504, PrajapatiTarabenBharatbha
+  , 2026-04-26,    40   , SBI Credit Card XX76 ,         , UPI:648249645639, RAMESHKUMARDEVAJIPRAJAPATI
+  , 2026-04-26,   100   , SBI Credit Card XX76 ,         , UPI:648265951480, BFTFURITTREDARS
+  , 2026-04-26,    75   , Bank of Baroda 9136  ,         , UPI:648270058554, PATNI AJAYBHAI
+  , 2026-04-26,   108   , SBI Credit Card XX76 ,         , UPI:648202482321, MrHIMMATSIHBHERUSIHRATHOD
+  , 2026-04-27,   264.33, HDFC Credit Card XX66,         , UPI:122226588179, Zomato
+  , 2026-04-28,   201.18, Bank of Baroda 9136  ,         , UPI:611880793895, AirtelNCMC
+  , 2026-04-28,   100   , SBI Credit Card XX76 ,         , UPI:611887086096, YamrajChidilalPariyar
+  , 2026-04-28,   190   , SBI Credit Card XX76 ,         , UPI:611805693951, ARJUNPETROLEUM
+  , 2026-04-29,    25   , SBI Credit Card XX76 ,         , UPI:648559725605, Rapido
+  , 2026-04-29,   106   , SBI Credit Card XX76 ,         , UPI:648510944162, MrHIMMATSIHBHERUSIHRATHOD
+  , 2026-04-30,    28   , SBI Credit Card XX76 ,         , UPI:648696791124, ROPPENTRANSPORTATIONSERVICESPRIVATELIMITED
+  , 2026-04-30,   170   , Bank of Baroda 9136  ,         , UPI:612031311823, VISHWAPROVISIONSTORE
+  , 2026-04-30,    50   , SBI Credit Card XX76 ,         , UPI:612014233211, NewKarnavatiFastFood
+  , 2026-04-30,  4093   , Bank of Baroda 9136  ,         , UPI:103202856665, BAJAJFINANCELTD

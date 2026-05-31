@@ -1,0 +1,117 @@
+id,currentCategory,currentParent,currentSubParent,currentMainCategory,remarks,recommendedCategory,recommendedParent,recommendedSubParent,recommendedMainCategory,categoryId,notes
+341,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Small snacks from vendor
+349,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+381,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Fruit/Juice center
+388,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+391,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+404,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+407,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+408,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+409,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Dabeli
+411,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Fast food
+414,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+416,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+419,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,General store item
+422,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+423,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+427,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+428,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Pan Parlour - couple outing
+429,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Pan Parlour - couple outing
+430,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+431,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+432,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+435,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+437,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+439,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+444,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+445,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Fast food item
+446,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Small item
+447,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+448,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+449,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+450,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+451,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+452,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+453,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Nasto
+454,Unknown,[NULL],[NULL],[NULL],,Personal Wellbeing,Health,Medical Sickness,Personal Wellbeing,68,Medical store
+455,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+456,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+459,Unknown,[NULL],[NULL],[NULL],,Shopping,Household Items,Mobile cover,Shopping,34,Mobile cover case
+461,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+464,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Bakery item
+468,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+471,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Zomato - dinner with wife
+473,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+474,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+475,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+479,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+480,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+482,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Dhobi service
+491,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Dinner,Food & Dining,57,Dosa with Jelly
+494,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+499,Unknown,[NULL],[NULL],[NULL],,Home,Groceries,Groceries,Home,21,Swiggy Instamart
+500,Unknown,[NULL],[NULL],[NULL],,Home,Groceries,Groceries,Home,21,Swiggy Instamart
+502,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+503,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+504,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Swiggy
+510,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+513,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+514,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+515,Unknown,[NULL],[NULL],[NULL],,Home,Household Items,Household Items,Shopping,34,Flour mill
+516,Unknown,[NULL],[NULL],[NULL],,Home,Groceries,Groceries,Home,21,General store
+518,Unknown,[NULL],[NULL],[NULL],,Shopping,Wife's Shopping,Cloths,Shopping,66,Cloths from Trends
+520,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Dinner,Food & Dining,57,Dosa
+521,Unknown,[NULL],[NULL],[NULL],,Leisure,Travel,Travel,Leisure,44,Train fare - Valsad
+525,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+527,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Pitha Suri
+531,Unknown,[NULL],[NULL],[NULL],,Home,Groceries,Groceries,Home,21,Blinkit groceries
+532,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+534,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Executive meal
+537,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+541,Unknown,[NULL],[NULL],[NULL],,Home,Groceries,Groceries,Home,21,OSIA Hyper Retail
+542,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Balaji Pauva
+544,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+545,Unknown,[NULL],[NULL],[NULL],,Home,Household Items,Household Items,Shopping,34,Agarbatti
+546,Unknown,[NULL],[NULL],[NULL],,Home,Household Items,Household Items,Shopping,34,Agarbatti
+547,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+548,Unknown,[NULL],[NULL],[NULL],,Transport,Activa,Petrol,Transport,46,Purnima Motors Petrol
+554,Entertainment,Leisure,Entertainment,Leisure,BALVATIKA FUN CARNIVAL,Kankariya with isha,Leisure,Entertainment,Entertainment,Leisure,42,Already correct
+555,Entertainment,Leisure,Entertainment,Leisure,BALVATIKA FUN CARNIVAL,Kankariya with isha,Leisure,Entertainment,Entertainment,Leisure,42,Already correct
+556,Entertainment,Leisure,Entertainment,Leisure,BALVATIKA FUN CARNIVAL,Kankariya with isha,Leisure,Entertainment,Entertainment,Leisure,42,Already correct
+557,Unknown,[NULL],[NULL],[NULL],,Transport,Activa,Petrol,Transport,46,Metro Rail - but actually need metro recharge
+590,Unknown,[NULL],[NULL],[NULL],,Transport,Metro,Metro,Transport,29,Metro Rail
+558,Unknown,[NULL],[NULL],[NULL],,Home,Utilities,Utilities,Home,23,Municipal tax
+560,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+562,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor item
+563,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+564,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Outside with Wife,Fast food,Food & Dining,63,Pan Parlour with wife
+565,Rapido,Cab & Auto,Cab & Auto,Transport,,Transport,Cab & Auto,Cab & Auto,Transport,30,Already correct
+566,STAR BAZAAR,Home,Groceries,Home,,Home,Groceries,Groceries,Home,21,Already correct
+567,STAR BAZAAR,Home,Groceries,Home,,Home,Groceries,Groceries,Home,21,Already correct
+568,Rapido,Cab & Auto,Cab & Auto,Transport,,Transport,Cab & Auto,Cab & Auto,Transport,30,Already correct
+569,Rapido,Cab & Auto,Cab & Auto,Transport,,Transport,Cab & Auto,Cab & Auto,Transport,30,Already correct
+570,Airtel Payments Bank,Transport,Metro,Transport,,Transport,Metro,Metro,Transport,29,Metro recharge
+571,ARJUN PETROLEUM,Transport,Activa,Petrol,Petrol,Transport,Activa,Petrol,Transport,46,Already correct
+572,RUDRA FASHION,Unknown,[NULL],[NULL],Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes
+573,RUDRA FASHION,Unknown,[NULL],[NULL],Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes (trial)
+574,KATHVADIYA BHAVESHKUMAR,Personal Wellbeing,Health,,Medicine,Personal Wellbeing,Health,Medical Sickness,Personal Wellbeing,68,Already correct
+575,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+577,THE LAL STREET,Leisure,Entertainment,Club,Leisure,Leisure,Entertainment,Entertainment,Leisure,42,Already correct
+578,RUDRA FASHION,Unknown,[NULL],[NULL],Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes
+579,RUDRA FASHION,Unknown,[NULL],[NULL],Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes
+580,Blinkit,Unknown,[NULL],[NULL],,Home,Groceries,Groceries,Home,21,Blinkit groceries
+581,RUDRA FASHION,Unknown,[NULL],[NULL],Nilu na Kapda,Shopping,Wife's Shopping,Cloths,Shopping,66,Wife's clothes
+582,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+583,Unknown,[NULL],[NULL],[NULL],,Food & Dining,Personal Meals,Fast food,Food & Dining,59,Vendor food
+584,M S RATIONAL HANDLOOM COMPANY PRIVATE LIMITED,Home,Groceries,,Home,Groceries,Groceries,Home,21,Already correct
+585,DILIP PAINTS,Unknown,[NULL],[NULL],Safety Shoes for AMNS,Home,Household Items,Household Items,Shopping,34,Safety equipment
+586,Rapido,Cab & Auto,Cab & Auto,Transport,,Transport,Cab & Auto,Cab & Auto,Transport,30,Already correct
+587,Gopi Sweet Dairy Parlour,Home,Milk & Dairy,,Milk,Home,Milk & Dairy,Milk & Dairy,Home,22,Already correct
+588,ARJUN PETROLEUM,Transport,Activa,Petrol,Petrol,Transport,Activa,Petrol,Transport,46,Already correct
+590,Unknown,[NULL],[NULL],[NULL],,Transport,Metro,Metro,Transport,29,Metro Rail ticket
+591,GUJARAT METRO RAIL C,Transport,Metro,Metro Recharge,,Transport,Metro,Metro,Transport,29,Already correct
+592,GUJARAT METRO RAIL C,Transport,Metro,Metro Recharge,,Transport,Metro,Metro,Transport,29,Already correct
+593,Giriraj Vasan Bhandar,Home,Maintenance,,Utensils,Home,Maintenance,Maintenance,Home,24,Already correct
+594,M/S.RATIONAL HANDLOOM COMPANY PRIVATE LIMITED,Home,Groceries,,Groceries,Home,Groceries,Groceries,Home,21,Already correct
+595,Jay Shree Bhavani Store,Transport,Activa,,Activa New tire,Transport,Activa,Maintenance,Transport,48,Activa tire
+596,Airtel NCMC,Transport,Metro,Metro Recharge,,Transport,Metro,Metro,Transport,29,Already correct

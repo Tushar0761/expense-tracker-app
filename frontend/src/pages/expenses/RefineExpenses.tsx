@@ -10,13 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   bulkUpdateExpenses,
   fetchCategoriesFlat,
@@ -27,8 +21,10 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
+  ArrowDownUp,
   ChevronDown,
   ChevronRight,
+  IndianRupee,
   Layers,
   StickyNote,
   Tag,
@@ -40,11 +36,13 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 type Mode = 'username' | 'category';
+type SortBy = 'count' | 'amount';
 
 interface Group {
   key: string;
   label: string;
   expenses: ExpenseRow[];
+  totalAmount: number;
 }
 
 export function RefineExpenses() {
@@ -57,6 +55,7 @@ export function RefineExpenses() {
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const [bulkNotes, setBulkNotes] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('count');
 
   const { data: expenseData, isLoading } = useQuery({
     queryKey: ['all-expenses-refine'],
@@ -108,22 +107,30 @@ export function RefineExpenses() {
     }
 
     return Array.from(map.entries())
-      .map(([key, exps]) => ({
-        key,
-        label:
-          mode === 'username'
-            ? key === '__NO_NAME__'
-              ? 'No Recipient'
-              : key
-            : exps[0].categoryName,
-        expenses: [...exps].sort(
-          (a, b) =>
-            a.categoryName.localeCompare(b.categoryName) ||
-            b.amount - a.amount,
-        ),
-      }))
-      .sort((a, b) => b.expenses.length - a.expenses.length);
-  }, [allExpenses, mode, search]);
+      .map(([key, exps]) => {
+        const totalAmount = exps.reduce((s, e) => s + e.amount, 0);
+        return {
+          key,
+          label:
+            mode === 'username'
+              ? key === '__NO_NAME__'
+                ? 'No Recipient'
+                : key
+              : exps[0].categoryName,
+          expenses: [...exps].sort(
+            (a, b) =>
+              a.categoryName.localeCompare(b.categoryName) ||
+              b.amount - a.amount,
+          ),
+          totalAmount,
+        };
+      })
+      .sort((a, b) =>
+        sortBy === 'amount'
+          ? b.totalAmount - a.totalAmount
+          : b.expenses.length - a.expenses.length,
+      );
+  }, [allExpenses, mode, search, sortBy]);
 
   const toggleExpand = (key: string) => {
     setExpanded((prev) => {
@@ -158,6 +165,36 @@ export function RefineExpenses() {
   };
 
   const clearSelection = () => setSelected(new Set());
+
+  // Breakdown of categories and remarks among currently selected expenses
+  const selectedExpenses = useMemo(
+    () => allExpenses.filter((e) => selected.has(e.id)),
+    [allExpenses, selected],
+  );
+
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<number, { name: string; count: number }>();
+    for (const e of selectedExpenses) {
+      const cur = map.get(e.categoryId) ?? { name: e.categoryName, count: 0 };
+      cur.count++;
+      map.set(e.categoryId, cur);
+    }
+    return Array.from(map.entries())
+      .map(([id, v]) => ({ id, name: v.name, count: v.count }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedExpenses]);
+
+  const remarksBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of selectedExpenses) {
+      if (e.remarks?.trim()) {
+        map.set(e.remarks, (map.get(e.remarks) ?? 0) + 1);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([remark, count]) => ({ remark, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedExpenses]);
 
   const switchMode = (m: Mode) => {
     setMode(m);
@@ -217,23 +254,50 @@ export function RefineExpenses() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={mode === 'username' ? 'Filter by username…' : 'Filter by category…'}
-          className="w-full border rounded-md h-9 px-3 text-sm bg-background pr-8"
-        />
-        {search && (
+      {/* Search + sort */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={mode === 'username' ? 'Filter by username…' : 'Filter by category…'}
+            className="w-full border rounded-md h-9 px-3 text-sm bg-background pr-8"
+          />
+          {search && (
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearch('')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {/* Sort toggle */}
+        <div className="flex items-center gap-1 border rounded-md overflow-hidden text-xs font-medium shrink-0">
           <button
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            onClick={() => setSearch('')}
+            onClick={() => setSortBy('count')}
+            className={`flex items-center gap-1 px-2.5 h-9 transition-colors ${
+              sortBy === 'count'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-muted-foreground hover:bg-muted'
+            }`}
           >
-            <X className="h-4 w-4" />
+            <ArrowDownUp className="h-3 w-3" />
+            Count
           </button>
-        )}
+          <button
+            onClick={() => setSortBy('amount')}
+            className={`flex items-center gap-1 px-2.5 h-9 transition-colors ${
+              sortBy === 'amount'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            <IndianRupee className="h-3 w-3" />
+            Amount
+          </button>
+        </div>
       </div>
 
       {/* Floating action bar */}
@@ -310,7 +374,10 @@ export function RefineExpenses() {
                       </Badge>
                     )}
                     <Badge variant="secondary" className="text-[10px] h-4 px-1.5 shrink-0">
-                      {group.expenses.length}
+                      {group.expenses.length} txn
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 shrink-0 text-rose-500 border-rose-200">
+                      ₹{group.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                     </Badge>
                     <Button
                       variant="ghost"
@@ -406,27 +473,62 @@ export function RefineExpenses() {
       )}
 
       {/* Bulk Category Dialog */}
-      <Dialog open={showCatDialog} onOpenChange={setShowCatDialog}>
+      <Dialog open={showCatDialog} onOpenChange={(open) => { setShowCatDialog(open); if (!open) setBulkCategoryId(''); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Assign Category</DialogTitle>
           </DialogHeader>
-          <div className="py-3 space-y-2">
-            <Label className="text-sm font-medium">
-              Category for {selected.size} expense{selected.size !== 1 ? 's' : ''}
-            </Label>
-            <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
-              <SelectTrigger className="h-10 text-sm">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={String(cat.id)}>
-                    {cat.parentName ? `${cat.parentName} › ${cat.name}` : cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3 py-1">
+            {/* Current category breakdown — clickable chips */}
+            {categoryBreakdown.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
+                  Current across {selected.size} selected
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {categoryBreakdown.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setBulkCategoryId(String(c.id))}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors ${
+                        bulkCategoryId === String(c.id)
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span>{c.name}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded ${
+                        bulkCategoryId === String(c.id)
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {c.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                Or search for a different category
+              </Label>
+              <SearchableSelect
+                value={bulkCategoryId ? Number(bulkCategoryId) : null}
+                onChange={(v) => setBulkCategoryId(v ? String(v) : '')}
+                options={categories}
+                placeholder="Search category…"
+                showFullPath
+              />
+            </div>
+            {bulkCategoryId && (
+              <p className="text-xs text-muted-foreground">
+                Will assign <span className="font-semibold text-foreground">
+                  {categories.find(c => c.id === Number(bulkCategoryId))?.name ?? '—'}
+                </span> to all {selected.size} expense{selected.size !== 1 ? 's' : ''}
+              </p>
+            )}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowCatDialog(false)} className="flex-1 h-9">
@@ -437,29 +539,63 @@ export function RefineExpenses() {
               disabled={!bulkCategoryId || bulkMutation.isPending}
               className="flex-1 h-9 bg-green-600 hover:bg-green-700"
             >
-              {bulkMutation.isPending ? 'Saving…' : 'Apply'}
+              {bulkMutation.isPending ? 'Saving…' : `Apply to ${selected.size}`}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Bulk Notes Dialog */}
-      <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
+      <Dialog open={showNotesDialog} onOpenChange={(open) => { setShowNotesDialog(open); if (!open) setBulkNotes(''); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Set Notes</DialogTitle>
           </DialogHeader>
-          <div className="py-3 space-y-2">
-            <Label className="text-sm font-medium">
-              Notes for {selected.size} expense{selected.size !== 1 ? 's' : ''}
-            </Label>
-            <Input
-              value={bulkNotes}
-              onChange={(e) => setBulkNotes(e.target.value)}
-              placeholder="Enter notes…"
-              className="h-10 text-sm"
-              onKeyDown={(e) => e.key === 'Enter' && handleBulkNotes()}
-            />
+          <div className="space-y-3 py-1">
+            {/* Existing remarks breakdown — clickable chips */}
+            {remarksBreakdown.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
+                  Current notes across {selected.size} selected
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {remarksBreakdown.map((r) => (
+                    <button
+                      key={r.remark}
+                      type="button"
+                      onClick={() => setBulkNotes(r.remark)}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors max-w-[200px] ${
+                        bulkNotes === r.remark
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{r.remark}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                        bulkNotes === r.remark
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {r.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {remarksBreakdown.length > 0 ? 'Or type a new note' : `Notes for ${selected.size} expense${selected.size !== 1 ? 's' : ''}`}
+              </Label>
+              <Input
+                value={bulkNotes}
+                onChange={(e) => setBulkNotes(e.target.value)}
+                placeholder="Enter notes…"
+                className="h-10 text-sm"
+                onKeyDown={(e) => e.key === 'Enter' && handleBulkNotes()}
+                autoFocus
+              />
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowNotesDialog(false)} className="flex-1 h-9">
@@ -470,7 +606,7 @@ export function RefineExpenses() {
               disabled={bulkMutation.isPending}
               className="flex-1 h-9 bg-green-600 hover:bg-green-700"
             >
-              {bulkMutation.isPending ? 'Saving…' : 'Apply'}
+              {bulkMutation.isPending ? 'Saving…' : `Apply to ${selected.size}`}
             </Button>
           </DialogFooter>
         </DialogContent>
