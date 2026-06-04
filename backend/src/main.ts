@@ -13,6 +13,9 @@ async function bootstrap() {
     }),
   );
 
+console.log('DATABASE_URL:', process.env.DATABASE_URL);
+
+
   // Enable CORS
   app.enableCors({
     origin: (origin: string, callback: any) => {

@@ -6,9 +6,10 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { GpayImportModule } from './gpay-import/gpay-import.module';
 import { LoansModule } from './loans/loans.module';
 
+import { ConfigModule } from '@nestjs/config';
 import { AccountsModule } from './accounts/accounts.module';
-import { TransfersModule } from './transfers/transfers.module';
 import { ExpenseUploadModule } from './expense-upload/expense-upload.module';
+import { TransfersModule } from './transfers/transfers.module';
 
 @Module({
   imports: [
@@ -19,6 +20,9 @@ import { ExpenseUploadModule } from './expense-upload/expense-upload.module';
     TransfersModule,
     ExpenseUploadModule,
     GpayImportModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
