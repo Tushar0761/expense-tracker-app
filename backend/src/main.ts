@@ -17,12 +17,17 @@ console.log('DATABASE_URL:', process.env.DATABASE_URL);
 
 
   // Enable CORS
+  const extraOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
   app.enableCors({
     origin: (origin: string, callback: any) => {
       const isLocalhost =
         !origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
-      if (isLocalhost) callback(null, true);
+      if (isLocalhost || extraOrigins.includes(origin)) callback(null, true);
       else callback(new Error(`CORS blocked: ${origin}`));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
