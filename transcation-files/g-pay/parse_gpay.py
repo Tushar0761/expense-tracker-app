@@ -13,8 +13,8 @@ import sys
 # ── Config ────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PDF_PATH   = os.path.join(SCRIPT_DIR, "gpay_statement_20260401_20260430.pdf")
-OUT_PATH   = os.path.join(SCRIPT_DIR, "gpay_april_2026_expenses.csv")
+PDF_PATH   = os.path.join(SCRIPT_DIR, "gpay_statement_20260501_20260531.pdf")
+OUT_PATH   = os.path.join(SCRIPT_DIR, "gpay_may_2026_expenses.csv")
 
 MONTH_MAP = {
     "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",

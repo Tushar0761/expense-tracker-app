@@ -826,7 +826,7 @@ export async function downloadExpenseTemplate(
   if (month) params.set('month', month.toString());
 
   const queryString = params.toString();
-  const url = `${API_BASE_URL}/api/expense-excel/template${queryString ? `?${queryString}` : ''}`;
+  const url = `${API_BASE_URL}api/expense-excel/template${queryString ? `?${queryString}` : ''}`;
 
   const response = await fetch(url);
 
