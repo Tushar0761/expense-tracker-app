@@ -95,7 +95,7 @@ export function DuplicateExpenses() {
     <div className="space-y-4 animate-in fade-in duration-500 max-w-5xl mx-auto">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Duplicate Transactions</h1>
+          <h1 className="text-2xl font-bold tracking-tight section-title">Duplicate Transactions</h1>
           <p className="text-[13px] text-muted-foreground">
             Suspected duplicates — same date, amount &amp; recipient. Delete extras or skip if intentional.
           </p>

@@ -36,7 +36,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 type Mode = 'username' | 'category' | 'notes';
-type SortBy = 'count' | 'amount';
+type SortBy = 'count' | 'amount' | 'title';
 
 interface Group {
   key: string;
@@ -135,11 +135,11 @@ export function RefineExpenses() {
           totalAmount,
         };
       })
-      .sort((a, b) =>
-        sortBy === 'amount'
-          ? b.totalAmount - a.totalAmount
-          : b.expenses.length - a.expenses.length,
-      );
+      .sort((a, b) => {
+        if (sortBy === 'amount') return b.totalAmount - a.totalAmount;
+        if (sortBy === 'title') return a.label.localeCompare(b.label);
+        return b.expenses.length - a.expenses.length;
+      });
   }, [allExpenses, mode, search, sortBy]);
 
   const toggleExpand = (key: string) => {
@@ -253,7 +253,7 @@ export function RefineExpenses() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Refine & Bulk Edit</h1>
+          <h1 className="text-2xl font-bold tracking-tight section-title">Refine & Bulk Edit</h1>
           <p className="text-[13px] text-muted-foreground">
             Bulk-assign categories, notes, or usernames to similar transactions.
           </p>
@@ -339,6 +339,17 @@ export function RefineExpenses() {
           >
             <IndianRupee className="h-3 w-3" />
             Amount
+          </button>
+          <button
+            onClick={() => setSortBy('title')}
+            className={`flex items-center gap-1 px-2.5 h-9 transition-colors ${
+              sortBy === 'title'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            <ArrowDownUp className="h-3 w-3" />
+            A–Z
           </button>
         </div>
       </div>

@@ -302,7 +302,7 @@ export function Dashboard() {
     <div className="space-y-4 animate-in fade-in duration-700 max-w-6xl mx-auto">
       {/* Header with Filter */}
       <div className="flex flex-col gap-3">
-        <h1 className="text-xl font-bold tracking-tight md:text-2xl">Financial Overview</h1>
+        <h1 className="text-xl font-bold tracking-tight md:text-2xl section-title">Financial Overview</h1>
 
         {/* Date Filter */}
         <div className="flex flex-wrap items-center gap-2 bg-muted/30 p-1 rounded-lg self-start">
@@ -362,7 +362,7 @@ export function Dashboard() {
       </div>
 
       {/* KPI Cards Row - compact */}
-      <div className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4 card-grid">
         <KpiCard
           title={
             filterType === 'all'

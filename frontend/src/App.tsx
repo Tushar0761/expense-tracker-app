@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/layout/Navbar';
 import NotFound from './pages/NotFound';
@@ -11,10 +11,20 @@ import { RefineExpenses } from './pages/expenses/RefineExpenses';
 import { LoansPage } from './pages/loans/LoansPage';
 import Accounts from './pages/Accounts';
 import { Toaster } from 'sonner';
+import { useEffect } from 'react';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+}
 
 function App() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <ScrollToTop />
       <Navbar />
       <main className="flex-1 px-3 py-4 md:px-6 md:py-6 w-full page-enter pb-20 md:pb-6">
         <Routes>

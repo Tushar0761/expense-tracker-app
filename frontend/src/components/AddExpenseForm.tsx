@@ -119,13 +119,13 @@ export function AddExpenseForm({
   const suggestions = useMerchantSuggestion(watchedUserName ?? '');
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !inline) {
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = '';
       };
     }
-  }, [isOpen]);
+  }, [isOpen, inline]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -226,7 +226,7 @@ export function AddExpenseForm({
       <CardContent className="p-4 sm:p-5">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Row 1: Date + Amount */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className={`grid gap-3 ${inline ? 'grid-cols-1' : 'grid-cols-2 sm:gap-4'}`}>
               {/* Date */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -320,7 +320,7 @@ export function AddExpenseForm({
             </div>
 
             {/* Row 2: Account + Category */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+            <div className={`grid gap-3 ${inline ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 sm:gap-4'}`}>
               {/* Account */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

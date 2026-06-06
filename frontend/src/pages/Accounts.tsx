@@ -213,7 +213,7 @@ export default function Accounts() {
     <div className="container mx-auto py-4 space-y-4 animate-in fade-in duration-700 max-w-6xl">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl section-title">
             Accounts & Transfers
           </h1>
           <p className="text-[13px] text-muted-foreground hidden sm:block">

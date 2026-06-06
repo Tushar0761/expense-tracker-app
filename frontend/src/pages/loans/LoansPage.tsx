@@ -71,17 +71,15 @@ export function LoansPage() {
   });
   console.log({ borrowers });
 
-  // On mobile show only ±3 months around today; on desktop show all
+  // On mobile show only ±3 months around today; on desktop show all.
+  // month is in "MMM-yy" format (e.g. "Jun-25") so we compare by index:
+  // the array has 24 entries starting 2 months before today, so today is at index 2.
+  // We keep indices 0–5 (past 2 + today + future 3) on mobile, all on desktop.
   const visibleGraphData = useMemo(() => {
-    if (!graphData) return [];
+    if (!graphData || graphData.length === 0) return [];
     if (window.innerWidth >= 640) return graphData;
-    const now = new Date();
-    const past = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-    const future = new Date(now.getFullYear(), now.getMonth() + 3, 31);
-    return graphData.filter((p) => {
-      const d = new Date(p.month + '-01');
-      return d >= past && d <= future;
-    });
+    // Show 7 entries centred on the current month (index 2 in the 24-entry array)
+    return graphData.slice(0, 7);
   }, [graphData]);
 
   // Prepare pie chart data
@@ -155,7 +153,7 @@ export function LoansPage() {
                 Failed to load chart data
               </div>
             )}
-            {visibleGraphData.length > 0 && (
+            {!graphLoading && !graphError && graphData && (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart
                   data={visibleGraphData}

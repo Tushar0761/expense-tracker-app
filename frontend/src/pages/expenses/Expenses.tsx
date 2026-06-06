@@ -174,7 +174,7 @@ export function Expenses() {
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight md:text-2xl">Expenses</h1>
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl section-title">Expenses</h1>
           <p className="text-[13px] text-muted-foreground hidden sm:block">Track and manage your daily spendings.</p>
         </div>
         {/* Desktop action buttons */}
