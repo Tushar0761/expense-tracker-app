@@ -71,6 +71,7 @@ export class ExpensesController {
     return this.expensesService.bulkUpdateExpenses(body.ids, {
       categoryId: body.categoryId,
       remarks: body.remarks,
+      userName: body.userName,
     });
   }
 

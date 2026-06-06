@@ -19,9 +19,10 @@ interface BulkUploadProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  inline?: boolean;
 }
 
-export function BulkUpload({ isOpen, onClose, onSuccess }: BulkUploadProps) {
+export function BulkUpload({ isOpen, onClose, onSuccess, inline = false }: BulkUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -161,17 +162,12 @@ export function BulkUpload({ isOpen, onClose, onSuccess }: BulkUploadProps) {
 
   if (!isOpen) return null;
 
-  return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm animate-in fade-in duration-200"
-        onClick={handleClose}
-      >
+  const mainContent = (
         <div
-          className="w-full max-w-lg bg-card rounded-lg shadow-2xl border border-border/50 overflow-hidden"
+          className={inline ? 'w-full bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden flex flex-col' : 'w-full sm:max-w-lg max-h-[95dvh] sm:max-h-none sm:my-8 bg-card rounded-t-2xl sm:rounded-xl shadow-2xl border border-border/50 overflow-y-auto flex flex-col'}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-6 border-b bg-muted/30">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-muted/30 shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <FileSpreadsheet className="h-6 w-6 text-primary" />
@@ -302,7 +298,18 @@ export function BulkUpload({ isOpen, onClose, onSuccess }: BulkUploadProps) {
             )}
           </div>
         </div>
-      </div>
+  );
+
+  return (
+    <>
+      {inline ? mainContent : (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm animate-in fade-in duration-200 flex items-end sm:items-start sm:overflow-y-auto justify-center sm:p-4"
+          onClick={handleClose}
+        >
+          {mainContent}
+        </div>
+      )}
 
       {showErrorModal && (
         <div

@@ -57,6 +57,7 @@ interface AddExpenseFormProps {
   onClose: () => void;
   onSuccess?: () => void;
   expense?: ExpenseRow | null;
+  inline?: boolean;
 }
 
 export function AddExpenseForm({
@@ -64,6 +65,7 @@ export function AddExpenseForm({
   onClose,
   onSuccess,
   expense,
+  inline = false,
 }: AddExpenseFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!expense;
@@ -204,41 +206,27 @@ export function AddExpenseForm({
 
   if (!isOpen) return null;
 
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <Card
-        className="w-full max-w-2xl shadow-2xl border-border/50 bg-card"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 py-3 px-5">
-          <div>
-            <CardTitle className="text-lg font-bold tracking-tight">
-              {isEditing ? 'Edit Expense' : 'New Transaction'}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {isEditing
-                ? 'Update transaction details'
-                : 'Record a new expense'}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="rounded-full h-8 w-8"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
+  const cardBody = (
+    <Card className={inline ? 'border border-border/60 shadow-sm rounded-xl' : 'w-full sm:max-w-2xl shadow-2xl border-border/50 bg-card rounded-t-2xl sm:rounded-xl max-h-[95dvh] sm:max-h-none sm:my-8 flex flex-col'}>
+      {/* Header */}
+      <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 py-3 px-4 sm:px-5 shrink-0">
+        <div>
+          <CardTitle className="text-base font-bold tracking-tight sm:text-lg">
+            {isEditing ? 'Edit Expense' : 'New Transaction'}
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {isEditing ? 'Update transaction details' : 'Record a new expense'}
+          </p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
 
-        <CardContent className="p-5">
+      <CardContent className="p-4 sm:p-5">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Row 1: Date + Amount */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {/* Date */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -332,7 +320,7 @@ export function AddExpenseForm({
             </div>
 
             {/* Row 2: Account + Category */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               {/* Account */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -465,50 +453,66 @@ export function AddExpenseForm({
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+      </CardContent>
+    </Card>
+  );
 
-      {/* Add Category Dialog */}
-      <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Add Category</DialogTitle>
-          </DialogHeader>
-          <div className="py-3 space-y-3">
-            <Label htmlFor="newCategory" className="text-sm font-medium">
-              Category Name
-            </Label>
-            <Input
-              id="newCategory"
-              value={newCatName}
-              onChange={(e) => setNewCatName(e.target.value)}
-              placeholder="e.g. Groceries, Entertainment"
-              className="h-10 text-sm"
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
-            />
-          </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddCategoryOpen(false);
-                setNewCatName('');
-              }}
-              className="flex-1 h-9"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateCategory}
-              disabled={isCreatingCat || !newCatName.trim()}
-              className="flex-1 h-9 bg-green-600 hover:bg-green-700"
-            >
-              <Check className="w-3.5 h-3.5 mr-1.5" />
-              {isCreatingCat ? 'Creating...' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+  const addCatDialog = (
+    <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Add Category</DialogTitle>
+        </DialogHeader>
+        <div className="py-3 space-y-3">
+          <Label htmlFor="newCategory" className="text-sm font-medium">
+            Category Name
+          </Label>
+          <Input
+            id="newCategory"
+            value={newCatName}
+            onChange={(e) => setNewCatName(e.target.value)}
+            placeholder="e.g. Groceries, Entertainment"
+            className="h-10 text-sm"
+            onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+          />
+        </div>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => { setIsAddCategoryOpen(false); setNewCatName(''); }}
+            className="flex-1 h-9"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateCategory}
+            disabled={isCreatingCat || !newCatName.trim()}
+            className="flex-1 h-9 bg-green-600 hover:bg-green-700"
+          >
+            <Check className="w-3.5 h-3.5 mr-1.5" />
+            {isCreatingCat ? 'Creating...' : 'Create'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (inline) {
+    return (
+      <>
+        {cardBody}
+        {addCatDialog}
+      </>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm animate-in fade-in duration-200 flex items-end sm:items-start justify-center sm:p-4 sm:overflow-y-auto"
+      onClick={onClose}
+    >
+      {cardBody}
+      {addCatDialog}
     </div>
   );
 }

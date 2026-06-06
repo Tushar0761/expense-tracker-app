@@ -210,17 +210,17 @@ export default function Accounts() {
   );
 
   return (
-    <div className="container mx-auto py-6 space-y-6 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container mx-auto py-4 space-y-4 animate-in fade-in duration-700 max-w-6xl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
             Accounts & Transfers
           </h1>
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-[13px] text-muted-foreground hidden sm:block">
             Manage your money across different accounts and track movements.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Dialog
             open={isTransferDialogOpen}
             onOpenChange={setIsTransferDialogOpen}
@@ -487,7 +487,7 @@ export default function Accounts() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8">
         {/* Accounts List */}
         <div className="lg:col-span-1 space-y-4">
           <div className="flex items-center gap-1.5 px-1 pt-1">
@@ -566,7 +566,8 @@ export default function Accounts() {
             </h3>
           </div>
           <Card className="border border-border/50 bg-card/20 overflow-hidden">
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[380px]">
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="h-8 text-[11px] uppercase font-bold py-2">
@@ -644,6 +645,7 @@ export default function Accounts() {
                 )}
               </TableBody>
             </Table>
+            </div>
           </Card>
         </div>
       </div>

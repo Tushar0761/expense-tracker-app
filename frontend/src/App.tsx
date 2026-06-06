@@ -16,7 +16,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 px-6 py-6 w-full page-enter">
+      <main className="flex-1 px-3 py-4 md:px-6 md:py-6 w-full page-enter pb-20 md:pb-6">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/expenses" element={<Expenses />} />

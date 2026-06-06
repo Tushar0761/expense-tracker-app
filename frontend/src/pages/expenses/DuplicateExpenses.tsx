@@ -92,8 +92,8 @@ export function DuplicateExpenses() {
   const dismissedGroups = groups.filter((g) => dismissed.has(groupKey(g)));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-4 animate-in fade-in duration-500 max-w-5xl mx-auto">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Duplicate Transactions</h1>
           <p className="text-[13px] text-muted-foreground">
@@ -248,16 +248,17 @@ export function DuplicateExpenses() {
                 </CardHeader>
 
                 <CardContent className="p-0">
-                  <table className="w-full text-left">
+                  <div className="overflow-x-auto">
+                  <table className="w-full text-left min-w-[380px]">
                     <thead>
                       <tr className="bg-muted/20 border-b">
                         <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
-                        <th className="py-1.5 px-3 text-xs font-semibold">Account</th>
+                        <th className="py-1.5 px-3 text-xs font-semibold hidden sm:table-cell">Account</th>
                         <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
-                        <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
-                        <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
+                        <th className="py-1.5 px-3 text-xs font-semibold hidden md:table-cell">Sent To</th>
+                        <th className="py-1.5 px-3 text-xs font-semibold hidden md:table-cell">Remarks</th>
                         <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
-                        <th className="py-1.5 px-3 text-xs font-semibold text-center">Delete</th>
+                        <th className="py-1.5 px-3 text-xs font-semibold text-center">Del</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -267,9 +268,9 @@ export function DuplicateExpenses() {
                           className="hover:bg-amber-50/30 dark:hover:bg-amber-900/10 transition-colors group border-b border-border/10"
                         >
                           <td className="py-1.5 px-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                            {format(new Date(tx.date), 'dd MMM yy, E')}
+                            {format(new Date(tx.date), 'dd MMM yy')}
                           </td>
-                          <td className="py-1.5 px-3">
+                          <td className="py-1.5 px-3 hidden sm:table-cell">
                             <div className="flex items-center gap-1.5">
                               <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
                                 <Wallet className="h-2.5 w-2.5 text-primary" />
@@ -287,10 +288,10 @@ export function DuplicateExpenses() {
                               {tx.categoryName || '—'}
                             </Badge>
                           </td>
-                          <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[100px] truncate">
+                          <td className="py-1.5 px-3 text-xs text-foreground  max-w-[100px] truncate hidden md:table-cell">
                             {tx.userName || '—'}
                           </td>
-                          <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[160px] truncate">
+                          <td className="py-1.5 px-3 text-xs text-foreground  max-w-[160px] truncate hidden md:table-cell">
                             {tx.remarks || '—'}
                           </td>
                           <td className="py-1.5 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
@@ -311,6 +312,7 @@ export function DuplicateExpenses() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </CardContent>
               </Card>
             ))}

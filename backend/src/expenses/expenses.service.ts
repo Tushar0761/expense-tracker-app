@@ -328,7 +328,7 @@ export class ExpensesService {
         category_master: true,
         account: true,
       },
-      orderBy: { date: 'asc' },
+      orderBy: { date: 'desc' },
     });
 
     const groups = new Map<string, typeof all>();
@@ -442,13 +442,14 @@ export class ExpensesService {
 
   async bulkUpdateExpenses(
     ids: number[],
-    data: { categoryId?: number; remarks?: string },
+    data: { categoryId?: number; remarks?: string; userName?: string },
   ) {
     return this.prisma.expenses_data_master.updateMany({
       where: { id: { in: ids } },
       data: {
         ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
         ...(data.remarks !== undefined && { remarks: data.remarks }),
+        ...(data.userName !== undefined && { userName: data.userName }),
       },
     });
   }

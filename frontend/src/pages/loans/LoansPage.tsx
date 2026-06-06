@@ -71,6 +71,19 @@ export function LoansPage() {
   });
   console.log({ borrowers });
 
+  // On mobile show only ±3 months around today; on desktop show all
+  const visibleGraphData = useMemo(() => {
+    if (!graphData) return [];
+    if (window.innerWidth >= 640) return graphData;
+    const now = new Date();
+    const past = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    const future = new Date(now.getFullYear(), now.getMonth() + 3, 31);
+    return graphData.filter((p) => {
+      const d = new Date(p.month + '-01');
+      return d >= past && d <= future;
+    });
+  }, [graphData]);
+
   // Prepare pie chart data
   const pieData = useMemo(() => {
     if (!tableData) {
@@ -142,10 +155,10 @@ export function LoansPage() {
                 Failed to load chart data
               </div>
             )}
-            {graphData && (
+            {visibleGraphData.length > 0 && (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart
-                  data={graphData}
+                  data={visibleGraphData}
                   margin={{
                     top: 20,
                     right: 30,

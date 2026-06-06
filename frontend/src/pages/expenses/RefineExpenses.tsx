@@ -35,7 +35,7 @@ import {
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-type Mode = 'username' | 'category';
+type Mode = 'username' | 'category' | 'notes';
 type SortBy = 'count' | 'amount';
 
 interface Group {
@@ -53,8 +53,10 @@ export function RefineExpenses() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showCatDialog, setShowCatDialog] = useState(false);
   const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [showUsernameDialog, setShowUsernameDialog] = useState(false);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const [bulkNotes, setBulkNotes] = useState('');
+  const [bulkUsername, setBulkUsername] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('count');
 
   const { data: expenseData, isLoading } = useQuery({
@@ -68,12 +70,13 @@ export function RefineExpenses() {
   });
 
   const bulkMutation = useMutation({
-    mutationFn: (data: { categoryId?: number; remarks?: string }) =>
+    mutationFn: (data: { categoryId?: number; remarks?: string; userName?: string }) =>
       bulkUpdateExpenses(Array.from(selected), data),
     onSuccess: (_, vars) => {
       const parts = [];
       if (vars.categoryId) parts.push('category');
       if (vars.remarks !== undefined) parts.push('notes');
+      if (vars.userName !== undefined) parts.push('username');
       toast.success(`Updated ${selected.size} expense${selected.size !== 1 ? 's' : ''} (${parts.join(' & ')})`);
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['all-expenses-refine'] });
@@ -82,23 +85,27 @@ export function RefineExpenses() {
     onError: () => toast.error('Bulk update failed'),
   });
 
-  const allExpenses = expenseData?.data ?? [];
+  const allExpenses = useMemo(() => expenseData?.data ?? [], [expenseData]);
 
   const groups: Group[] = useMemo(() => {
     const lowerSearch = search.toLowerCase();
     const map = new Map<string, ExpenseRow[]>();
 
     for (const exp of allExpenses) {
-      const key =
-        mode === 'username'
-          ? (exp.userName ?? '__NO_NAME__')
-          : String(exp.categoryId);
+      let key: string;
+      if (mode === 'username') {
+        key = exp.userName ?? '__NO_NAME__';
+      } else if (mode === 'category') {
+        key = String(exp.categoryId);
+      } else {
+        key = exp.remarks?.trim() || '__NO_NOTES__';
+      }
 
       if (lowerSearch) {
-        const label =
-          mode === 'username'
-            ? (exp.userName ?? '').toLowerCase()
-            : exp.categoryName.toLowerCase();
+        let label: string;
+        if (mode === 'username') label = (exp.userName ?? '').toLowerCase();
+        else if (mode === 'category') label = exp.categoryName.toLowerCase();
+        else label = (exp.remarks ?? '').toLowerCase();
         if (!label.includes(lowerSearch)) continue;
       }
 
@@ -109,14 +116,17 @@ export function RefineExpenses() {
     return Array.from(map.entries())
       .map(([key, exps]) => {
         const totalAmount = exps.reduce((s, e) => s + e.amount, 0);
+        let label: string;
+        if (mode === 'username') {
+          label = key === '__NO_NAME__' ? 'No Recipient' : key;
+        } else if (mode === 'category') {
+          label = exps[0].categoryName;
+        } else {
+          label = key === '__NO_NOTES__' ? 'No Notes' : key;
+        }
         return {
           key,
-          label:
-            mode === 'username'
-              ? key === '__NO_NAME__'
-                ? 'No Recipient'
-                : key
-              : exps[0].categoryName,
+          label,
           expenses: [...exps].sort(
             (a, b) =>
               a.categoryName.localeCompare(b.categoryName) ||
@@ -166,7 +176,6 @@ export function RefineExpenses() {
 
   const clearSelection = () => setSelected(new Set());
 
-  // Breakdown of categories and remarks among currently selected expenses
   const selectedExpenses = useMemo(
     () => allExpenses.filter((e) => selected.has(e.id)),
     [allExpenses, selected],
@@ -196,6 +205,17 @@ export function RefineExpenses() {
       .sort((a, b) => b.count - a.count);
   }, [selectedExpenses]);
 
+  const usernameBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of selectedExpenses) {
+      const name = e.userName ?? '';
+      if (name.trim()) map.set(name, (map.get(name) ?? 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedExpenses]);
+
   const switchMode = (m: Mode) => {
     setMode(m);
     setSelected(new Set());
@@ -216,14 +236,26 @@ export function RefineExpenses() {
     setBulkNotes('');
   };
 
+  const handleBulkUsername = () => {
+    bulkMutation.mutate({ userName: bulkUsername });
+    setShowUsernameDialog(false);
+    setBulkUsername('');
+  };
+
+  const placeholderByMode: Record<Mode, string> = {
+    username: 'Filter by username…',
+    category: 'Filter by category…',
+    notes: 'Filter by notes…',
+  };
+
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 max-w-5xl mx-auto">
+    <div className="space-y-3 animate-in fade-in duration-500 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Refine & Bulk Edit</h1>
           <p className="text-[13px] text-muted-foreground">
-            Bulk-assign categories or notes to similar transactions.
+            Bulk-assign categories, notes, or usernames to similar transactions.
           </p>
         </div>
 
@@ -251,6 +283,17 @@ export function RefineExpenses() {
             <Tag className="h-3 w-3" />
             By Category
           </button>
+          <button
+            onClick={() => switchMode('notes')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              mode === 'notes'
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <StickyNote className="h-3 w-3" />
+            By Notes
+          </button>
         </div>
       </div>
 
@@ -261,7 +304,7 @@ export function RefineExpenses() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={mode === 'username' ? 'Filter by username…' : 'Filter by category…'}
+            placeholder={placeholderByMode[mode]}
             className="w-full border rounded-md h-9 px-3 text-sm bg-background pr-8"
           />
           {search && (
@@ -302,7 +345,7 @@ export function RefineExpenses() {
 
       {/* Floating action bar */}
       {selected.size > 0 && (
-        <div className="sticky top-16 z-30 flex items-center gap-2 flex-wrap bg-primary text-primary-foreground rounded-lg px-4 py-2.5 shadow-lg">
+        <div className="sticky top-12 md:top-16 z-30 flex items-center gap-1.5 flex-wrap bg-primary text-primary-foreground rounded-lg px-3 py-2 shadow-lg md:px-4 md:py-2.5 md:gap-2">
           <Layers className="h-4 w-4 shrink-0" />
           <span className="text-sm font-semibold flex-1">
             {selected.size} expense{selected.size !== 1 ? 's' : ''} selected
@@ -324,6 +367,15 @@ export function RefineExpenses() {
           >
             <StickyNote className="h-3 w-3" />
             Set Notes
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 text-xs gap-1.5"
+            onClick={() => setShowUsernameDialog(true)}
+          >
+            <User className="h-3 w-3" />
+            Set Username
           </Button>
           <Button
             size="sm"
@@ -395,18 +447,23 @@ export function RefineExpenses() {
 
                 {isExpanded && (
                   <CardContent className="p-0">
-                    <table className="w-full text-left">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[380px]">
                       <thead>
                         <tr className="bg-muted/10 border-b">
                           <th className="py-1.5 px-3 w-8" />
                           <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold">Account</th>
+                          <th className="py-1.5 px-3 text-xs font-semibold hidden sm:table-cell">Account</th>
                           {mode === 'username' ? (
                             <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
-                          ) : (
+                          ) : mode === 'category' ? (
                             <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
+                          ) : (
+                            <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
                           )}
-                          <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
+                          <th className="py-1.5 px-3 text-xs font-semibold">
+                            {mode === 'notes' ? 'Sent To' : 'Remarks'}
+                          </th>
                           <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
                         </tr>
                       </thead>
@@ -432,7 +489,7 @@ export function RefineExpenses() {
                             <td className="py-1.5 px-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                               {format(new Date(tx.date), 'dd MMM yy')}
                             </td>
-                            <td className="py-1.5 px-3">
+                            <td className="py-1.5 px-3 hidden sm:table-cell">
                               <div className="flex items-center gap-1.5">
                                 <Wallet className="h-3 w-3 text-primary/60" />
                                 <span className="text-[11px] font-medium">
@@ -449,13 +506,22 @@ export function RefineExpenses() {
                                   {tx.categoryName || '—'}
                                 </Badge>
                               </td>
-                            ) : (
+                            ) : mode === 'category' ? (
                               <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[120px] truncate">
                                 {tx.userName || '—'}
                               </td>
+                            ) : (
+                              <td className="py-1.5 px-3">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[9px] py-0 px-1 h-3.5 font-normal"
+                                >
+                                  {tx.categoryName || '—'}
+                                </Badge>
+                              </td>
                             )}
                             <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[180px] truncate">
-                              {tx.remarks || '—'}
+                              {mode === 'notes' ? (tx.userName || '—') : (tx.remarks || '—')}
                             </td>
                             <td className="py-1.5 px-3 text-right font-bold text-rose-500 tabular-nums text-sm whitespace-nowrap">
                               ₹{tx.amount.toLocaleString()}
@@ -464,6 +530,7 @@ export function RefineExpenses() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </CardContent>
                 )}
               </Card>
@@ -479,7 +546,6 @@ export function RefineExpenses() {
             <DialogTitle>Assign Category</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
-            {/* Current category breakdown — clickable chips */}
             {categoryBreakdown.length > 0 && (
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
@@ -552,7 +618,6 @@ export function RefineExpenses() {
             <DialogTitle>Set Notes</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
-            {/* Existing remarks breakdown — clickable chips */}
             {remarksBreakdown.length > 0 && (
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
@@ -603,6 +668,75 @@ export function RefineExpenses() {
             </Button>
             <Button
               onClick={handleBulkNotes}
+              disabled={bulkMutation.isPending}
+              className="flex-1 h-9 bg-green-600 hover:bg-green-700"
+            >
+              {bulkMutation.isPending ? 'Saving…' : `Apply to ${selected.size}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Username Dialog */}
+      <Dialog open={showUsernameDialog} onOpenChange={(open) => { setShowUsernameDialog(open); if (!open) setBulkUsername(''); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Set Username / Recipient</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            {usernameBreakdown.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
+                  Current usernames across {selected.size} selected
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {usernameBreakdown.map((u) => (
+                    <button
+                      key={u.name}
+                      type="button"
+                      onClick={() => setBulkUsername(u.name)}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors max-w-[200px] ${
+                        bulkUsername === u.name
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{u.name}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                        bulkUsername === u.name
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {u.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Click a chip to normalise all selected transactions to that name (e.g. unify "Zepto", "ZEPTO", "ZeptoMarketplace" → one canonical name).
+                </p>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">
+                {usernameBreakdown.length > 0 ? 'Or type a canonical name' : `Recipient name for ${selected.size} expense${selected.size !== 1 ? 's' : ''}`}
+              </Label>
+              <Input
+                value={bulkUsername}
+                onChange={(e) => setBulkUsername(e.target.value)}
+                placeholder="e.g. Zepto"
+                className="h-10 text-sm"
+                onKeyDown={(e) => e.key === 'Enter' && handleBulkUsername()}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowUsernameDialog(false)} className="flex-1 h-9">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBulkUsername}
               disabled={bulkMutation.isPending}
               className="flex-1 h-9 bg-green-600 hover:bg-green-700"
             >

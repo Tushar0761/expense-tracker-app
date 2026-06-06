@@ -165,6 +165,10 @@ export class BulkUpdateExpenseDto {
   @IsOptional()
   @IsString()
   remarks?: string;
+
+  @IsOptional()
+  @IsString()
+  userName?: string;
 }
 
 export class SplitItemDto {

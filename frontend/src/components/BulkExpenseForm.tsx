@@ -33,6 +33,7 @@ interface BulkExpenseFormProps {
   onClose: () => void;
   onSuccess?: () => void;
   defaultAccountId?: number;
+  inline?: boolean;
 }
 
 export function BulkExpenseForm({
@@ -40,6 +41,7 @@ export function BulkExpenseForm({
   onClose,
   onSuccess,
   defaultAccountId,
+  inline = false,
 }: BulkExpenseFormProps) {
   const [rows, setRows] = useState<BulkExpenseRow[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -197,16 +199,12 @@ export function BulkExpenseForm({
 
   if (!isOpen) return null;
 
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
-    >
+  const inner = (
       <div
-        className="w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl border-border/50 rounded-lg overflow-hidden bg-card"
+        className={inline ? 'w-full flex flex-col border border-border/60 rounded-xl overflow-hidden bg-card shadow-sm' : 'w-full sm:max-w-5xl max-h-[95dvh] sm:max-h-none sm:my-8 flex flex-col shadow-2xl border-border/50 rounded-t-2xl sm:rounded-xl overflow-hidden bg-card'}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-row items-center justify-between border-b bg-muted/30 py-4 px-6 shrink-0">
+        <div className="flex flex-row items-center justify-between border-b bg-muted/30 py-3 px-4 sm:py-4 sm:px-6 shrink-0">
           <div>
             <h2 className="text-xl font-bold tracking-tight">
               Bulk Add Expenses
@@ -455,6 +453,16 @@ export function BulkExpenseForm({
           </div>
         </div>
       </div>
+  );
+
+  if (inline) return inner;
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm animate-in fade-in duration-200 flex items-end sm:items-start sm:overflow-y-auto justify-center sm:p-4"
+      onClick={onClose}
+    >
+      {inner}
     </div>
   );
 }

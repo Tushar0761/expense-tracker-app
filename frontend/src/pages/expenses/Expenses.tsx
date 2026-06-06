@@ -55,6 +55,8 @@ export function Expenses() {
   const [showModal, setShowModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  // Which inline form is open on mobile (null = none)
+  const [mobileForm, setMobileForm] = useState<'add' | 'bulk' | 'upload' | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpenseRow | null>(null);
   const [splittingExpense, setSplittingExpense] = useState<ExpenseRow | null>(null);
   const [search, setSearch] = useState('');
@@ -134,8 +136,14 @@ export function Expenses() {
   const pagination = expenseData?.pagination;
   const totalEntries = pagination?.total ?? 0;
 
-  const handleEdit = (expense: ExpenseRow) => { setEditingExpense(expense); setShowModal(true); };
-  const handleAdd = () => { setEditingExpense(null); setShowModal(true); };
+  const handleEdit = (expense: ExpenseRow) => {
+    setEditingExpense(expense);
+    if (window.innerWidth < 640) { setMobileForm('add'); } else { setShowModal(true); }
+  };
+  const handleAdd = () => {
+    setEditingExpense(null);
+    if (window.innerWidth < 640) { setMobileForm('add'); } else { setShowModal(true); }
+  };
   const handleCloseModal = () => { setShowModal(false); setEditingExpense(null); };
 
   const handleJumpToPage = (e: React.FormEvent) => {
@@ -162,14 +170,15 @@ export function Expenses() {
   );
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500 max-w-6xl mx-auto">
+    <div className="space-y-3 animate-in fade-in duration-500 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Expenses</h1>
-          <p className="text-[13px] text-muted-foreground">Track and manage your daily spendings.</p>
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">Expenses</h1>
+          <p className="text-[13px] text-muted-foreground hidden sm:block">Track and manage your daily spendings.</p>
         </div>
-        <div className="flex gap-2 flex-wrap items-center">
+        {/* Desktop action buttons */}
+        <div className="hidden sm:flex gap-1.5 flex-wrap items-center">
           <Button
             size="sm"
             variant={showFilters ? 'default' : 'outline'}
@@ -195,11 +204,113 @@ export function Expenses() {
         </div>
       </div>
 
+      {/* Mobile action cards */}
+      <div className="grid grid-cols-2 gap-2 sm:hidden">
+        {([
+          {
+            key: 'add' as const,
+            label: 'Add Expense',
+            sub: 'Single entry',
+            icon: <Plus className="h-4 w-4 text-white" />,
+            iconBg: 'bg-green-600',
+            cardCls: 'border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20',
+            labelCls: 'text-green-700 dark:text-green-400',
+            subCls: 'text-green-600/70 dark:text-green-500/70',
+          },
+          {
+            key: 'bulk' as const,
+            label: 'Bulk Add',
+            sub: 'Multiple entries',
+            icon: <List className="h-4 w-4 text-primary" />,
+            iconBg: 'bg-primary/10',
+            cardCls: 'border-border bg-card',
+            labelCls: '',
+            subCls: 'text-muted-foreground',
+          },
+          {
+            key: 'upload' as const,
+            label: 'Bulk Upload',
+            sub: 'Excel / CSV',
+            icon: <Upload className="h-4 w-4 text-primary" />,
+            iconBg: 'bg-primary/10',
+            cardCls: 'border-border bg-card',
+            labelCls: '',
+            subCls: 'text-muted-foreground',
+          },
+        ] as const).map(({ key, label, sub, icon, iconBg, cardCls, labelCls, subCls }) => (
+          <button
+            key={key}
+            onClick={() => setMobileForm(mobileForm === key ? null : key)}
+            className={`flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left active:scale-95 transition-all ${
+              mobileForm === key ? 'ring-2 ring-primary ring-offset-1' : ''
+            } ${cardCls}`}
+          >
+            <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
+              {icon}
+            </div>
+            <div>
+              <p className={`text-xs font-bold ${labelCls}`}>{label}</p>
+              <p className={`text-[10px] ${subCls}`}>{mobileForm === key ? 'Tap to close' : sub}</p>
+            </div>
+          </button>
+        ))}
+        <button
+          onClick={() => setShowFilters((v) => !v)}
+          className={`flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left active:scale-95 transition-all ${
+            showFilters ? 'border-primary/40 bg-primary/8' : 'border-border bg-card'
+          }`}
+        >
+          <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${showFilters ? 'bg-primary' : 'bg-primary/10'}`}>
+            <Filter className={`h-4 w-4 ${showFilters ? 'text-white' : 'text-primary'}`} />
+          </div>
+          <div>
+            <p className="text-xs font-bold flex items-center gap-1">
+              Filters
+              {hasActiveFilters && <span className="h-3.5 w-3.5 rounded-full bg-amber-400 text-[8px] font-bold text-amber-900 flex items-center justify-center">!</span>}
+            </p>
+            <p className="text-[10px] text-muted-foreground">{showFilters ? 'Tap to hide' : 'Tap to show'}</p>
+          </div>
+        </button>
+      </div>
+
+      {/* Mobile inline forms */}
+      {mobileForm === 'add' && (
+        <div className="sm:hidden animate-in slide-in-from-top-2 duration-200">
+          <AddExpenseForm
+            isOpen
+            inline
+            expense={editingExpense}
+            onClose={() => { setMobileForm(null); setEditingExpense(null); }}
+            onSuccess={() => { setMobileForm(null); setEditingExpense(null); queryClient.invalidateQueries({ queryKey: ['expenses'] }); }}
+          />
+        </div>
+      )}
+      {mobileForm === 'bulk' && (
+        <div className="sm:hidden animate-in slide-in-from-top-2 duration-200">
+          <BulkExpenseForm
+            isOpen
+            inline
+            onClose={() => setMobileForm(null)}
+            onSuccess={() => { setMobileForm(null); queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['dashboard-kpis'] }); }}
+          />
+        </div>
+      )}
+      {mobileForm === 'upload' && (
+        <div className="sm:hidden animate-in slide-in-from-top-2 duration-200">
+          <BulkUpload
+            isOpen
+            inline
+            onClose={() => setMobileForm(null)}
+            onSuccess={() => { setMobileForm(null); queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['dashboard-kpis'] }); }}
+          />
+        </div>
+      )}
+
       {/* ── FILTER PANEL ── */}
       {showFilters && (
         <Card className="border border-border/60 overflow-hidden shadow-sm">
           {/* Row 1: Date · Account · Category · Sent To · Search */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 px-4 py-3 border-b border-border/20 bg-muted/10">
+          <div className="grid grid-cols-2 gap-2 px-3 py-2 border-b border-border/20 bg-muted/10 md:grid-cols-3 lg:grid-cols-5 md:gap-3 md:px-4 md:py-3">
             {/* Date Range */}
             <div className="space-y-1.5 col-span-2 md:col-span-1 lg:col-span-1">
               <p className="text-[9px] uppercase font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 tracking-wider">
@@ -288,7 +399,7 @@ export function Expenses() {
           </div>
 
           {/* Row 2: Amount · Sort · Reset */}
-          <div className="px-4 py-3 flex flex-wrap items-end gap-5 bg-background">
+          <div className="px-3 py-2 flex flex-wrap items-end gap-3 bg-background md:px-4 md:py-3 md:gap-5">
             {/* Amount filter */}
             <div className="space-y-1.5">
               <p className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-500 flex items-center gap-1 tracking-wider">
@@ -403,7 +514,7 @@ export function Expenses() {
       )}
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 md:gap-3">
         <Card className="border shadow-none bg-muted/20">
           <CardContent className="px-2.5 flex items-center justify-between">
             <div>
@@ -428,7 +539,7 @@ export function Expenses() {
       <Card className="overflow-hidden border border-border/50 shadow-sm bg-card/20">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[520px]">
               <thead>
                 <tr className="bg-muted/30 border-b">
                   <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
@@ -459,10 +570,10 @@ export function Expenses() {
                       key={tx.id}
                       className="hover:bg-primary/[0.02] transition-colors group border-b border-border/10"
                     >
-                      <td className="py-1.5 px-3 font-medium whitespace-nowrap text-muted-foreground tabular-nums text-xs">
-                        {format(new Date(tx.date), 'dd MMM yy, E')}
+                      <td className="py-2 px-3 font-medium whitespace-nowrap text-muted-foreground tabular-nums text-xs">
+                        {format(new Date(tx.date), 'dd MMM yy')}
                       </td>
-                      <td className="py-1.5 px-3">
+                      <td className="py-2 px-3">
                         <div className="flex items-center gap-1.5">
                           <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
                             <Wallet className="h-2.5 w-2.5 text-primary" />
@@ -470,22 +581,22 @@ export function Expenses() {
                           <span className="font-semibold text-[11px]">{tx.accountName || 'Unlinked'}</span>
                         </div>
                       </td>
-                      <td className="py-1.5 px-3">
+                      <td className="py-2 px-3">
                         <Badge variant="secondary" className="text-[9px] py-0 px-1 h-3.5 font-normal">
                           {tx.categoryName || '-'}
                         </Badge>
                       </td>
-                      <td className="py-1.5 px-3 max-w-[180px] truncate text-xs text-muted-foreground">
+                      <td className="py-2 px-3 max-w-[160px] truncate text-xs text-foreground">
                         {tx.remarks || '—'}
                       </td>
-                      <td className="py-1.5 px-3 max-w-[120px] truncate text-xs text-muted-foreground">
+                      <td className="py-2 px-3 max-w-[110px] truncate text-xs text-foreground">
                         {tx.userName || '—'}
                       </td>
-                      <td className="py-1.5 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
+                      <td className="py-2 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
                         ₹{tx.amount.toLocaleString()}
                       </td>
-                      <td className="py-1.5 px-3">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="py-2 px-3">
+                        <div className="flex items-center justify-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="ghost"
                             size="icon"

@@ -177,7 +177,7 @@ const FuturePaymentsTable = ({ borrowers }: FuturePaymentsTableProps) => {
                       </td>
                       <td className="text-center">
                         {p.status === 'pending' && (
-                          <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <Button
                               variant="ghost"
                               size="icon"

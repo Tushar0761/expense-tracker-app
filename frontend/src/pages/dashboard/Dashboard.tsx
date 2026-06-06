@@ -17,14 +17,18 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
 import {
+  AlertCircle,
   ArrowRightLeft,
   Calendar,
   ChevronDown,
   ChevronUp,
   CreditCard,
   Hash,
+  Lightbulb,
   Tag,
   TrendingDown,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -62,8 +66,10 @@ export function Dashboard() {
   // Chart granularity state
   const [granularity, setGranularity] = useState<GranularityType>('week');
 
-  // Chart data points limit - default values per granularity
-  const [dataPointsLimit, setDataPointsLimit] = useState<string>('12');
+  // Chart data points limit - default values per granularity (4 on mobile, 12 on desktop)
+  const [dataPointsLimit, setDataPointsLimit] = useState<string>(
+    () => (window.innerWidth < 640 ? '4' : '12'),
+  );
 
   // Comparison state
   const [showCompare, setShowCompare] = useState(false);
@@ -134,7 +140,23 @@ export function Dashboard() {
       case 'all':
         return { startDate: undefined, endDate: undefined };
       case 'month': {
-        const [year, month] = compareSelectedMonth.split('-').map(Number);
+        let [year, month] = compareSelectedMonth.split('-').map(Number);
+        
+        
+  const today = new Date();
+
+  if (
+    today.getDate() < 15 &&
+    year === today.getFullYear() &&
+    month === today.getMonth() + 1
+  ) {
+    const previousMonth = new Date(year, month - 2, 1);
+
+    year = previousMonth.getFullYear();
+    month = previousMonth.getMonth() + 1;
+  }
+
+        
         const monthStart = new Date(year, month - 1, 1);
         const monthEnd = endOfMonth(monthStart);
         return {
@@ -238,18 +260,52 @@ export function Dashboard() {
     );
   }, [kpis]);
 
+  // Spending insights derived from category totals + summary
+  const insights = useMemo(() => {
+    if (!categoryTotals || categoryTotals.length === 0) return null;
+    const total = categoryTotals.reduce((s, c) => s + c.total, 0);
+    if (total === 0) return null;
+
+    // Top 3 categories and their share
+    const topCats = categoryTotals.slice(0, 3).map((c) => ({
+      name: c.name,
+      total: c.total,
+      pct: Math.round((c.total / total) * 100),
+    }));
+
+    // Biggest single-day spike from summary
+    let spikePeriod: string | null = null;
+    let spikeAmount = 0;
+    if (expenseSummary && expenseSummary.length > 1) {
+      const avg = expenseSummary.reduce((s, p) => s + p.totalAmount, 0) / expenseSummary.length;
+      for (const p of expenseSummary) {
+        if (p.totalAmount > avg * 1.8 && p.totalAmount > spikeAmount) {
+          spikeAmount = p.totalAmount;
+          spikePeriod = p.period;
+        }
+      }
+    }
+
+    // Avg per transaction for current period
+    const txCount = kpis ? (filterType === 'all' ? kpis.overall.count : kpis.thisMonth.count) : 0;
+    const periodTotal = kpis ? (filterType === 'all' ? kpis.overall.total : kpis.thisMonth.total) : 0;
+    const avgPerTx = txCount > 0 ? Math.round(periodTotal / txCount) : 0;
+
+    // MoM direction
+    const momUp = monthChange > 5;
+    const momDown = monthChange < -5;
+
+    return { topCats, spikePeriod, spikeAmount, avgPerTx, momUp, momDown, total, periodTotal, txCount };
+  }, [categoryTotals, expenseSummary, kpis, monthChange, filterType]);
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 max-w-6xl mx-auto">
+    <div className="space-y-4 animate-in fade-in duration-700 max-w-6xl mx-auto">
       {/* Header with Filter */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Financial Overview
-          </h1>
-        </div>
+      <div className="flex flex-col gap-3">
+        <h1 className="text-xl font-bold tracking-tight md:text-2xl">Financial Overview</h1>
 
         {/* Date Filter */}
-        <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-lg">
+        <div className="flex flex-wrap items-center gap-2 bg-muted/30 p-1 rounded-lg self-start">
           <Button
             variant={filterType === 'all' ? 'default' : 'ghost'}
             size="sm"
@@ -306,7 +362,7 @@ export function Dashboard() {
       </div>
 
       {/* KPI Cards Row - compact */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
         <KpiCard
           title={
             filterType === 'all'
@@ -397,7 +453,7 @@ export function Dashboard() {
         </CardHeader>
         <CardContent className="px-4 py-0">
           {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={180}>
               <ComposedChart
                 data={barData}
                 margin={{ top: 30, right: 15, left: -10, bottom: 0 }}
@@ -465,6 +521,113 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Spending Insights */}
+      {insights && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {/* Top categories */}
+          <Card className="shadow-sm border-border/50 bg-card/30 md:col-span-2">
+            <CardHeader className="px-4 py-2 pb-0">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Zap className="h-4 w-4 text-amber-500" />
+                Where your money goes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 py-3 space-y-2">
+              {insights.topCats.map((c) => (
+                <div key={c.name} className="space-y-0.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium truncate max-w-[60%]">{c.name}</span>
+                    <span className="text-muted-foreground tabular-nums">
+                      ₹{c.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      <span className="ml-1 text-[10px] font-bold text-amber-500">{c.pct}%</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                      style={{ width: `${c.pct}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+              {insights.topCats.length > 0 && (
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  Top {insights.topCats.length} categories account for{' '}
+                  <span className="font-semibold text-foreground">
+                    {insights.topCats.reduce((s, c) => s + c.pct, 0)}%
+                  </span>{' '}
+                  of total spend.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick stats + tip */}
+          <div className="flex flex-col gap-3">
+            {/* Avg per transaction */}
+            <Card className="shadow-sm border-border/50 bg-card/30 flex-1">
+              <CardContent className="px-4 py-3 space-y-1">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide flex items-center gap-1">
+                  <Hash className="h-3 w-3" /> Avg per transaction
+                </p>
+                <p className="text-xl font-bold tabular-nums">
+                  ₹{insights.avgPerTx.toLocaleString('en-IN')}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  across {insights.txCount} transactions
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* MoM insight / spike */}
+            <Card className={`shadow-sm border-border/50 flex-1 ${
+              insights.momUp ? 'bg-rose-50/40 dark:bg-rose-900/10' :
+              insights.momDown ? 'bg-emerald-50/40 dark:bg-emerald-900/10' :
+              'bg-card/30'
+            }`}>
+              <CardContent className="px-4 py-3 space-y-1">
+                {insights.spikePeriod ? (
+                  <>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3 text-rose-500" /> Spike detected
+                    </p>
+                    <p className="text-sm font-semibold">{insights.spikePeriod}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      ₹{insights.spikeAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })} — well above average
+                    </p>
+                  </>
+                ) : insights.momUp ? (
+                  <>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-rose-500" /> Spending up
+                    </p>
+                    <p className="text-xl font-bold text-rose-500">+{monthChange.toFixed(1)}%</p>
+                    <p className="text-[11px] text-muted-foreground">vs previous period — review top categories</p>
+                  </>
+                ) : insights.momDown ? (
+                  <>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide flex items-center gap-1">
+                      <TrendingDown className="h-3 w-3 text-emerald-500" /> Spending down
+                    </p>
+                    <p className="text-xl font-bold text-emerald-500">{monthChange.toFixed(1)}%</p>
+                    <p className="text-[11px] text-muted-foreground">vs previous period — great progress!</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide flex items-center gap-1">
+                      <Lightbulb className="h-3 w-3 text-blue-500" /> Tip
+                    </p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Use <strong>Refine</strong> to unify merchant name variants (e.g. "Zepto", "ZEPTO") so category reports are accurate.
+                    </p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {/* Category Pie Chart - Full Width */}
       <Card
         className={`shadow-sm border-border/50 bg-card/30 ${showCompare ? 'w-50%' : ''} `}
@@ -520,8 +683,8 @@ export function Dashboard() {
                   }
                   className="border rounded h-7 px-2 text-xs bg-background"
                 >
-                  <option value="all">All Time</option>
                   <option value="month">Month</option>
+                  <option value="all">All Time</option>
                   <option value="custom">Custom</option>
                 </select>
                 {compareFilterType === 'month' && (
@@ -584,38 +747,44 @@ export function Dashboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[300px]">
               <thead>
                 <tr className="border-b bg-muted/10">
-                  <th className="py-2 px-4 font-semibold">Date</th>
-                  <th className="py-2 px-4 font-semibold">Categories</th>
-                  <th className="py-2 px-4 font-semibold">Remarks</th>
-                  <th className="py-2 px-4 font-semibold text-right">Amount</th>
+                  <th className="py-2 px-3 text-xs font-semibold">Date</th>
+                  {/* Mobile: Remarks + Username | Desktop: Category */}
+                  <th className="py-2 px-3 text-xs font-semibold sm:hidden">Remarks / Sent To</th>
+                  <th className="py-2 px-3 text-xs font-semibold hidden sm:table-cell">Category</th>
+                  <th className="py-2 px-3 text-xs font-semibold hidden sm:table-cell">Remarks</th>
+                  <th className="py-2 px-3 text-xs font-semibold hidden sm:table-cell">Sent To</th>
+                  <th className="py-2 px-3 text-xs font-semibold text-right">Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
                 {(recentExpenses?.data ?? []).map((tx) => (
-                  <tr
-                    key={tx.id}
-                    className="hover:bg-muted/30 transition-colors"
-                  >
-                    <td className="py-2 px-4 text-muted-foreground tabular-nums">
+                  <tr key={tx.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-2 px-3 text-muted-foreground tabular-nums text-xs whitespace-nowrap">
                       {format(new Date(tx.date), 'dd MMM yy')}
                     </td>
-                    <td className="py-2 px-4">
-                      <div className="flex gap-1 flex-wrap">
-                        <Badge
-                          variant="secondary"
-                          className="text-[9px] py-0 px-1 h-3.5 font-normal"
-                        >
-                          {tx.categoryName}
-                        </Badge>
-                      </div>
+                    {/* Mobile: stacked remarks + username */}
+                    <td className="py-2 px-3 sm:hidden max-w-[160px]">
+                      <div className="text-xs font-medium truncate">{tx.remarks || '—'}</div>
+                      {tx.userName && (
+                        <div className="text-[10px] text-muted-foreground truncate">{tx.userName}</div>
+                      )}
                     </td>
-                    <td className="py-2 px-4 truncate max-w-[150px] text-xs">
-                      {tx.remarks || '-'}
+                    {/* Desktop: category badge */}
+                    <td className="py-2 px-3 hidden sm:table-cell">
+                      <Badge variant="secondary" className="text-[9px] py-0 px-1 h-3.5 font-normal">
+                        {tx.categoryName}
+                      </Badge>
                     </td>
-                    <td className="py-2 px-4 text-right font-bold text-rose-500 tabular-nums">
+                    <td className="py-2 px-3 truncate max-w-[120px] text-xs text-muted-foreground hidden sm:table-cell">
+                      {tx.remarks || '—'}
+                    </td>
+                    <td className="py-2 px-3 truncate max-w-[100px] text-xs text-muted-foreground hidden sm:table-cell">
+                      {tx.userName || '—'}
+                    </td>
+                    <td className="py-2 px-3 text-right font-bold text-rose-500 tabular-nums text-sm whitespace-nowrap">
                       ₹{tx.amount.toLocaleString()}
                     </td>
                   </tr>

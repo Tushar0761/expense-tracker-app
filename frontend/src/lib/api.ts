@@ -653,7 +653,7 @@ export async function trainOcrModel(): Promise<{
 
 export async function bulkUpdateExpenses(
   ids: number[],
-  data: { categoryId?: number; remarks?: string },
+  data: { categoryId?: number; remarks?: string; userName?: string },
 ): Promise<{ count: number }> {
   const response = await api.put('/api/expenses/bulk-update', { ids, ...data });
   return response.data;
