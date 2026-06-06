@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python \"c:\\\\Users\\\\Public\\\\Tushar Panchal - personal\\\\Personal Projects\\\\expense-tracker-app\\\\transcation-files\\\\dump_pdf_raw.py\")",
+      "Bash(python \"transcation-files/SBI-credit-card/parse_sbi.py\")",
+      "Bash(python \"transcation-files/BOB-account/parse_bob.py\")"
+    ]
+  }
+}
