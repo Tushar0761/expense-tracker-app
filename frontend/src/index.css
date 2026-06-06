@@ -507,22 +507,14 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] { -moz-appearance: textfield; }
 
-/* ─── Scroll Snap ────────────────────────────────────────────────────────────── */
-
-/* window/body is the real scroll container */
-html {
-    scroll-snap-type: y proximity;
-}
-
-/* Every Card snaps its top edge to the viewport */
+/* ─── Scroll margin — snapped cards/headings clear the sticky navbar ─────────── */
 [data-slot="card"] {
-    scroll-snap-align: start;
-    scroll-margin-top: 72px; /* clears desktop sticky nav */
+    scroll-margin-top: 72px;
 }
 
 @media (max-width: 767px) {
     [data-slot="card"] {
-        scroll-margin-top: 60px; /* clears mobile top bar */
+        scroll-margin-top: 60px;
     }
 }
 

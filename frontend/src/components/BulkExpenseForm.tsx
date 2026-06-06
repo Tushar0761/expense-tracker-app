@@ -462,7 +462,9 @@ export function BulkExpenseForm({
       className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm animate-in fade-in duration-200 flex items-end sm:items-start sm:overflow-y-auto justify-center sm:p-4"
       onClick={onClose}
     >
-      {inner}
+      <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-5xl">
+        {inner}
+      </div>
     </div>
   );
 }

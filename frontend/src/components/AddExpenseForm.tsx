@@ -511,7 +511,9 @@ export function AddExpenseForm({
       className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm animate-in fade-in duration-200 flex items-end sm:items-start justify-center sm:p-4 sm:overflow-y-auto"
       onClick={onClose}
     >
-      {cardBody}
+      <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-2xl sm:my-8 flex flex-col">
+        {cardBody}
+      </div>
       {addCatDialog}
     </div>
   );
