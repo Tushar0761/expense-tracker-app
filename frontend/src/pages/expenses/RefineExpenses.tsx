@@ -1,3 +1,4 @@
+import { MerchantSuggestionPanel } from '@/components/MerchantSuggestionPanel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useMerchantSuggestion } from '@/hooks/use-merchant-suggestion';
 import {
   bulkUpdateExpenses,
   fetchCategoriesFlat,
@@ -22,10 +24,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
   ArrowDownUp,
+  Calendar,
   ChevronDown,
   ChevronRight,
   IndianRupee,
   Layers,
+  Pencil,
   StickyNote,
   Tag,
   User,
@@ -35,7 +39,7 @@ import {
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-type Mode = 'username' | 'category' | 'notes';
+type Mode = 'username' | 'category' | 'notes' | 'date';
 type SortBy = 'count' | 'amount' | 'title';
 
 interface Group {
@@ -51,9 +55,7 @@ export function RefineExpenses() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [showCatDialog, setShowCatDialog] = useState(false);
-  const [showNotesDialog, setShowNotesDialog] = useState(false);
-  const [showUsernameDialog, setShowUsernameDialog] = useState(false);
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const [bulkNotes, setBulkNotes] = useState('');
   const [bulkUsername, setBulkUsername] = useState('');
@@ -72,13 +74,7 @@ export function RefineExpenses() {
   const bulkMutation = useMutation({
     mutationFn: (data: { categoryId?: number; remarks?: string; userName?: string }) =>
       bulkUpdateExpenses(Array.from(selected), data),
-    onSuccess: (_, vars) => {
-      const parts = [];
-      if (vars.categoryId) parts.push('category');
-      if (vars.remarks !== undefined) parts.push('notes');
-      if (vars.userName !== undefined) parts.push('username');
-      toast.success(`Updated ${selected.size} expense${selected.size !== 1 ? 's' : ''} (${parts.join(' & ')})`);
-      setSelected(new Set());
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-expenses-refine'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
@@ -97,6 +93,8 @@ export function RefineExpenses() {
         key = exp.userName ?? '__NO_NAME__';
       } else if (mode === 'category') {
         key = String(exp.categoryId);
+      } else if (mode === 'date') {
+        key = format(new Date(exp.date), 'yyyy-MM-dd');
       } else {
         key = exp.remarks?.trim() || '__NO_NOTES__';
       }
@@ -105,6 +103,7 @@ export function RefineExpenses() {
         let label: string;
         if (mode === 'username') label = (exp.userName ?? '').toLowerCase();
         else if (mode === 'category') label = exp.categoryName.toLowerCase();
+        else if (mode === 'date') label = format(new Date(exp.date), 'yyyy-MM-dd');
         else label = (exp.remarks ?? '').toLowerCase();
         if (!label.includes(lowerSearch)) continue;
       }
@@ -121,6 +120,8 @@ export function RefineExpenses() {
           label = key === '__NO_NAME__' ? 'No Recipient' : key;
         } else if (mode === 'category') {
           label = exps[0].categoryName;
+        } else if (mode === 'date') {
+          label = format(new Date(exps[0].date), 'dd MMM yyyy');
         } else {
           label = key === '__NO_NOTES__' ? 'No Notes' : key;
         }
@@ -223,29 +224,40 @@ export function RefineExpenses() {
     setSearch('');
   };
 
-  const handleBulkCategory = () => {
+  const handleApplyCategory = () => {
     if (!bulkCategoryId) return;
-    bulkMutation.mutate({ categoryId: Number(bulkCategoryId) });
-    setShowCatDialog(false);
+    bulkMutation.mutate(
+      { categoryId: Number(bulkCategoryId) },
+      { onSuccess: () => toast.success(`Category applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+    );
     setBulkCategoryId('');
   };
 
-  const handleBulkNotes = () => {
-    bulkMutation.mutate({ remarks: bulkNotes });
-    setShowNotesDialog(false);
+  const handleApplyUsername = () => {
+    if (!bulkUsername?.trim()) return;
+    bulkMutation.mutate(
+      { userName: bulkUsername.trim() },
+      { onSuccess: () => toast.success(`Username applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+    );
+    setBulkUsername('');
+  };
+
+  const handleApplyNotes = () => {
+    if (!bulkNotes?.trim()) return;
+    bulkMutation.mutate(
+      { remarks: bulkNotes.trim() },
+      { onSuccess: () => toast.success(`Notes applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+    );
     setBulkNotes('');
   };
 
-  const handleBulkUsername = () => {
-    bulkMutation.mutate({ userName: bulkUsername });
-    setShowUsernameDialog(false);
-    setBulkUsername('');
-  };
+  const bulkSuggestions = useMerchantSuggestion(bulkUsername ?? '');
 
   const placeholderByMode: Record<Mode, string> = {
     username: 'Filter by username…',
     category: 'Filter by category…',
     notes: 'Filter by notes…',
+    date: 'Filter by date (e.g. 2024-01)…',
   };
 
   return (
@@ -293,6 +305,17 @@ export function RefineExpenses() {
           >
             <StickyNote className="h-3 w-3" />
             By Notes
+          </button>
+          <button
+            onClick={() => switchMode('date')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              mode === 'date'
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Calendar className="h-3 w-3" />
+            By Date
           </button>
         </div>
       </div>
@@ -365,28 +388,10 @@ export function RefineExpenses() {
             size="sm"
             variant="secondary"
             className="h-7 text-xs gap-1.5"
-            onClick={() => setShowCatDialog(true)}
+            onClick={() => setShowBulkEditDialog(true)}
           >
-            <Tag className="h-3 w-3" />
-            Assign Category
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-7 text-xs gap-1.5"
-            onClick={() => setShowNotesDialog(true)}
-          >
-            <StickyNote className="h-3 w-3" />
-            Set Notes
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-7 text-xs gap-1.5"
-            onClick={() => setShowUsernameDialog(true)}
-          >
-            <User className="h-3 w-3" />
-            Set Username
+            <Pencil className="h-3 w-3" />
+            Edit
           </Button>
           <Button
             size="sm"
@@ -459,22 +464,15 @@ export function RefineExpenses() {
                 {isExpanded && (
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[380px]">
+                    <table className="w-full text-left min-w-[560px]">
                       <thead>
                         <tr className="bg-muted/10 border-b">
                           <th className="py-1.5 px-3 w-8" />
                           <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold hidden sm:table-cell">Account</th>
-                          {mode === 'username' ? (
-                            <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
-                          ) : mode === 'category' ? (
-                            <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
-                          ) : (
-                            <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
-                          )}
-                          <th className="py-1.5 px-3 text-xs font-semibold">
-                            {mode === 'notes' ? 'Sent To' : 'Remarks'}
-                          </th>
+                          <th className="py-1.5 px-3 text-xs font-semibold">Account</th>
+                          <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
+                          <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
+                          <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
                           <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
                         </tr>
                       </thead>
@@ -500,39 +498,27 @@ export function RefineExpenses() {
                             <td className="py-1.5 px-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                               {format(new Date(tx.date), 'dd MMM yy')}
                             </td>
-                            <td className="py-1.5 px-3 hidden sm:table-cell">
+                            <td className="py-1.5 px-3">
                               <div className="flex items-center gap-1.5">
-                                <Wallet className="h-3 w-3 text-primary/60" />
-                                <span className="text-[11px] font-medium">
+                                <Wallet className="h-3 w-3 text-primary/60 shrink-0" />
+                                <span className="text-[11px] font-medium truncate max-w-[80px]">
                                   {tx.accountName || 'Unlinked'}
                                 </span>
                               </div>
                             </td>
-                            {mode === 'username' ? (
-                              <td className="py-1.5 px-3">
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[9px] py-0 px-1 h-3.5 font-normal"
-                                >
-                                  {tx.categoryName || '—'}
-                                </Badge>
-                              </td>
-                            ) : mode === 'category' ? (
-                              <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[120px] truncate">
-                                {tx.userName || '—'}
-                              </td>
-                            ) : (
-                              <td className="py-1.5 px-3">
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[9px] py-0 px-1 h-3.5 font-normal"
-                                >
-                                  {tx.categoryName || '—'}
-                                </Badge>
-                              </td>
-                            )}
-                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[180px] truncate">
-                              {mode === 'notes' ? (tx.userName || '—') : (tx.remarks || '—')}
+                            <td className="py-1.5 px-3">
+                              <Badge
+                                variant="secondary"
+                                className="text-[9px] py-0 px-1 h-3.5 font-normal max-w-[100px] truncate"
+                              >
+                                {tx.categoryName || '—'}
+                              </Badge>
+                            </td>
+                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[100px] truncate">
+                              {tx.userName || '—'}
+                            </td>
+                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[140px] truncate">
+                              {tx.remarks || '—'}
                             </td>
                             <td className="py-1.5 px-3 text-right font-bold text-rose-500 tabular-nums text-sm whitespace-nowrap">
                               ₹{tx.amount.toLocaleString()}
@@ -550,18 +536,42 @@ export function RefineExpenses() {
         </div>
       )}
 
-      {/* Bulk Category Dialog */}
-      <Dialog open={showCatDialog} onOpenChange={(open) => { setShowCatDialog(open); if (!open) setBulkCategoryId(''); }}>
-        <DialogContent className="sm:max-w-sm">
+      {/* Bulk Edit Dialog — three sections, each with its own Apply button */}
+      <Dialog
+        open={showBulkEditDialog}
+        onOpenChange={(open) => {
+          setShowBulkEditDialog(open);
+          if (!open) {
+            setBulkCategoryId('');
+            setBulkNotes('');
+            setBulkUsername('');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Assign Category</DialogTitle>
+            <DialogTitle>Bulk Edit ({selected.size} selected)</DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Each section saves independently — apply what you need without affecting the others.
+            </p>
           </DialogHeader>
-          <div className="space-y-3 py-1">
-            {categoryBreakdown.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
-                  Current across {selected.size} selected
-                </p>
+          <div className="space-y-5 py-2">
+            {/* ── Category ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <Tag className="h-3 w-3" /> Category
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplyCategory}
+                  disabled={!bulkCategoryId || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
+              </div>
+              {categoryBreakdown.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {categoryBreakdown.map((c) => (
                     <button
@@ -585,12 +595,7 @@ export function RefineExpenses() {
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">
-                Or search for a different category
-              </Label>
+              )}
               <SearchableSelect
                 value={bulkCategoryId ? Number(bulkCategoryId) : null}
                 onChange={(v) => setBulkCategoryId(v ? String(v) : '')}
@@ -598,108 +603,29 @@ export function RefineExpenses() {
                 placeholder="Search category…"
                 showFullPath
               />
-            </div>
-            {bulkCategoryId && (
-              <p className="text-xs text-muted-foreground">
-                Will assign <span className="font-semibold text-foreground">
-                  {categories.find(c => c.id === Number(bulkCategoryId))?.name ?? '—'}
-                </span> to all {selected.size} expense{selected.size !== 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowCatDialog(false)} className="flex-1 h-9">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBulkCategory}
-              disabled={!bulkCategoryId || bulkMutation.isPending}
-              className="flex-1 h-9 bg-green-600 hover:bg-green-700"
-            >
-              {bulkMutation.isPending ? 'Saving…' : `Apply to ${selected.size}`}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Notes Dialog */}
-      <Dialog open={showNotesDialog} onOpenChange={(open) => { setShowNotesDialog(open); if (!open) setBulkNotes(''); }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Set Notes</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-1">
-            {remarksBreakdown.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
-                  Current notes across {selected.size} selected
+              {bulkCategoryId && (
+                <p className="text-[11px] text-green-600">
+                  → {categories.find(c => c.id === Number(bulkCategoryId))?.name ?? '—'}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {remarksBreakdown.map((r) => (
-                    <button
-                      key={r.remark}
-                      type="button"
-                      onClick={() => setBulkNotes(r.remark)}
-                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors max-w-[200px] ${
-                        bulkNotes === r.remark
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
-                      }`}
-                    >
-                      <span className="truncate">{r.remark}</span>
-                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
-                        bulkNotes === r.remark
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {r.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+              )}
+            </div>
+
+            {/* ── Username / Recipient ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <User className="h-3 w-3" /> Recipient (Username)
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplyUsername}
+                  disabled={!bulkUsername?.trim() || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
               </div>
-            )}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">
-                {remarksBreakdown.length > 0 ? 'Or type a new note' : `Notes for ${selected.size} expense${selected.size !== 1 ? 's' : ''}`}
-              </Label>
-              <Input
-                value={bulkNotes}
-                onChange={(e) => setBulkNotes(e.target.value)}
-                placeholder="Enter notes…"
-                className="h-10 text-sm"
-                onKeyDown={(e) => e.key === 'Enter' && handleBulkNotes()}
-                autoFocus
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowNotesDialog(false)} className="flex-1 h-9">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBulkNotes}
-              disabled={bulkMutation.isPending}
-              className="flex-1 h-9 bg-green-600 hover:bg-green-700"
-            >
-              {bulkMutation.isPending ? 'Saving…' : `Apply to ${selected.size}`}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Username Dialog */}
-      <Dialog open={showUsernameDialog} onOpenChange={(open) => { setShowUsernameDialog(open); if (!open) setBulkUsername(''); }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Set Username / Recipient</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-1">
-            {usernameBreakdown.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wide">
-                  Current usernames across {selected.size} selected
-                </p>
+              {usernameBreakdown.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {usernameBreakdown.map((u) => (
                     <button
@@ -723,35 +649,71 @@ export function RefineExpenses() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Click a chip to normalise all selected transactions to that name (e.g. unify "Zepto", "ZEPTO", "ZeptoMarketplace" → one canonical name).
-                </p>
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">
-                {usernameBreakdown.length > 0 ? 'Or type a canonical name' : `Recipient name for ${selected.size} expense${selected.size !== 1 ? 's' : ''}`}
-              </Label>
+              )}
               <Input
                 value={bulkUsername}
                 onChange={(e) => setBulkUsername(e.target.value)}
                 placeholder="e.g. Zepto"
                 className="h-10 text-sm"
-                onKeyDown={(e) => e.key === 'Enter' && handleBulkUsername()}
-                autoFocus
+              />
+              <MerchantSuggestionPanel
+                suggestions={bulkSuggestions}
+                onSelectCategory={(id) => setBulkCategoryId(String(id))}
+                onSelectRemark={(r) => setBulkNotes(r)}
+              />
+            </div>
+
+            {/* ── Notes ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <StickyNote className="h-3 w-3" /> Notes
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplyNotes}
+                  disabled={!bulkNotes?.trim() || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
+              </div>
+              {remarksBreakdown.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {remarksBreakdown.map((r) => (
+                    <button
+                      key={r.remark}
+                      type="button"
+                      onClick={() => setBulkNotes(r.remark)}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors max-w-[200px] ${
+                        bulkNotes === r.remark
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{r.remark}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                        bulkNotes === r.remark
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {r.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <Input
+                value={bulkNotes}
+                onChange={(e) => setBulkNotes(e.target.value)}
+                placeholder="Enter notes…"
+                className="h-10 text-sm"
               />
             </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowUsernameDialog(false)} className="flex-1 h-9">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBulkUsername}
-              disabled={bulkMutation.isPending}
-              className="flex-1 h-9 bg-green-600 hover:bg-green-700"
-            >
-              {bulkMutation.isPending ? 'Saving…' : `Apply to ${selected.size}`}
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowBulkEditDialog(false)} className="flex-1 h-9">
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>

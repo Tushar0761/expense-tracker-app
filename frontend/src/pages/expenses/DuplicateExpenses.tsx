@@ -1,18 +1,33 @@
+import { MerchantSuggestionPanel } from '@/components/MerchantSuggestionPanel';
 import { AddExpenseForm } from '@/components/AddExpenseForm';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useMerchantSuggestion } from '@/hooks/use-merchant-suggestion';
+import {
+  bulkUpdateExpenses,
   deleteExpense,
+  fetchCategoriesFlat,
   fetchDuplicateExpenses,
+  type CategoryFlat,
   type DuplicateCriteria,
   type ExpenseRow,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { AlertTriangle, CheckCircle2, Pencil, Trash2, Wallet, X } from 'lucide-react';
-import { useState } from 'react';
+import { AlertTriangle, CheckCircle2, Pencil, StickyNote, Tag, Trash2, User, Wallet, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 
@@ -103,6 +118,28 @@ export function DuplicateExpenses() {
   // selected is a Set of expense IDs
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
+  // Bulk edit state
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
+  const [bulkCategoryId, setBulkCategoryId] = useState('');
+  const [bulkNotes, setBulkNotes] = useState('');
+  const [bulkUsername, setBulkUsername] = useState('');
+
+  const { data: categories = [] } = useQuery<CategoryFlat[]>({
+    queryKey: ['categories-flat'],
+    queryFn: fetchCategoriesFlat,
+  });
+
+  const bulkMutation = useMutation({
+    mutationFn: (data: { categoryId?: number; remarks?: string; userName?: string }) =>
+      bulkUpdateExpenses(Array.from(selected), data),
+    onSuccess: () => {
+      invalidate();
+    },
+    onError: () => toast.error('Bulk update failed'),
+  });
+
+  const bulkSuggestions = useMerchantSuggestion(bulkUsername ?? '');
+
   const toggleCriteria = (key: keyof DuplicateCriteria) => {
     setCriteria((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -175,10 +212,78 @@ export function DuplicateExpenses() {
 
   const clearSelection = () => setSelected(new Set());
 
+  // Gather all selected expense rows from all groups
+  const selectedExpenses = useMemo<ExpenseRow[]>(
+    () => groups.flat().filter((e) => selected.has(e.id)),
+    [groups, selected],
+  );
+
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<number, { name: string; count: number }>();
+    for (const e of selectedExpenses) {
+      const cur = map.get(e.categoryId) ?? { name: e.categoryName, count: 0 };
+      cur.count++;
+      map.set(e.categoryId, cur);
+    }
+    return Array.from(map.entries())
+      .map(([id, v]) => ({ id, name: v.name, count: v.count }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedExpenses]);
+
+  const usernameBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of selectedExpenses) {
+      const name = e.userName ?? '';
+      if (name.trim()) map.set(name, (map.get(name) ?? 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedExpenses]);
+
+  const remarksBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of selectedExpenses) {
+      if (e.remarks?.trim()) {
+        map.set(e.remarks, (map.get(e.remarks) ?? 0) + 1);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([remark, count]) => ({ remark, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedExpenses]);
+
+  const handleApplyCategory = () => {
+    if (!bulkCategoryId) return;
+    bulkMutation.mutate(
+      { categoryId: Number(bulkCategoryId) },
+      { onSuccess: () => toast.success(`Category applied to ${selectedCount} expense${selectedCount !== 1 ? 's' : ''}`) },
+    );
+    setBulkCategoryId('');
+  };
+
+  const handleApplyUsername = () => {
+    if (!bulkUsername?.trim()) return;
+    bulkMutation.mutate(
+      { userName: bulkUsername.trim() },
+      { onSuccess: () => toast.success(`Username applied to ${selectedCount} expense${selectedCount !== 1 ? 's' : ''}`) },
+    );
+    setBulkUsername('');
+  };
+
+  const handleApplyNotes = () => {
+    if (!bulkNotes?.trim()) return;
+    bulkMutation.mutate(
+      { remarks: bulkNotes.trim() },
+      { onSuccess: () => toast.success(`Notes applied to ${selectedCount} expense${selectedCount !== 1 ? 's' : ''}`) },
+    );
+    setBulkNotes('');
+  };
+
   const activeGroups = groups
     .filter((g) => !dismissed.has(groupKey(g)))
-    .sort((a, b) => b[0].amount - a[0].amount);
-  const dismissedGroups = groups.filter((g) => dismissed.has(groupKey(g)));
+
+    const dismissedGroups = groups.filter((g) => dismissed.has(groupKey(g)));
 
   const isBusy = deleteMutation.isPending;
   const selectedCount = selected.size;
@@ -398,10 +503,10 @@ export function DuplicateExpenses() {
                               />
                             </th>
                             <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
-                            <th className="py-1.5 px-3 text-xs font-semibold hidden sm:table-cell">Account</th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">Account</th>
                             <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
-                            <th className="py-1.5 px-3 text-xs font-semibold hidden md:table-cell">Sent To</th>
-                            <th className="py-1.5 px-3 text-xs font-semibold hidden md:table-cell">Remarks</th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
                             <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
                             <th className="py-1.5 px-3 text-xs font-semibold text-center">Actions</th>
                           </tr>
@@ -431,7 +536,7 @@ export function DuplicateExpenses() {
                                 <td className="py-1.5 px-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                                   {format(new Date(tx.date), 'dd MMM yy')}
                                 </td>
-                                <td className="py-1.5 px-3 hidden sm:table-cell">
+                                <td className="py-1.5 px-3">
                                   <div className="flex items-center gap-1.5">
                                     <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
                                       <Wallet className="h-2.5 w-2.5 text-primary" />
@@ -449,10 +554,10 @@ export function DuplicateExpenses() {
                                     {tx.categoryName || '—'}
                                   </Badge>
                                 </td>
-                                <td className="py-1.5 px-3 text-xs text-foreground max-w-[100px] truncate hidden md:table-cell">
+                                <td className="py-1.5 px-3 text-xs text-foreground max-w-[100px] truncate">
                                   {tx.userName || '—'}
                                 </td>
-                                <td className="py-1.5 px-3 text-xs text-foreground max-w-[160px] truncate hidden md:table-cell">
+                                <td className="py-1.5 px-3 text-xs text-foreground max-w-[160px] truncate">
                                   {tx.remarks || '—'}
                                 </td>
                                 <td className="py-1.5 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
@@ -510,6 +615,15 @@ export function DuplicateExpenses() {
             </span>
             <div className="h-4 w-px bg-border" />
             <Button
+              variant="secondary"
+              size="sm"
+              className="h-7 text-xs rounded-full px-3"
+              onClick={() => setShowBulkEditDialog(true)}
+            >
+              <Pencil className="h-3 w-3 mr-1.5" />
+              Edit
+            </Button>
+            <Button
               variant="destructive"
               size="sm"
               className="h-7 text-xs rounded-full px-3"
@@ -519,7 +633,7 @@ export function DuplicateExpenses() {
               }
             >
               <Trash2 className="h-3 w-3 mr-1.5" />
-              Delete selected
+              Delete
             </Button>
             <Button
               variant="ghost"
@@ -555,6 +669,189 @@ export function DuplicateExpenses() {
         }}
         expense={editExpense}
       />
+
+      {/* Bulk Edit Dialog — three sections, each with its own Apply button */}
+      <Dialog
+        open={showBulkEditDialog}
+        onOpenChange={(open) => {
+          setShowBulkEditDialog(open);
+          if (!open) {
+            setBulkCategoryId('');
+            setBulkNotes('');
+            setBulkUsername('');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Edit ({selectedCount} selected)</DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Each section saves independently — apply what you need without affecting the others.
+            </p>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+            {/* ── Category ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <Tag className="h-3 w-3" /> Category
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplyCategory}
+                  disabled={!bulkCategoryId || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
+              </div>
+              {categoryBreakdown.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {categoryBreakdown.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setBulkCategoryId(String(c.id))}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors ${
+                        bulkCategoryId === String(c.id)
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span>{c.name}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded ${
+                        bulkCategoryId === String(c.id)
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {c.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <SearchableSelect
+                value={bulkCategoryId ? Number(bulkCategoryId) : null}
+                onChange={(v) => setBulkCategoryId(v ? String(v) : '')}
+                options={categories}
+                placeholder="Search category…"
+                showFullPath
+              />
+              {bulkCategoryId && (
+                <p className="text-[11px] text-green-600">
+                  → {categories.find(c => c.id === Number(bulkCategoryId))?.name ?? '—'}
+                </p>
+              )}
+            </div>
+
+            {/* ── Username / Recipient ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <User className="h-3 w-3" /> Recipient (Username)
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplyUsername}
+                  disabled={!bulkUsername?.trim() || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
+              </div>
+              {usernameBreakdown.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {usernameBreakdown.map((u) => (
+                    <button
+                      key={u.name}
+                      type="button"
+                      onClick={() => setBulkUsername(u.name)}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors max-w-[200px] ${
+                        bulkUsername === u.name
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{u.name}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                        bulkUsername === u.name
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {u.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <Input
+                value={bulkUsername}
+                onChange={(e) => setBulkUsername(e.target.value)}
+                placeholder="e.g. Zepto"
+                className="h-10 text-sm"
+              />
+              <MerchantSuggestionPanel
+                suggestions={bulkSuggestions}
+                onSelectCategory={(id) => setBulkCategoryId(String(id))}
+                onSelectRemark={(r) => setBulkNotes(r)}
+              />
+            </div>
+
+            {/* ── Notes ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <StickyNote className="h-3 w-3" /> Notes
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplyNotes}
+                  disabled={!bulkNotes?.trim() || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
+              </div>
+              {remarksBreakdown.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {remarksBreakdown.map((r) => (
+                    <button
+                      key={r.remark}
+                      type="button"
+                      onClick={() => setBulkNotes(r.remark)}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors max-w-[200px] ${
+                        bulkNotes === r.remark
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{r.remark}</span>
+                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                        bulkNotes === r.remark
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {r.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <Input
+                value={bulkNotes}
+                onChange={(e) => setBulkNotes(e.target.value)}
+                placeholder="Enter notes…"
+                className="h-10 text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowBulkEditDialog(false)} className="flex-1 h-9">
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
