@@ -35,6 +35,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, subDays } from 'date-fns';
 import { Calendar, Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -207,7 +208,7 @@ export function AddExpenseForm({
   if (!isOpen) return null;
 
   const cardBody = (
-    <Card className={inline ? 'border border-border/60 shadow-sm rounded-xl' : 'w-full sm:max-w-2xl shadow-2xl border-border/50 bg-card rounded-t-2xl sm:rounded-xl max-h-[95dvh] sm:max-h-none sm:my-8 flex flex-col'}>
+    <Card className={inline ? 'border border-border/60 shadow-sm rounded-xl' : 'w-full sm:max-w-2xl shadow-2xl border-border/50 bg-card rounded-2xl flex flex-col'}>
       {/* Header */}
       <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 py-3 px-4 sm:px-5 shrink-0">
         <div>
@@ -506,15 +507,16 @@ export function AddExpenseForm({
     );
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm animate-in fade-in duration-200 flex items-end sm:items-start justify-center sm:p-4 sm:overflow-y-auto"
+      className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm animate-in fade-in duration-200 flex items-start justify-center pt-4 sm:pt-8 pb-8 overflow-y-auto"
       onClick={onClose}
     >
-      <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-2xl sm:my-8 flex flex-col">
+      <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-2xl flex flex-col">
         {cardBody}
       </div>
       {addCatDialog}
-    </div>
+    </div>,
+    document.body,
   );
 }
