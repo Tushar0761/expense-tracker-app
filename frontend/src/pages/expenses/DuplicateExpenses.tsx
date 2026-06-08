@@ -1,5 +1,5 @@
-import { MerchantSuggestionPanel } from '@/components/MerchantSuggestionPanel';
 import { AddExpenseForm } from '@/components/AddExpenseForm';
+import { MerchantSuggestionPanel } from '@/components/MerchantSuggestionPanel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -549,7 +549,7 @@ export function DuplicateExpenses() {
                                 <td className="py-1.5 px-3">
                                   <Badge
                                     variant="secondary"
-                                    className="text-[9px] py-0 px-1 h-3.5 font-normal"
+                                    className={`text-[9px] py-0 px-1 h-3.5 font-normal ${tx.categoryName === 'Unknown' ? 'bg-red-500 text-white hover:bg-red-500' : ''}`}
                                   >
                                     {tx.categoryName || '—'}
                                   </Badge>
