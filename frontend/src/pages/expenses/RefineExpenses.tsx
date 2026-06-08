@@ -509,7 +509,7 @@ export function RefineExpenses() {
                             <td className="py-1.5 px-3">
                               <Badge
                                 variant="secondary"
-                                className="text-[9px] py-0 px-1 h-3.5 font-normal max-w-[100px] truncate"
+                                className={`text-[9px] py-0 px-1 h-3.5 font-normal max-w-[100px] truncate ${tx.categoryName === 'Unknown' ? 'bg-red-500 text-white hover:bg-red-500' : ''}`}
                               >
                                 {tx.categoryName || '—'}
                               </Badge>
