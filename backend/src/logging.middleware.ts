@@ -1,10 +1,8 @@
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {
-  private readonly logger = new Logger('HTTP');
-
   use(req: Request, res: Response, next: NextFunction): void {
     const { method, originalUrl } = req;
     const ip =
@@ -16,8 +14,8 @@ export class LoggingMiddleware implements NestMiddleware {
     res.on('finish', () => {
       const ms = Date.now() - start;
       const { statusCode } = res;
-      this.logger.log(
-        `[${new Date().toISOString()}] ${method} ${originalUrl} — ${statusCode} — ${ms}ms — ${ip}`,
+      console.log(
+        ` ${method} ${originalUrl} — ${statusCode} — ${ms}ms — ${ip}`,
       );
     });
 
