@@ -582,7 +582,10 @@ export function Expenses() {
                         </div>
                       </td>
                       <td className="py-2 px-3">
-                        <Badge variant="secondary" className="text-[9px] py-0 px-1 h-3.5 font-normal">
+                        <Badge
+                          variant="secondary"
+                          className={`text-[9px] py-0 px-1 h-3.5 font-normal ${tx.categoryName === 'Unknown' ? 'bg-red-500 text-white hover:bg-red-500' : ''}`}
+                        >
                           {tx.categoryName || '-'}
                         </Badge>
                       </td>

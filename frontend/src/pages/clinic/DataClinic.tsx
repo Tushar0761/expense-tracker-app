@@ -561,7 +561,10 @@ function VariantTable({
             </td>
             <td className="px-3 py-1">
               {v.categoryId ? (
-                <Badge variant="secondary" className="text-[9px] h-3.5 py-0 px-1">
+                <Badge
+                  variant="secondary"
+                  className={`text-[9px] h-3.5 py-0 px-1 ${getCatName(v.categoryId) === 'Unknown' ? 'bg-red-500 text-white hover:bg-red-500' : ''}`}
+                >
                   {getCatName(v.categoryId)}
                 </Badge>
               ) : (
