@@ -1,4 +1,5 @@
 import { DatePickerInput } from '@/components/DatePickerInput';
+import { DashboardInsights } from '@/components/dashboard/DashboardInsights';
 import { DrillDownPieChart } from '@/components/DrillDownPieChart';
 import { KpiCard } from '@/components/KPICard/KpiCard';
 import { Badge } from '@/components/ui/badge';
@@ -721,6 +722,13 @@ export function Dashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* Deep Insights — derived analytics, charts & savings tips */}
+      <DashboardInsights
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        filterType={filterType}
+      />
 
       {/* Recent Transactions */}
       <Card className="border border-border/50 shadow-sm overflow-hidden bg-card/20">
