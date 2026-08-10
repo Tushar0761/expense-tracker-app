@@ -49,7 +49,6 @@ const expenseSchema = z.object({
   userName: z.string().optional(),
   accountId: z.coerce.number().min(1, { message: 'Account is required' }),
   categoryId: z.coerce.number().min(1, { message: 'Category is required' }),
-  spendType: z.enum(['FIXED', 'DISCRETIONARY']).default('DISCRETIONARY'),
 });
 
 type ExpenseFormInput = z.input<typeof expenseSchema>;
@@ -105,7 +104,7 @@ export function AddExpenseForm({
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<ExpenseFormInput, any, ExpenseFormValues>({
+  } = useForm<ExpenseFormInput, unknown, ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       date: new Date(),
@@ -113,7 +112,6 @@ export function AddExpenseForm({
       remarks: '',
       accountId: 0,
       categoryId: 0,
-      spendType: 'DISCRETIONARY',
     },
   });
 
@@ -142,7 +140,6 @@ export function AddExpenseForm({
             userName: expense.userName || '',
             accountId: expense.accountId || 0,
             categoryId: expense.categoryId,
-            spendType: expense.spendType || "DISCRETIONARY" ,
           }
         : {
             date: new Date(),
@@ -151,7 +148,6 @@ export function AddExpenseForm({
             userName: '',
             accountId: firstAccountIdRef.current || 0,
             categoryId: 0,
-            spendType: 'DISCRETIONARY',
           },
     );
   }, [isOpen, expense, reset]);
@@ -207,7 +203,6 @@ export function AddExpenseForm({
       userName: data.userName || undefined,
       accountId: data.accountId,
       categoryId: data.categoryId,
-      spendType:  data.spendType,
     });
   };
 
@@ -394,21 +389,6 @@ export function AddExpenseForm({
                   )}
                 />
               </div>
-            </div>
-
-            {/* Row 2.5: Spend Type Override */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Spend Type (optional override)
-              </Label>
-              <select
-                {...register('spendType')}
-                className="w-full border rounded h-10 px-2 text-sm bg-background"
-                defaultValue={"DISCRETIONARY"}
-              >
-                <option value="FIXED">Fixed</option>
-                <option value="DISCRETIONARY">Discretionary</option>
-              </select>
             </div>
 
             {/* Row 3: Notes */}

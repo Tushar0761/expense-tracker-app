@@ -150,6 +150,15 @@ expense-tracker-app/
 
 ## CHANGELOG
 
+### 2026-08-10: "Unknown only" Filter Toggle on Refine & Bulk Edit Page
+
+**Description**: Completed the "Unknown only" filter feature on the Refine & Bulk Edit page. Added a toggle button to the Search + sort toolbar (next to the Count/Amount/A-Z sort segmented control) that, when active, shows only group cards containing at least one expense with `categoryName === 'Unknown'`. The button mirrors sort-button styling (active: `bg-primary text-primary-foreground`, inactive: `bg-background text-muted-foreground hover:bg-muted`), uses a `CircleHelp` lucide icon, shows a live count chip of matching groups (computed via a small `unknownGroupCount` memo so users see how many groups will match before enabling), and persists across mode switches via `switchMode` (consistent with `sortBy`). Task 1 had already added the `unknownOnly` state and the group `.filter()` logic; this task wired up the UI, which also resolves the TS6133 unused-variable error on `unknownOnly`.
+
+**Files Changed**:
+- `frontend/src/pages/expenses/RefineExpenses.tsx` — imported `CircleHelp` from lucide-react (line 31); added `unknownGroupCount` useMemo (lines 151–154); added the "Unknown" toggle button to the Search + sort toolbar (lines 397–421)
+
+---
+
 ### 2026-03-19: Standardized Code Quality Commands
 
 **Description**: Updated all docs and configuration files to use consistent lint/format/build command sequence.

@@ -28,6 +28,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
+  CircleHelp,
   IndianRupee,
   Layers,
   Pencil,
@@ -62,10 +63,12 @@ export function RefineExpenses() {
   const [bulkUsername, setBulkUsername] = useState('');
   const [bulkSpendType, setBulkSpendType] = useState<'' | SpendType>('');
   const [sortBy, setSortBy] = useState<SortBy>('count');
+  const [unknownOnly, setUnknownOnly] = useState(false);
 
   const { data: expenseData, isLoading } = useQuery({
     queryKey: ['all-expenses-refine'],
-    queryFn: () => fetchExpenses({ limit: 5000, sortBy: 'date', sortOrder: 'desc' }),
+    queryFn: () =>
+      fetchExpenses({ limit: 5000, sortBy: 'date', sortOrder: 'desc' }),
   });
 
   const { data: categories = [] } = useQuery<CategoryFlat[]>({
@@ -74,8 +77,12 @@ export function RefineExpenses() {
   });
 
   const bulkMutation = useMutation({
-    mutationFn: (data: { categoryId?: number; remarks?: string; userName?: string; spendType?: SpendType }) =>
-      bulkUpdateExpenses(Array.from(selected), data),
+    mutationFn: (data: {
+      categoryId?: number;
+      remarks?: string;
+      userName?: string;
+      spendType?: SpendType;
+    }) => bulkUpdateExpenses(Array.from(selected), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-expenses-refine'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
@@ -105,7 +112,8 @@ export function RefineExpenses() {
         let label: string;
         if (mode === 'username') label = (exp.userName ?? '').toLowerCase();
         else if (mode === 'category') label = exp.categoryName.toLowerCase();
-        else if (mode === 'date') label = format(new Date(exp.date), 'yyyy-MM-dd');
+        else if (mode === 'date')
+          label = format(new Date(exp.date), 'yyyy-MM-dd');
         else label = (exp.remarks ?? '').toLowerCase();
         if (!label.includes(lowerSearch)) continue;
       }
@@ -142,8 +150,19 @@ export function RefineExpenses() {
         if (sortBy === 'amount') return b.totalAmount - a.totalAmount;
         if (sortBy === 'title') return a.label.localeCompare(b.label);
         return b.expenses.length - a.expenses.length;
-      });
-  }, [allExpenses, mode, search, sortBy]);
+      })
+      .filter(
+        (g) =>
+          !unknownOnly || g.expenses.some((e) => e.categoryName === 'Unknown'),
+      );
+  }, [allExpenses, mode, search, sortBy, unknownOnly]);
+
+  const unknownGroupCount = useMemo(
+    () =>
+      groups.filter((g) => g.expenses.some((e) => e.categoryName === 'Unknown'))
+        .length,
+    [groups],
+  );
 
   const toggleExpand = (key: string) => {
     setExpanded((prev) => {
@@ -230,7 +249,12 @@ export function RefineExpenses() {
     if (!bulkCategoryId) return;
     bulkMutation.mutate(
       { categoryId: Number(bulkCategoryId) },
-      { onSuccess: () => toast.success(`Category applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+      {
+        onSuccess: () =>
+          toast.success(
+            `Category applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`,
+          ),
+      },
     );
     setBulkCategoryId('');
   };
@@ -239,7 +263,12 @@ export function RefineExpenses() {
     if (!bulkUsername?.trim()) return;
     bulkMutation.mutate(
       { userName: bulkUsername.trim() },
-      { onSuccess: () => toast.success(`Username applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+      {
+        onSuccess: () =>
+          toast.success(
+            `Username applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`,
+          ),
+      },
     );
     setBulkUsername('');
   };
@@ -248,7 +277,12 @@ export function RefineExpenses() {
     if (!bulkNotes?.trim()) return;
     bulkMutation.mutate(
       { remarks: bulkNotes.trim() },
-      { onSuccess: () => toast.success(`Notes applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+      {
+        onSuccess: () =>
+          toast.success(
+            `Notes applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`,
+          ),
+      },
     );
     setBulkNotes('');
   };
@@ -257,7 +291,12 @@ export function RefineExpenses() {
     if (!bulkSpendType) return;
     bulkMutation.mutate(
       { spendType: bulkSpendType },
-      { onSuccess: () => toast.success(`Spend type applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+      {
+        onSuccess: () =>
+          toast.success(
+            `Spend type applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`,
+          ),
+      },
     );
     setBulkSpendType('');
   };
@@ -276,7 +315,9 @@ export function RefineExpenses() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight section-title">Refine & Bulk Edit</h1>
+          <h1 className="text-2xl font-bold tracking-tight section-title">
+            Refine & Bulk Edit
+          </h1>
           <p className="text-[13px] text-muted-foreground">
             Bulk-assign categories, notes, or usernames to similar transactions.
           </p>
@@ -386,6 +427,30 @@ export function RefineExpenses() {
             A–Z
           </button>
         </div>
+        {/* Unknown-only toggle */}
+        <button
+          onClick={() => setUnknownOnly((v) => !v)}
+          title="Show only groups containing expenses categorized as Unknown"
+          className={`flex items-center gap-1 px-2.5 h-9 rounded-md border transition-colors shrink-0 ${
+            unknownOnly
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-background text-muted-foreground hover:bg-muted border-border'
+          }`}
+        >
+          <CircleHelp className="h-3 w-3" />
+          Unknown
+          {unknownGroupCount > 0 && (
+            <span
+              className={`text-[10px] font-bold px-1 rounded ${
+                unknownOnly
+                  ? 'bg-primary-foreground/20'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {unknownGroupCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Floating action bar */}
@@ -431,11 +496,16 @@ export function RefineExpenses() {
         <div className="space-y-2">
           {groups.map((group) => {
             const isExpanded = expanded.has(group.key);
-            const groupSelected = group.expenses.filter((e) => selected.has(e.id)).length;
+            const groupSelected = group.expenses.filter((e) =>
+              selected.has(e.id),
+            ).length;
             const allGroupSelected = groupSelected === group.expenses.length;
 
             return (
-              <Card key={group.key} className="border border-border/50 shadow-sm overflow-hidden">
+              <Card
+                key={group.key}
+                className="border border-border/50 shadow-sm overflow-hidden"
+              >
                 <CardHeader
                   className="py-2 px-4 bg-muted/20 border-b cursor-pointer select-none"
                   onClick={() => toggleExpand(group.key)}
@@ -448,15 +518,27 @@ export function RefineExpenses() {
                     )}
                     <span className="flex-1 truncate">{group.label}</span>
                     {groupSelected > 0 && (
-                      <Badge variant="default" className="text-[10px] h-4 px-1.5">
+                      <Badge
+                        variant="default"
+                        className="text-[10px] h-4 px-1.5"
+                      >
                         {groupSelected} selected
                       </Badge>
                     )}
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 shrink-0">
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] h-4 px-1.5 shrink-0"
+                    >
                       {group.expenses.length} txn
                     </Badge>
-                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 shrink-0 text-rose-500 border-rose-200">
-                      ₹{group.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] h-4 px-1.5 shrink-0 text-rose-500 border-rose-200"
+                    >
+                      ₹
+                      {group.totalAmount.toLocaleString('en-IN', {
+                        maximumFractionDigits: 0,
+                      })}
                     </Badge>
                     <Button
                       variant="ghost"
@@ -475,73 +557,87 @@ export function RefineExpenses() {
                 {isExpanded && (
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[560px]">
-                      <thead>
-                        <tr className="bg-muted/10 border-b">
-                          <th className="py-1.5 px-3 w-8" />
-                          <th className="py-1.5 px-3 text-xs font-semibold">Date</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold">Account</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold">Added By</th>
-                          <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {group.expenses.map((tx) => (
-                          <tr
-                            key={tx.id}
-                            onClick={() => toggleRow(tx.id)}
-                            className={`cursor-pointer transition-colors border-b border-border/10 ${
-                              selected.has(tx.id)
-                                ? 'bg-primary/5'
-                                : 'hover:bg-muted/20'
-                            }`}
-                          >
-                            <td className="py-1.5 px-3">
-                              <input
-                                type="checkbox"
-                                readOnly
-                                checked={selected.has(tx.id)}
-                                className="h-3.5 w-3.5 accent-primary"
-                              />
-                            </td>
-                            <td className="py-1.5 px-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                              {format(new Date(tx.date), 'dd MMM yy')}
-                            </td>
-                            <td className="py-1.5 px-3">
-                              <div className="flex items-center gap-1.5">
-                                <Wallet className="h-3 w-3 text-primary/60 shrink-0" />
-                                <span className="text-[11px] font-medium truncate max-w-[80px]">
-                                  {tx.accountName || 'Unlinked'}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-1.5 px-3">
-                              <Badge
-                                variant="secondary"
-                                className={`text-[9px] py-0 px-1 h-3.5 font-normal max-w-[100px] truncate ${tx.categoryName === 'Unknown' ? 'bg-red-500 text-white hover:bg-red-500' : ''}`}
-                              >
-                                {tx.categoryName || '—'}
-                              </Badge>
-                            </td>
-                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[100px] truncate">
-                              {tx.userName || '—'}
-                            </td>
-                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[140px] truncate">
-                              {tx.remarks || '—'}
-                            </td>
-                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[120px] truncate">
-                              {tx.addedBy || '—'}
-                            </td>
-                            <td className="py-1.5 px-3 text-right font-bold text-rose-500 tabular-nums text-sm whitespace-nowrap">
-                              ₹{tx.amount.toLocaleString()}
-                            </td>
+                      <table className="w-full text-left min-w-[560px]">
+                        <thead>
+                          <tr className="bg-muted/10 border-b">
+                            <th className="py-1.5 px-3 w-8" />
+                            <th className="py-1.5 px-3 text-xs font-semibold">
+                              Date
+                            </th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">
+                              Account
+                            </th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">
+                              Category
+                            </th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">
+                              Sent To
+                            </th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">
+                              Remarks
+                            </th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">
+                              Added By
+                            </th>
+                            <th className="py-1.5 px-3 text-xs font-semibold text-right">
+                              Amount
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y">
+                          {group.expenses.map((tx) => (
+                            <tr
+                              key={tx.id}
+                              onClick={() => toggleRow(tx.id)}
+                              className={`cursor-pointer transition-colors border-b border-border/10 ${
+                                selected.has(tx.id)
+                                  ? 'bg-primary/5'
+                                  : 'hover:bg-muted/20'
+                              }`}
+                            >
+                              <td className="py-1.5 px-3">
+                                <input
+                                  type="checkbox"
+                                  readOnly
+                                  checked={selected.has(tx.id)}
+                                  className="h-3.5 w-3.5 accent-primary"
+                                />
+                              </td>
+                              <td className="py-1.5 px-3 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                                {format(new Date(tx.date), 'dd MMM yy')}
+                              </td>
+                              <td className="py-1.5 px-3">
+                                <div className="flex items-center gap-1.5">
+                                  <Wallet className="h-3 w-3 text-primary/60 shrink-0" />
+                                  <span className="text-[11px] font-medium truncate max-w-[80px]">
+                                    {tx.accountName || 'Unlinked'}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-1.5 px-3">
+                                <Badge
+                                  variant="secondary"
+                                  className={`text-[9px] py-0 px-1 h-3.5 font-normal max-w-[100px] truncate ${tx.categoryName === 'Unknown' ? 'bg-red-500 text-white hover:bg-red-500' : ''}`}
+                                >
+                                  {tx.categoryName || '—'}
+                                </Badge>
+                              </td>
+                              <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[100px] truncate">
+                                {tx.userName || '—'}
+                              </td>
+                              <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[140px] truncate">
+                                {tx.remarks || '—'}
+                              </td>
+                              <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[120px] truncate">
+                                {tx.addedBy || '—'}
+                              </td>
+                              <td className="py-1.5 px-3 text-right font-bold text-rose-500 tabular-nums text-sm whitespace-nowrap">
+                                ₹{tx.amount.toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </CardContent>
                 )}
@@ -568,7 +664,8 @@ export function RefineExpenses() {
           <DialogHeader>
             <DialogTitle>Bulk Edit ({selected.size} selected)</DialogTitle>
             <p className="text-xs text-muted-foreground">
-              Each section saves independently — apply what you need without affecting the others.
+              Each section saves independently — apply what you need without
+              affecting the others.
             </p>
           </DialogHeader>
           <div className="space-y-5 py-2">
@@ -601,11 +698,13 @@ export function RefineExpenses() {
                       }`}
                     >
                       <span>{c.name}</span>
-                      <span className={`text-[10px] font-bold px-1 rounded ${
-                        bulkCategoryId === String(c.id)
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-1 rounded ${
+                          bulkCategoryId === String(c.id)
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
                         {c.count}
                       </span>
                     </button>
@@ -621,7 +720,9 @@ export function RefineExpenses() {
               />
               {bulkCategoryId && (
                 <p className="text-[11px] text-green-600">
-                  → {categories.find(c => c.id === Number(bulkCategoryId))?.name ?? '—'}
+                  →{' '}
+                  {categories.find((c) => c.id === Number(bulkCategoryId))
+                    ?.name ?? '—'}
                 </p>
               )}
             </div>
@@ -655,11 +756,13 @@ export function RefineExpenses() {
                       }`}
                     >
                       <span className="truncate">{u.name}</span>
-                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
-                        bulkUsername === u.name
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                          bulkUsername === u.name
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
                         {u.count}
                       </span>
                     </button>
@@ -708,11 +811,13 @@ export function RefineExpenses() {
                       }`}
                     >
                       <span className="truncate">{r.remark}</span>
-                      <span className={`text-[10px] font-bold px-1 rounded shrink-0 ${
-                        bulkNotes === r.remark
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-1 rounded shrink-0 ${
+                          bulkNotes === r.remark
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
                         {r.count}
                       </span>
                     </button>
@@ -769,7 +874,11 @@ export function RefineExpenses() {
             </div>
           </div>
           <DialogFooter className="gap-2 pt-2">
-            <Button variant="outline" onClick={() => setShowBulkEditDialog(false)} className="flex-1 h-9">
+            <Button
+              variant="outline"
+              onClick={() => setShowBulkEditDialog(false)}
+              className="flex-1 h-9"
+            >
               Done
             </Button>
           </DialogFooter>
