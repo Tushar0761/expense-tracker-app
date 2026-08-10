@@ -49,10 +49,11 @@ const expenseSchema = z.object({
   userName: z.string().optional(),
   accountId: z.coerce.number().min(1, { message: 'Account is required' }),
   categoryId: z.coerce.number().min(1, { message: 'Category is required' }),
-  spendType: z.enum(['DEFAULT', 'FIXED', 'DISCRETIONARY']).default('DEFAULT'),
+  spendType: z.enum(['FIXED', 'DISCRETIONARY']).default('DISCRETIONARY'),
 });
 
-export type ExpenseFormValues = z.infer<typeof expenseSchema>;
+type ExpenseFormInput = z.input<typeof expenseSchema>;
+export type ExpenseFormValues = z.output<typeof expenseSchema>;
 
 interface AddExpenseFormProps {
   isOpen: boolean;
@@ -104,7 +105,7 @@ export function AddExpenseForm({
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<ExpenseFormValues>({
+  } = useForm<ExpenseFormInput, any, ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       date: new Date(),
@@ -112,7 +113,7 @@ export function AddExpenseForm({
       remarks: '',
       accountId: 0,
       categoryId: 0,
-      spendType: 'DEFAULT',
+      spendType: 'DISCRETIONARY',
     },
   });
 
@@ -141,7 +142,7 @@ export function AddExpenseForm({
             userName: expense.userName || '',
             accountId: expense.accountId || 0,
             categoryId: expense.categoryId,
-            spendType: expense.spendType ?? 'DEFAULT',
+            spendType: expense.spendType || "DISCRETIONARY" ,
           }
         : {
             date: new Date(),
@@ -150,7 +151,7 @@ export function AddExpenseForm({
             userName: '',
             accountId: firstAccountIdRef.current || 0,
             categoryId: 0,
-            spendType: 'DEFAULT',
+            spendType: 'DISCRETIONARY',
           },
     );
   }, [isOpen, expense, reset]);
@@ -206,7 +207,7 @@ export function AddExpenseForm({
       userName: data.userName || undefined,
       accountId: data.accountId,
       categoryId: data.categoryId,
-      spendType: data.spendType === 'DEFAULT' ? undefined : data.spendType,
+      spendType:  data.spendType,
     });
   };
 
@@ -403,8 +404,8 @@ export function AddExpenseForm({
               <select
                 {...register('spendType')}
                 className="w-full border rounded h-10 px-2 text-sm bg-background"
+                defaultValue={"DISCRETIONARY"}
               >
-                <option value="DEFAULT">Use category default</option>
                 <option value="FIXED">Fixed</option>
                 <option value="DISCRETIONARY">Discretionary</option>
               </select>
