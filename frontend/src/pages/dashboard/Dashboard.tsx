@@ -1,21 +1,28 @@
-import { DatePickerInput } from '@/components/DatePickerInput';
 import { DashboardInsights } from '@/components/dashboard/DashboardInsights';
+import { DatePickerInput } from '@/components/DatePickerInput';
 import { DrillDownPieChart } from '@/components/DrillDownPieChart';
 import { KpiCard } from '@/components/KPICard/KpiCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MultiSelectCategories } from '@/components/ui/multi-select-categories';
 import {
+  fetchBudget,
+  fetchCategoriesFlat,
   fetchCategoryTotals,
   fetchDashboardKPIs,
   fetchExpenseSummary,
   fetchExpenses,
+  updateBudget,
+  type Budget,
+  type CategoryFlat,
   type CategoryTotal,
   type DashboardKPIs,
   type ExpenseListResponse,
   type ExpenseSummaryPoint,
+  type SpendTypeFilter,
 } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
 import {
   AlertCircle,
@@ -29,6 +36,7 @@ import {
   Tag,
   TrendingDown,
   TrendingUp,
+  Wallet,
   Zap,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -51,6 +59,19 @@ export function Dashboard() {
 
   // Date filter state
   const [filterType, setFilterType] = useState<DateFilterType>('all');
+
+  // Spend type filter state
+  const [spendTypeFilter, setSpendTypeFilter] = useState<SpendTypeFilter>('ALL');
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+  const [budgetInput, setBudgetInput] = useState('');
+
+  // Excluded categories — ignored across the whole dashboard when set
+  const [excludeCategoryIds, setExcludeCategoryIds] = useState<number[]>([]);
+
+  const { data: allCategories = [] } = useQuery<CategoryFlat[]>({
+    queryKey: ['categories-flat'],
+    queryFn: fetchCategoriesFlat,
+  });
 
   // Month picker state - default to current month
   const [selectedMonth, setSelectedMonth] = useState<string>(
@@ -187,18 +208,34 @@ export function Dashboard() {
       dateRange.startDate,
       dateRange.endDate,
       filterType,
+      spendTypeFilter,
+      excludeCategoryIds,
     ],
     queryFn: () =>
-      fetchDashboardKPIs(dateRange.startDate, dateRange.endDate, filterType),
+      fetchDashboardKPIs(
+        dateRange.startDate,
+        dateRange.endDate,
+        filterType,
+        spendTypeFilter,
+        excludeCategoryIds,
+      ),
   });
 
   // Fetch category-wise totals with date filter
   const { data: categoryTotals } = useQuery<CategoryTotal[]>({
-    queryKey: ['category-totals', dateRange.startDate, dateRange.endDate],
+    queryKey: [
+      'category-totals',
+      dateRange.startDate,
+      dateRange.endDate,
+      spendTypeFilter,
+      excludeCategoryIds,
+    ],
     queryFn: () =>
       fetchCategoryTotals({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
+        spendTypeFilter,
+        excludeCategoryIds,
       }),
   });
 
@@ -209,12 +246,16 @@ export function Dashboard() {
       granularity,
       dateRange.startDate,
       dateRange.endDate,
+      spendTypeFilter,
+      excludeCategoryIds,
     ],
     queryFn: () =>
       fetchExpenseSummary({
         granularity,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
+        spendTypeFilter,
+        excludeCategoryIds,
       }),
   });
 
@@ -225,17 +266,40 @@ export function Dashboard() {
       dateRange.startDate,
       dateRange.endDate,
       selectedCategoryId,
+      spendTypeFilter,
+      excludeCategoryIds,
     ],
     queryFn: () =>
       fetchExpenses({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
         categoryId: selectedCategoryId ?? undefined,
+        spendTypeFilter,
+        excludeCategoryIds,
         limit: 10,
         sortBy: selectedCategoryId ? 'amount' : 'date',
         sortOrder: 'desc',
       }),
   });
+
+  // Budget query + mutation
+  const queryClient = useQueryClient();
+  const { data: budget } = useQuery<Budget | null>({
+    queryKey: ['budget'],
+    queryFn: fetchBudget,
+  });
+  const budgetMutation = useMutation({
+    mutationFn: (value: number) => updateBudget(value),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budget'] });
+      setIsEditingBudget(false);
+    },
+  });
+
+  const discretionarySpent = useMemo(() => {
+    if (!kpis) return 0;
+    return filterType === 'all' ? kpis.overall.total : kpis.thisMonth.total;
+  }, [kpis, filterType]);
 
   // Prepare bar chart data from expense summary
   const barData = useMemo(() => {
@@ -306,59 +370,93 @@ export function Dashboard() {
         <h1 className="text-xl font-bold tracking-tight md:text-2xl section-title">Financial Overview</h1>
 
         {/* Date Filter */}
-        <div className="flex flex-wrap items-center gap-2 bg-muted/30 p-1 rounded-lg self-start">
-          <Button
-            variant={filterType === 'all' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setFilterType('all')}
-            className="text-xs"
-          >
-            All Time
-          </Button>
-          <Button
-            variant={filterType === 'month' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setFilterType('month')}
-            className="text-xs gap-1"
-          >
-            <Calendar size={12} />
-            Month
-          </Button>
-          <Button
-            variant={filterType === 'custom' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setFilterType('custom')}
-            className="text-xs"
-          >
-            Custom
-          </Button>
-
-          {/* Month Picker */}
-          {filterType === 'month' && (
-            <div className="flex items-center gap-1 ml-2">
-              <DatePickerInput
-                type="month"
-                value={selectedMonth}
-                onChange={setSelectedMonth}
-              />
-            </div>
-          )}
-
-          {filterType === 'custom' && (
-            <div className="flex items-center gap-1 ml-2">
-              <DatePickerInput
-                type="date"
-                value={customStartDate}
-                onChange={setCustomStartDate}
-              />
-              <span className="text-xs text-muted-foreground">to</span>
-              <DatePickerInput
-                type="date"
-                value={customEndDate}
-                onChange={setCustomEndDate}
-              />
-            </div>
-          )}
+        <div className="flex gap-5 [&>*]:border [&>*]:px-1">
+          <div className="flex flex-wrap items-center gap-2 bg-muted/30 p-1 rounded-lg self-start">
+            <Button
+              variant={filterType === 'all' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterType('all')}
+              className="text-xs"
+            >
+              All Time
+            </Button>
+            <Button
+              variant={filterType === 'month' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterType('month')}
+              className="text-xs gap-1"
+            >
+              <Calendar size={12} />
+              Month
+            </Button>
+            <Button
+              variant={filterType === 'custom' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterType('custom')}
+              className="text-xs"
+            >
+              Custom
+            </Button>
+            {/* Month Picker */}
+            {filterType === 'month' && (
+              <div className="flex items-center gap-1 ml-2">
+                <DatePickerInput
+                  type="month"
+                  value={selectedMonth}
+                  onChange={setSelectedMonth}
+                />
+              </div>
+            )}
+            {filterType === 'custom' && (
+              <div className="flex items-center gap-1 ml-2">
+                <DatePickerInput
+                  type="date"
+                  value={customStartDate}
+                  onChange={setCustomStartDate}
+                />
+                <span className="text-xs text-muted-foreground">to</span>
+                <DatePickerInput
+                  type="date"
+                  value={customEndDate}
+                  onChange={setCustomEndDate}
+                />
+              </div>
+            )}
+          </div>
+          {/* Spend Type Filter */}
+          <div className="flex flex-wrap items-center gap-2 bg-muted/30 p-1 rounded-lg self-start">
+            <Button
+              variant={spendTypeFilter === 'ALL' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSpendTypeFilter('ALL')}
+              className="text-xs"
+            >
+              All
+            </Button>
+            <Button
+              variant={spendTypeFilter === 'DISCRETIONARY' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSpendTypeFilter('DISCRETIONARY')}
+              className="text-xs"
+            >
+              Discretionary
+            </Button>
+            <Button
+              variant={spendTypeFilter === 'FIXED' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSpendTypeFilter('FIXED')}
+              className="text-xs"
+            >
+              Fixed
+            </Button>
+          </div>
+          {/* Exclude Categories */}
+          <MultiSelectCategories
+            value={excludeCategoryIds}
+            onChange={setExcludeCategoryIds}
+            options={allCategories}
+            className="max-w-xs"
+          />
         </div>
       </div>
 
@@ -416,6 +514,90 @@ export function Dashboard() {
           indicatorColor="neutral"
         />
       </div>
+
+      {/* Discretionary Budget Burn-down */}
+      {spendTypeFilter !== 'FIXED' && (
+        <Card className="shadow-sm border-border/50 bg-card/30">
+          <CardHeader className="px-4 py-2 pb-0">
+            <CardTitle className="text-sm flex items-center gap-1.5">
+              <Wallet className="h-4 w-4 text-emerald-500" />
+              Discretionary Budget
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-3">
+            {!budget?.discretionaryBudget && !isEditingBudget ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setIsEditingBudget(true);
+                  setBudgetInput('');
+                }}
+              >
+                Set a discretionary budget
+              </Button>
+            ) : isEditingBudget ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  autoFocus
+                  value={budgetInput}
+                  onChange={(e) => setBudgetInput(e.target.value)}
+                  placeholder="e.g. 25000"
+                  className="border rounded h-8 px-2 text-sm bg-background w-32"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const val = Number(budgetInput);
+                    if (val > 0) budgetMutation.mutate(val);
+                  }}
+                  disabled={budgetMutation.isPending || !budgetInput}
+                >
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setIsEditingBudget(false)}>
+                  Cancel
+                </Button>
+              </div>
+            ) : budget ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <button
+                    className="font-medium hover:underline"
+                    onClick={() => {
+                      setIsEditingBudget(true);
+                      setBudgetInput(String(budget.discretionaryBudget));
+                    }}
+                  >
+                    ₹{discretionarySpent.toLocaleString('en-IN')} of ₹
+                    {budget.discretionaryBudget.toLocaleString('en-IN')}
+                  </button>
+                  <span className="text-muted-foreground">
+                    {Math.max(
+                      0,
+                      budget.discretionaryBudget - discretionarySpent,
+                    ).toLocaleString('en-IN')}{' '}
+                    remaining
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      discretionarySpent > budget.discretionaryBudget
+                        ? 'bg-rose-500'
+                        : 'bg-emerald-500'
+                    }`}
+                    style={{
+                      width: `${Math.min(100, (discretionarySpent / budget.discretionaryBudget) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Monthly Trends Chart - Full Width */}
       <Card className="shadow-sm border-border/50 bg-card/30">
@@ -659,6 +841,8 @@ export function Dashboard() {
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
             className="mt-2"
+            spendTypeFilter={spendTypeFilter}
+            excludeCategoryIds={excludeCategoryIds}
             onCategoryChange={(categoryId, categoryName) => {
               setSelectedCategoryId(categoryId);
               setSelectedCategoryName(categoryName);
@@ -718,6 +902,8 @@ export function Dashboard() {
               startDate={compareDateRange.startDate}
               endDate={compareDateRange.endDate}
               className="mt-2"
+              spendTypeFilter={spendTypeFilter}
+              excludeCategoryIds={excludeCategoryIds}
             />
           </CardContent>
         </Card>
@@ -728,6 +914,8 @@ export function Dashboard() {
         startDate={dateRange.startDate}
         endDate={dateRange.endDate}
         filterType={filterType}
+        spendTypeFilter={spendTypeFilter}
+        excludeCategoryIds={excludeCategoryIds}
       />
 
       {/* Recent Transactions */}

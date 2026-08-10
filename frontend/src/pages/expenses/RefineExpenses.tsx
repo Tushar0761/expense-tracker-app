@@ -19,6 +19,7 @@ import {
   fetchExpenses,
   type CategoryFlat,
   type ExpenseRow,
+  type SpendType,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -59,6 +60,7 @@ export function RefineExpenses() {
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const [bulkNotes, setBulkNotes] = useState('');
   const [bulkUsername, setBulkUsername] = useState('');
+  const [bulkSpendType, setBulkSpendType] = useState<'' | SpendType>('');
   const [sortBy, setSortBy] = useState<SortBy>('count');
 
   const { data: expenseData, isLoading } = useQuery({
@@ -72,7 +74,7 @@ export function RefineExpenses() {
   });
 
   const bulkMutation = useMutation({
-    mutationFn: (data: { categoryId?: number; remarks?: string; userName?: string }) =>
+    mutationFn: (data: { categoryId?: number; remarks?: string; userName?: string; spendType?: SpendType }) =>
       bulkUpdateExpenses(Array.from(selected), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-expenses-refine'] });
@@ -249,6 +251,15 @@ export function RefineExpenses() {
       { onSuccess: () => toast.success(`Notes applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
     );
     setBulkNotes('');
+  };
+
+  const handleApplySpendType = () => {
+    if (!bulkSpendType) return;
+    bulkMutation.mutate(
+      { spendType: bulkSpendType },
+      { onSuccess: () => toast.success(`Spend type applied to ${selected.size} expense${selected.size !== 1 ? 's' : ''}`) },
+    );
+    setBulkSpendType('');
   };
 
   const bulkSuggestions = useMerchantSuggestion(bulkUsername ?? '');
@@ -473,6 +484,7 @@ export function RefineExpenses() {
                           <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
                           <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
                           <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
+                          <th className="py-1.5 px-3 text-xs font-semibold">Added By</th>
                           <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
                         </tr>
                       </thead>
@@ -520,6 +532,9 @@ export function RefineExpenses() {
                             <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[140px] truncate">
                               {tx.remarks || '—'}
                             </td>
+                            <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[120px] truncate">
+                              {tx.addedBy || '—'}
+                            </td>
                             <td className="py-1.5 px-3 text-right font-bold text-rose-500 tabular-nums text-sm whitespace-nowrap">
                               ₹{tx.amount.toLocaleString()}
                             </td>
@@ -545,6 +560,7 @@ export function RefineExpenses() {
             setBulkCategoryId('');
             setBulkNotes('');
             setBulkUsername('');
+            setBulkSpendType('');
           }
         }}
       >
@@ -709,6 +725,47 @@ export function RefineExpenses() {
                 placeholder="Enter notes…"
                 className="h-10 text-sm"
               />
+            </div>
+
+            {/* ── Spend Type ── */}
+            <div className="space-y-2 rounded-lg border border-border/50 p-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <Layers className="h-3 w-3" /> Spend Type
+                </Label>
+                <Button
+                  size="sm"
+                  onClick={handleApplySpendType}
+                  disabled={!bulkSpendType || bulkMutation.isPending}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  {bulkMutation.isPending ? '…' : 'Apply'}
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBulkSpendType('FIXED')}
+                  className={`flex-1 text-xs px-2 py-1.5 rounded-md border transition-colors ${
+                    bulkSpendType === 'FIXED'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                  }`}
+                >
+                  Fixed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkSpendType('DISCRETIONARY')}
+                  className={`flex-1 text-xs px-2 py-1.5 rounded-md border transition-colors ${
+                    bulkSpendType === 'DISCRETIONARY'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                  }`}
+                >
+                  Discretionary
+                </button>
+              </div>
             </div>
           </div>
           <DialogFooter className="gap-2 pt-2">

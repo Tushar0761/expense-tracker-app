@@ -16,6 +16,15 @@ import {
 } from './categories.dto';
 import { CategoriesService } from './categories.service';
 
+function parseCategoryIdsParam(value?: string): number[] | undefined {
+  if (!value) return undefined;
+  const nums = value
+    .split(',')
+    .map((v) => Number(v))
+    .filter((n) => !isNaN(n));
+  return nums.length > 0 ? nums : undefined;
+}
+
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
@@ -55,10 +64,14 @@ export class CategoriesController {
   getHierarchicalCategoryTotals(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('spendTypeFilter') spendTypeFilter?: 'ALL' | 'FIXED' | 'DISCRETIONARY',
+    @Query('excludeCategoryIds') excludeCategoryIds?: string,
   ) {
     return this.categoriesService.getHierarchicalCategoryTotals(
       startDate,
       endDate,
+      spendTypeFilter,
+      parseCategoryIdsParam(excludeCategoryIds),
     );
   }
 

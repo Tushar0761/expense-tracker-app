@@ -6,8 +6,10 @@ import {
   Min,
   Max,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { spend_type } from '@prisma/client';
 
 export class CreateCategoryDto {
   @IsNotEmpty()
@@ -23,12 +25,20 @@ export class CreateCategoryDto {
   @Min(1)
   @Max(3)
   level?: number;
+
+  @IsOptional()
+  @IsEnum(spend_type)
+  spendType?: spend_type;
 }
 
 export class UpdateCategoryDto {
   @IsNotEmpty()
   @IsString()
   name: string;
+
+  @IsOptional()
+  @IsEnum(spend_type)
+  spendType?: spend_type;
 }
 
 export class CategoryQueryDto {

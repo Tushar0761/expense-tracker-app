@@ -17,6 +17,12 @@ model asset_master {
   createdAt DateTime @default(now())
 }
 
+model budget_setting {
+  id                  Int      @id @default(autoincrement())
+  discretionaryBudget Float
+  updatedAt           DateTime @default(now()) @updatedAt
+}
+
 model category_master {
   id                   Int                    @id @default(autoincrement())
   name                 String
@@ -87,6 +93,7 @@ model expenses_data_master {
   emiPaymentId     Int?
   categoryId       Int
   spendType        spend_type?
+  addedBy          String?           @db.VarChar(100)
   userName         String?           @db.VarChar(100)
   account          account_master?   @relation(fields: [accountId], references: [id])
   category_master  category_master   @relation(fields: [categoryId], references: [id])

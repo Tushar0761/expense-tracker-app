@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { PrismaService } from '../prisma/prisma.service';
+import { buildExcelUploadAddedBy } from '../expenses/expenses.service';
 
 export interface ValidationError {
   rowNumber: number;
@@ -18,6 +19,7 @@ export interface ParsedRow {
   category: string;
   note: string;
   userName: string;
+  source: string;
   delete: string;
 }
 
@@ -162,6 +164,7 @@ export class ExpenseUploadService {
       { header: 'category', key: 'category', width: 40 },
       { header: 'note', key: 'note', width: 30 },
       { header: 'userName', key: 'userName', width: 25 },
+      { header: 'source', key: 'source', width: 20 },
       { header: 'delete', key: 'delete', width: 10 },
     ];
 
@@ -178,7 +181,8 @@ export class ExpenseUploadService {
     dataSheet.getCell('A1').value = 'id (blank=new, filled=update)';
     dataSheet.getCell('F1').value = 'note';
     dataSheet.getCell('G1').value = 'userName (who you sent money to)';
-    dataSheet.getCell('H1').value = 'delete (yes=delete if id provided)';
+    dataSheet.getCell('H1').value = 'source (bob / sbi / gpay - new rows only)';
+    dataSheet.getCell('I1').value = 'delete (yes=delete if id provided)';
 
     dataSheet.views = [{ state: 'frozen', ySplit: 1 }];
 
@@ -198,6 +202,8 @@ export class ExpenseUploadService {
         : '';
       dataSheet.getCell(`F${rowIndex}`).value = expense.remarks || '';
       dataSheet.getCell(`G${rowIndex}`).value = expense.userName || '';
+      // Source is a new-row-only input; existing rows' addedBy is not editable via this column.
+      dataSheet.getCell(`H${rowIndex}`).value = '';
     });
 
     const totalRows = Math.max(startRow + expenses.length, 100);
@@ -233,8 +239,19 @@ export class ExpenseUploadService {
         error: 'Please select a category from the dropdown.',
       };
 
-      // Column H: delete - list validation (yes/no)
-      const deleteCell = dataSheet.getCell(`H${row}`);
+      // Column H: source - list validation (bob/sbi/gpay), new rows only
+      const sourceCell = dataSheet.getCell(`H${row}`);
+      sourceCell.dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"bob,sbi,gpay"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid Entry',
+        error: 'Select bob, sbi, or gpay, or leave blank.',
+      };
+
+      // Column I: delete - list validation (yes/no)
+      const deleteCell = dataSheet.getCell(`I${row}`);
       deleteCell.dataValidation = {
         type: 'list',
         allowBlank: true,
@@ -247,6 +264,7 @@ export class ExpenseUploadService {
       // Initialize empty cells
       dataSheet.getCell(`F${row}`).value = '';
       dataSheet.getCell(`G${row}`).value = '';
+      dataSheet.getCell(`H${row}`).value = '';
     }
 
     for (let row = startRow; row <= startRow + expenses.length - 1; row++) {
@@ -281,8 +299,19 @@ export class ExpenseUploadService {
         error: 'Please select a category from the dropdown.',
       };
 
-      // Column H: delete - list validation (yes/no)
-      const deleteCell = dataSheet.getCell(`H${row}`);
+      // Column H: source - list validation (bob/sbi/gpay), new rows only
+      const sourceCell = dataSheet.getCell(`H${row}`);
+      sourceCell.dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"bob,sbi,gpay"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid Entry',
+        error: 'Select bob, sbi, or gpay, or leave blank.',
+      };
+
+      // Column I: delete - list validation (yes/no)
+      const deleteCell = dataSheet.getCell(`I${row}`);
       deleteCell.dataValidation = {
         type: 'list',
         allowBlank: true,
@@ -338,6 +367,7 @@ export class ExpenseUploadService {
       'category',
       'note',
       'username', // lowercase for matching
+      'source',
       'delete',
     ];
     const headerRow = dataSheet.getRow(1);
@@ -387,6 +417,7 @@ export class ExpenseUploadService {
       // Try both 'username' and 'userName' (case insensitive)
       const userName =
         getCellValue(cells, 'username') || getCellValue(cells, 'userName');
+      const source = getCellValue(cells, 'source');
       const deleteFlag = getCellValue(cells, 'delete').toLowerCase();
 
       const parsedRow: ParsedRow = {
@@ -398,6 +429,7 @@ export class ExpenseUploadService {
         category,
         note,
         userName,
+        source,
         delete: deleteFlag,
       };
 
@@ -544,6 +576,15 @@ export class ExpenseUploadService {
         });
       }
 
+      if (source && !['bob', 'sbi', 'gpay'].includes(source.toLowerCase())) {
+        errors.push({
+          rowNumber,
+          field: 'source',
+          value: source,
+          error: 'Source must be bob, sbi, gpay, or blank',
+        });
+      }
+
       if (deleteFlag && deleteFlag !== 'yes') {
         errors.push({
           rowNumber,
@@ -626,6 +667,7 @@ export class ExpenseUploadService {
               categoryId: categoryId!,
               remarks: row.note || null,
               userName: row.userName || null,
+              addedBy: buildExcelUploadAddedBy(row.source),
             },
           });
           inserted++;

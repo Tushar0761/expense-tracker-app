@@ -6,6 +6,7 @@ Compatible with the app's bulk expense import format.
 
 import pdfplumber
 import csv
+import glob
 import re
 import os
 import sys
@@ -13,8 +14,40 @@ import sys
 # ── Config ────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PDF_PATH   = os.path.join(SCRIPT_DIR, "gpay_statement_20260501_20260531.pdf")
-OUT_PATH   = os.path.join(SCRIPT_DIR, "gpay_may_2026_expenses.csv")
+
+
+def select_pdf() -> tuple[str, str]:
+    """
+    List every *.pdf sitting next to this script, let the user pick one by
+    index, and return (pdf_path, csv_path). The CSV always takes the chosen
+    PDF's own name with a .csv extension.
+    """
+    pdfs = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.pdf")))
+
+    if not pdfs:
+        print(f"ERROR: no PDF files found in {SCRIPT_DIR}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"\nPDF files in {os.path.basename(SCRIPT_DIR)}:\n")
+    for idx, p in enumerate(pdfs, start=1):
+        print(f"  [{idx}] {os.path.basename(p)}")
+
+    while True:
+        try:
+            raw = input(f"\nSelect a file to process [1-{len(pdfs)}] (q to quit): ").strip()
+        except EOFError:
+            print("\nNo selection (stdin closed). Aborting.", file=sys.stderr)
+            sys.exit(1)
+
+        if raw.lower() in ("q", "quit", "exit"):
+            print("Aborted.")
+            sys.exit(0)
+
+        if raw.isdigit() and 1 <= int(raw) <= len(pdfs):
+            chosen = pdfs[int(raw) - 1]
+            return chosen, os.path.splitext(chosen)[0] + ".csv"
+
+        print(f"  Invalid choice: enter a number between 1 and {len(pdfs)}.")
 
 MONTH_MAP = {
     "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
@@ -150,7 +183,7 @@ def write_csv(transactions: list[dict], out_path: str) -> None:
         for t in kept:
             writer.writerow(t)
 
-    print(f"✓ {len(kept)} transactions written → {out_path}")
+    print(f"OK {len(kept)} transactions written -> {out_path}")
     if skipped:
         print(f"  (skipped {skipped} self-transfer row(s))")
 
@@ -158,15 +191,14 @@ def write_csv(transactions: list[dict], out_path: str) -> None:
     accounts = sorted({t["account"] for t in kept if t["account"]})
     print("\nAccounts detected (match these to your app account names):")
     for a in accounts:
-        print(f"  • {a}")
+        print(f"  - {a}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    if not os.path.exists(PDF_PATH):
-        print(f"ERROR: PDF not found at {PDF_PATH}", file=sys.stderr)
-        sys.exit(1)
+    pdf_path, out_path = select_pdf()
 
-    txns = extract_transactions(PDF_PATH)
-    write_csv(txns, OUT_PATH)
+    print(f"\nProcessing {os.path.basename(pdf_path)} ...")
+    txns = extract_transactions(pdf_path)
+    write_csv(txns, out_path)

@@ -16,6 +16,7 @@ Credits (salary NEFT, reversals, interest) are skipped.
 
 import pdfplumber
 import csv
+import glob
 import re
 import os
 import sys
@@ -24,12 +25,41 @@ import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-INPUT_FILES = [
-    (os.path.join(SCRIPT_DIR, "bob-apr-2026.pdf"), os.path.join(SCRIPT_DIR, "bob_apr_2026_expenses.csv")),
-    (os.path.join(SCRIPT_DIR, "bob-may-2026.pdf"), os.path.join(SCRIPT_DIR, "bob_may_2026_expenses.csv")),
-]
-
 ACCOUNT_NAME = "Bank of Baroda 9136"
+
+
+def select_pdf() -> tuple[str, str]:
+    """
+    List every *.pdf sitting next to this script, let the user pick one by
+    index, and return (pdf_path, csv_path). The CSV always takes the chosen
+    PDF's own name with a .csv extension.
+    """
+    pdfs = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.pdf")))
+
+    if not pdfs:
+        print(f"ERROR: no PDF files found in {SCRIPT_DIR}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"\nPDF files in {os.path.basename(SCRIPT_DIR)}:\n")
+    for idx, p in enumerate(pdfs, start=1):
+        print(f"  [{idx}] {os.path.basename(p)}")
+
+    while True:
+        try:
+            raw = input(f"\nSelect a file to process [1-{len(pdfs)}] (q to quit): ").strip()
+        except EOFError:
+            print("\nNo selection (stdin closed). Aborting.", file=sys.stderr)
+            sys.exit(1)
+
+        if raw.lower() in ("q", "quit", "exit"):
+            print("Aborted.")
+            sys.exit(0)
+
+        if raw.isdigit() and 1 <= int(raw) <= len(pdfs):
+            chosen = pdfs[int(raw) - 1]
+            return chosen, os.path.splitext(chosen)[0] + ".csv"
+
+        print(f"  Invalid choice: enter a number between 1 and {len(pdfs)}.")
 
 # Keywords whose presence means the row is a credit (deposit), not an expense
 CREDIT_KEYWORDS = (
@@ -265,10 +295,8 @@ def write_csv(transactions: list[dict], out_path: str) -> None:
 # ── Main ────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    for pdf_path, out_path in INPUT_FILES:
-        if not os.path.exists(pdf_path):
-            print(f"SKIP (not found): {pdf_path}", file=sys.stderr)
-            continue
-        print(f"\nProcessing {os.path.basename(pdf_path)} ...")
-        txns = extract_transactions(pdf_path)
-        write_csv(txns, out_path)
+    pdf_path, out_path = select_pdf()
+
+    print(f"\nProcessing {os.path.basename(pdf_path)} ...")
+    txns = extract_transactions(pdf_path)
+    write_csv(txns, out_path)

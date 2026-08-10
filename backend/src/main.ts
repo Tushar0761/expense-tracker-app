@@ -13,9 +13,9 @@ async function bootstrap() {
     }),
   );
 
-console.log('DATABASE_URL:', process.env.DATABASE_URL);
+  console.log('DATABASE_URL:', process.env.DATABASE_URL);
 
-
+  
   // Enable CORS
   const extraOrigins = (process.env.ALLOWED_ORIGINS ?? '')
     .split(',')

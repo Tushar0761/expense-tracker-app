@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, spend_type } from '@prisma/client';
 import {
   endOfDay,
   format,
@@ -13,6 +13,7 @@ import {
   CreateExpenseDto,
   ExpenseQueryDto,
   ExpenseSummaryQueryDto,
+  SpendTypeFilter,
   SplitExpenseDto,
   UpdateExpenseDto,
 } from './expenses.dto';
@@ -27,8 +28,32 @@ export type ExpenseRow = {
   accountName: string | null;
   categoryId: number;
   categoryName: string;
+  spendType: spend_type | null;
+  effectiveSpendType: spend_type;
+  addedBy: string | null;
   createdAt: Date;
 };
+
+export const ADDED_BY = {
+  SINGLE_ADD: 'SingleAdd',
+  BULK_ADD: 'BulkAdd',
+  EXCEL_UPLOAD: 'ExcelUpload',
+} as const;
+
+/** Builds "ExcelUpload:Bob" style values; falls back to "ExcelUpload:Unknown" for a blank source. */
+export function buildExcelUploadAddedBy(source: string | null | undefined): string {
+  const trimmed = source?.trim();
+  if (!trimmed) return `${ADDED_BY.EXCEL_UPLOAD}:Unknown`;
+  const normalized = trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
+  return `${ADDED_BY.EXCEL_UPLOAD}:${normalized}`;
+}
+
+function resolveSpendType(
+  expenseSpendType: spend_type | null | undefined,
+  categorySpendType: spend_type | undefined,
+): spend_type {
+  return expenseSpendType ?? categorySpendType ?? 'DISCRETIONARY';
+}
 
 export type ExpenseSummaryPoint = {
   period: string;
@@ -51,6 +76,8 @@ export class ExpensesService {
           categoryId: payload.categoryId,
           userName: payload.userName,
           emiPaymentId: payload.emiPaymentId,
+          spendType: payload.spendType,
+          addedBy: ADDED_BY.SINGLE_ADD,
         },
         include: {
           category_master: true,
@@ -74,6 +101,7 @@ export class ExpensesService {
               accountId: payload.accountId,
               categoryId: payload.categoryId,
               userName: payload.userName,
+              addedBy: ADDED_BY.BULK_ADD,
             },
           }),
         ),
@@ -138,6 +166,20 @@ export class ExpensesService {
       if (query.amountMax !== undefined) where.amount.lte = query.amountMax;
     }
 
+    const spendTypeWhere = this.buildSpendTypeWhere(query.spendTypeFilter);
+    const excludeCategoryWhere = await this.buildExcludeCategoryWhere(
+      query.excludeCategoryIds,
+    );
+    const extraFilters = [spendTypeWhere, excludeCategoryWhere].filter(
+      (w) => Object.keys(w).length > 0,
+    );
+    if (extraFilters.length > 0) {
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+        ...extraFilters,
+      ];
+    }
+
     const [data, total, sumOfExpense] = await Promise.all([
       this.prisma.expenses_data_master.findMany({
         where,
@@ -169,6 +211,9 @@ export class ExpensesService {
       accountName: exp.account?.name ?? null,
       categoryId: exp.categoryId,
       categoryName: exp.category_master?.name ?? 'Unknown',
+      spendType: exp.spendType,
+      effectiveSpendType: resolveSpendType(exp.spendType, exp.category_master?.spendType),
+      addedBy: exp.addedBy,
       createdAt: exp.createdAt,
     }));
 
@@ -215,6 +260,7 @@ export class ExpensesService {
           accountId: payload.accountId,
           categoryId: payload.categoryId,
           userName: payload.userName,
+          spendType: payload.spendType,
         },
       });
     });
@@ -242,6 +288,14 @@ export class ExpensesService {
       if (query.startDate) where.date.gte = new Date(query.startDate);
       if (query.endDate) where.date.lte = endOfDay(new Date(query.endDate));
     }
+    const spendTypeWhere = this.buildSpendTypeWhere(query.spendTypeFilter);
+    const excludeCategoryWhere = await this.buildExcludeCategoryWhere(
+      query.excludeCategoryIds,
+    );
+    const extraFilters = [spendTypeWhere, excludeCategoryWhere].filter(
+      (w) => Object.keys(w).length > 0,
+    );
+    if (extraFilters.length > 0) where.AND = extraFilters;
 
     const expenses = await this.prisma.expenses_data_master.findMany({
       where,
@@ -282,13 +336,81 @@ export class ExpensesService {
     }
   }
 
-  async getCategoryWiseTotals(startDate?: string, endDate?: string) {
+  private buildSpendTypeWhere(
+    filter?: SpendTypeFilter,
+  ): Prisma.expenses_data_masterWhereInput {
+    if (!filter || filter === 'ALL') return {};
+    if (filter === 'FIXED') {
+      return {
+        OR: [
+          { spendType: 'FIXED' },
+          { spendType: null, category_master: { spendType: 'FIXED' } },
+        ],
+      };
+    }
+    return {
+      OR: [
+        { spendType: 'DISCRETIONARY' },
+        { spendType: null, category_master: { spendType: 'DISCRETIONARY' } },
+      ],
+    };
+  }
+
+  /**
+   * Excludes a category and its full subtree (children + grandchildren).
+   *
+   * Resolves to concrete categoryIds and filters with `categoryId: { notIn }`
+   * rather than `NOT: { category_master: { parentId: ... } } }` — Prisma
+   * evaluates a NOT-wrapped nullable-relation field filter as "the relation
+   * exists AND doesn't match", which silently drops every row whose category
+   * has no parent (parentId: null) instead of keeping it. Resolving IDs
+   * up front and filtering directly on the scalar `categoryId` column avoids
+   * that relation-filter/NOT interaction entirely.
+   */
+  private async buildExcludeCategoryWhere(
+    excludeCategoryIds?: number[],
+  ): Promise<Prisma.expenses_data_masterWhereInput> {
+    if (!excludeCategoryIds || excludeCategoryIds.length === 0) return {};
+
+    const allCategories = await this.prisma.category_master.findMany({
+      select: { id: true, parentId: true },
+    });
+    const byParent = new Map<number, number[]>();
+    for (const cat of allCategories) {
+      if (cat.parentId !== null) {
+        if (!byParent.has(cat.parentId)) byParent.set(cat.parentId, []);
+        byParent.get(cat.parentId)!.push(cat.id);
+      }
+    }
+
+    const excludedIds = new Set<number>();
+    const collectSubtree = (id: number) => {
+      excludedIds.add(id);
+      for (const childId of byParent.get(id) ?? []) collectSubtree(childId);
+    };
+    excludeCategoryIds.forEach(collectSubtree);
+
+    return { categoryId: { notIn: Array.from(excludedIds) } };
+  }
+
+  async getCategoryWiseTotals(
+    startDate?: string,
+    endDate?: string,
+    spendTypeFilter?: SpendTypeFilter,
+    excludeCategoryIds?: number[],
+  ) {
     const where: Prisma.expenses_data_masterWhereInput = {};
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate);
       if (endDate) where.date.lte = endOfDay(new Date(endDate));
     }
+    const spendTypeWhere = this.buildSpendTypeWhere(spendTypeFilter);
+    const excludeCategoryWhere = await this.buildExcludeCategoryWhere(excludeCategoryIds);
+    const extraFilters = [spendTypeWhere, excludeCategoryWhere].filter(
+      (w) => Object.keys(w).length > 0,
+    );
+    if (extraFilters.length > 0) where.AND = extraFilters;
 
     const expenses = await this.prisma.expenses_data_master.findMany({
       where,
@@ -333,7 +455,12 @@ export class ExpensesService {
 
     const groups = new Map<string, typeof all>();
     for (const expense of all) {
-      const parts: string[] = [];
+      // Account is always part of the match — a debit from one account can
+      // never be a duplicate of a debit from a different account, so this
+      // isn't an optional criterion like date/amount/name.
+      const parts: string[] = [
+        expense.accountId !== null ? String(expense.accountId) : '__NO_ACCOUNT__',
+      ];
       if (criteria.byDate) parts.push(format(expense.date, 'yyyy-MM-dd'));
       if (criteria.byAmount) parts.push(String(expense.amount));
       if (criteria.byName) parts.push(expense.userName ?? '__NULL__');
@@ -355,6 +482,9 @@ export class ExpensesService {
           accountName: exp.account?.name ?? null,
           categoryId: exp.categoryId,
           categoryName: exp.category_master?.name ?? 'Unknown',
+          spendType: exp.spendType,
+          effectiveSpendType: resolveSpendType(exp.spendType, exp.category_master?.spendType),
+          addedBy: exp.addedBy,
           createdAt: exp.createdAt,
         })),
       );
@@ -419,6 +549,7 @@ export class ExpensesService {
               accountId: item.accountId ?? original.accountId,
               categoryId: item.categoryId,
               userName: original.userName,
+              addedBy: original.addedBy,
             },
             include: { category_master: true, account: true },
           }),
@@ -435,6 +566,9 @@ export class ExpensesService {
         accountName: exp.account?.name ?? null,
         categoryId: exp.categoryId,
         categoryName: exp.category_master?.name ?? 'Unknown',
+        spendType: exp.spendType,
+        effectiveSpendType: resolveSpendType(exp.spendType, exp.category_master?.spendType),
+        addedBy: exp.addedBy,
         createdAt: exp.createdAt,
       }));
     });
@@ -442,7 +576,12 @@ export class ExpensesService {
 
   async bulkUpdateExpenses(
     ids: number[],
-    data: { categoryId?: number; remarks?: string; userName?: string },
+    data: {
+      categoryId?: number;
+      remarks?: string;
+      userName?: string;
+      spendType?: spend_type;
+    },
   ) {
     return this.prisma.expenses_data_master.updateMany({
       where: { id: { in: ids } },
@@ -450,6 +589,7 @@ export class ExpensesService {
         ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
         ...(data.remarks !== undefined && { remarks: data.remarks }),
         ...(data.userName !== undefined && { userName: data.userName }),
+        ...(data.spendType !== undefined && { spendType: data.spendType }),
       },
     });
   }
@@ -501,6 +641,8 @@ export class ExpensesService {
     startDate?: string,
     endDate?: string,
     type?: 'all' | 'month' | 'custom',
+    spendTypeFilter?: SpendTypeFilter,
+    excludeCategoryIds?: number[],
   ) {
     const now = new Date();
 
@@ -556,23 +698,37 @@ export class ExpensesService {
       }
     }
 
+    const spendTypeWhere = this.buildSpendTypeWhere(spendTypeFilter);
+    const excludeCategoryWhere = await this.buildExcludeCategoryWhere(excludeCategoryIds);
+    const extraFilters = [spendTypeWhere, excludeCategoryWhere].filter(
+      (w) => Object.keys(w).length > 0,
+    );
+    const withSpendType = (
+      base: Prisma.expenses_data_masterWhereInput | undefined,
+    ): Prisma.expenses_data_masterWhereInput | undefined =>
+      extraFilters.length > 0 ? { AND: [base ?? {}, ...extraFilters] } : base;
+
     const [thisPeriod, lastPeriod, overall, recent, accounts] =
       await Promise.all([
         this.prisma.expenses_data_master.aggregate({
-          where: dateFilter ? dateFilter : { date: { gte: thisMonthStart } },
+          where: withSpendType(
+            dateFilter ? dateFilter : { date: { gte: thisMonthStart } },
+          ),
           _sum: { amount: true },
           _count: true,
         }),
         this.prisma.expenses_data_master.aggregate({
-          where: comparisonDateFilter,
+          where: withSpendType(comparisonDateFilter),
           _sum: { amount: true },
           _count: true,
         }),
         this.prisma.expenses_data_master.aggregate({
+          where: withSpendType(undefined),
           _sum: { amount: true },
           _count: true,
         }),
         this.prisma.expenses_data_master.findMany({
+          where: withSpendType(undefined),
           orderBy: { date: 'desc' },
           take: 10,
           include: {

@@ -47,6 +47,8 @@ interface DashboardInsightsProps {
   endDate?: string;
   /** "all" | "month" | "custom" — used purely for labelling. */
   filterType: 'all' | 'month' | 'custom';
+  spendTypeFilter?: 'ALL' | 'FIXED' | 'DISCRETIONARY';
+  excludeCategoryIds?: number[];
 }
 
 const inr = (v: number) =>
@@ -94,15 +96,19 @@ export function DashboardInsights({
   startDate,
   endDate,
   filterType,
+  spendTypeFilter,
+  excludeCategoryIds,
 }: DashboardInsightsProps) {
   // Pull every expense in the active period in one shot, then derive
   // everything client-side. No backend changes needed.
   const { data, isLoading } = useQuery<ExpenseListResponse>({
-    queryKey: ['insights-all-expenses', startDate, endDate],
+    queryKey: ['insights-all-expenses', startDate, endDate, spendTypeFilter, excludeCategoryIds],
     queryFn: () =>
       fetchExpenses({
         startDate,
         endDate,
+        spendTypeFilter,
+        excludeCategoryIds,
         limit: 100000,
         sortBy: 'date',
         sortOrder: 'asc',

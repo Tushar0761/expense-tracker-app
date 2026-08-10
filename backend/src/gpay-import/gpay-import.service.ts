@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { format } from 'date-fns';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { buildExcelUploadAddedBy } from 'src/expenses/expenses.service';
 import { GpayConfirmRowDto } from './gpay-import.dto';
 import {
   matchMerchant,
@@ -103,6 +104,7 @@ export class GpayImportService {
             accountId: row.accountId ?? null,
             categoryId: row.categoryId!,
             userName: row.userName,
+            addedBy: buildExcelUploadAddedBy('gpay'),
           },
         });
       }

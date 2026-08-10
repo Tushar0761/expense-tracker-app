@@ -339,6 +339,9 @@ export function DuplicateExpenses() {
           <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">
             Match duplicates by
           </p>
+          <p className="text-[11px] text-muted-foreground">
+            Account is always matched — transactions from different accounts (e.g. BOB vs SBI) are never treated as duplicates.
+          </p>
           <div className="flex flex-wrap gap-4">
             {(
               [
@@ -507,6 +510,7 @@ export function DuplicateExpenses() {
                             <th className="py-1.5 px-3 text-xs font-semibold">Category</th>
                             <th className="py-1.5 px-3 text-xs font-semibold">Sent To</th>
                             <th className="py-1.5 px-3 text-xs font-semibold">Remarks</th>
+                            <th className="py-1.5 px-3 text-xs font-semibold">Added By</th>
                             <th className="py-1.5 px-3 text-xs font-semibold text-right">Amount</th>
                             <th className="py-1.5 px-3 text-xs font-semibold text-center">Actions</th>
                           </tr>
@@ -559,6 +563,9 @@ export function DuplicateExpenses() {
                                 </td>
                                 <td className="py-1.5 px-3 text-xs text-foreground max-w-[160px] truncate">
                                   {tx.remarks || '—'}
+                                </td>
+                                <td className="py-1.5 px-3 text-xs text-muted-foreground max-w-[120px] truncate">
+                                  {tx.addedBy || '—'}
                                 </td>
                                 <td className="py-1.5 px-3 text-right font-bold text-rose-500 whitespace-nowrap tabular-nums text-sm">
                                   ₹{tx.amount.toLocaleString()}

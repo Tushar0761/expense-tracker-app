@@ -13,7 +13,9 @@ import {
   createCategory,
   deleteCategory,
   fetchCategories,
+  updateCategory,
   type CategoryWithSubs,
+  type SpendType,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
@@ -34,6 +36,7 @@ export function Categories() {
   const [newCatName, setNewCatName] = useState('');
   const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const [newCatSpendType, setNewCatSpendType] = useState<SpendType>('DISCRETIONARY');
 
   const { data: categories = [], isLoading } = useQuery<CategoryWithSubs[]>({
     queryKey: ['categories'],
@@ -41,7 +44,7 @@ export function Categories() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; parentId?: number; level?: number }) =>
+    mutationFn: (data: { name: string; parentId?: number; level?: number; spendType?: SpendType }) =>
       createCategory(data),
     onSuccess: () => {
       toast.success('Category created successfully');
@@ -50,9 +53,21 @@ export function Categories() {
       setNewCatName('');
       setSelectedParentId(null);
       setSelectedLevel(1);
+      setNewCatSpendType('DISCRETIONARY');
     },
     onError: (error: Error) => {
       toast.error(`Failed to create category: ${error.message}`);
+    },
+  });
+
+  const updateSpendTypeMutation = useMutation({
+    mutationFn: ({ id, name, spendType }: { id: number; name: string; spendType: SpendType }) =>
+      updateCategory(id, { name, spendType }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update category: ${error.message}`);
     },
   });
 
@@ -82,6 +97,7 @@ export function Categories() {
       name: newCatName,
       parentId: selectedParentId || undefined,
       level: selectedLevel,
+      spendType: newCatSpendType,
     });
   };
 
@@ -137,6 +153,24 @@ export function Categories() {
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                       {cat.subCategories.length} subcategories
                     </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSpendTypeMutation.mutate({
+                          id: cat.id,
+                          name: cat.name,
+                          spendType: cat.spendType === 'FIXED' ? 'DISCRETIONARY' : 'FIXED',
+                        })
+                      }
+                      className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
+                        cat.spendType === 'FIXED'
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}
+                      title="Click to toggle Fixed / Discretionary"
+                    >
+                      {cat.spendType === 'FIXED' ? 'Fixed' : 'Discretionary'}
+                    </button>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -299,6 +333,18 @@ export function Categories() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 autoFocus
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="catSpendType">Spend Type</Label>
+              <select
+                id="catSpendType"
+                value={newCatSpendType}
+                onChange={(e) => setNewCatSpendType(e.target.value as SpendType)}
+                className="w-full border rounded h-9 px-2 text-sm bg-background"
+              >
+                <option value="DISCRETIONARY">Discretionary</option>
+                <option value="FIXED">Fixed</option>
+              </select>
             </div>
           </div>
           <DialogFooter>

@@ -79,6 +79,7 @@ export class CategoriesService {
         name: payload.name,
         parentId: payload.parentId,
         level,
+        spendType: payload.spendType,
       },
     });
   }
@@ -106,6 +107,7 @@ export class CategoriesService {
         name: true,
         level: true,
         parentId: true,
+        spendType: true,
         parent: {
           select: {
             id: true,
@@ -159,6 +161,7 @@ export class CategoriesService {
         name: cat.name,
         level: cat.level,
         parentId: cat.parentId,
+        spendType: cat.spendType,
         parentName,
         parentLevel,
         fullPath,
@@ -281,7 +284,10 @@ export class CategoriesService {
 
     return this.prisma.category_master.update({
       where: { id },
-      data: { name: payload.name },
+      data: {
+        name: payload.name,
+        ...(payload.spendType !== undefined && { spendType: payload.spendType }),
+      },
     });
   }
 
@@ -317,7 +323,7 @@ export class CategoriesService {
 
   async getAllCategoriesFlat() {
     const categories = await this.prisma.category_master.findMany({
-      select: { id: true, name: true, level: true, parentId: true },
+      select: { id: true, name: true, level: true, parentId: true, spendType: true },
       orderBy: { parentId: 'asc' },
     });
 
@@ -343,6 +349,7 @@ export class CategoriesService {
         name: cat.name,
         level: cat.level,
         parentId: cat.parentId,
+        spendType: cat.spendType,
         parentName,
       };
     });
@@ -355,6 +362,7 @@ export class CategoriesService {
         name: true,
         level: true,
         parentId: true,
+        spendType: true,
         children: { select: { id: true } },
         parent: {
           select: {
@@ -391,6 +399,7 @@ export class CategoriesService {
         name: cat.name,
         level: cat.level,
         parentId: cat.parentId,
+        spendType: cat.spendType,
         parentName,
         fullPath,
       };
@@ -528,9 +537,16 @@ export class CategoriesService {
   async getHierarchicalCategoryTotals(
     startDate?: string,
     endDate?: string,
+    spendTypeFilter?: 'ALL' | 'FIXED' | 'DISCRETIONARY',
+    excludeCategoryIds?: number[],
   ): Promise<CategoryNode[]> {
     // Build date filter - simple approach
-    const whereClause: { date?: { gte?: Date; lte?: Date } } = {};
+    const whereClause: {
+      date?: { gte?: Date; lte?: Date };
+      spendType?: 'FIXED' | 'DISCRETIONARY';
+      category_master?: { spendType: 'FIXED' | 'DISCRETIONARY' };
+      OR?: Array<Record<string, unknown>>;
+    } = {};
     if (startDate || endDate) {
       whereClause.date = {};
       if (startDate) {
@@ -539,6 +555,12 @@ export class CategoriesService {
       if (endDate) {
         whereClause.date.lte = new Date(endDate);
       }
+    }
+    if (spendTypeFilter && spendTypeFilter !== 'ALL') {
+      whereClause.OR = [
+        { spendType: spendTypeFilter },
+        { spendType: null, category_master: { spendType: spendTypeFilter } },
+      ];
     }
 
     // 1) Fetch all categories with parent relationships
@@ -551,19 +573,37 @@ export class CategoriesService {
       },
     });
 
+    // Expand excluded category ids into their full subtree (children + grandchildren)
+    const excludedIds = new Set<number>();
+    if (excludeCategoryIds && excludeCategoryIds.length > 0) {
+      const byParent = new Map<number, number[]>();
+      for (const cat of allCategories) {
+        if (cat.parentId !== null) {
+          if (!byParent.has(cat.parentId)) byParent.set(cat.parentId, []);
+          byParent.get(cat.parentId)!.push(cat.id);
+        }
+      }
+      const collectSubtree = (id: number) => {
+        excludedIds.add(id);
+        for (const childId of byParent.get(id) ?? []) collectSubtree(childId);
+      };
+      excludeCategoryIds.forEach(collectSubtree);
+    }
+
     // 2) Fetch expense sums grouped by categoryId using groupBy
+    const hasFilter = Object.keys(whereClause).length > 0;
     const expenseGroups = await this.prisma.expenses_data_master.groupBy({
       by: ['categoryId'],
-      where: whereClause.date ? whereClause : undefined,
+      where: hasFilter ? whereClause : undefined,
       _sum: {
         amount: true,
       },
     });
 
-    // Create a map of categoryId -> sum
+    // Create a map of categoryId -> sum, skipping excluded categories entirely
     const expenseMap = new Map<number, number>();
     for (const group of expenseGroups) {
-      if (group.categoryId !== null) {
+      if (group.categoryId !== null && !excludedIds.has(group.categoryId)) {
         expenseMap.set(group.categoryId, group._sum.amount || 0);
       }
     }
@@ -571,7 +611,7 @@ export class CategoriesService {
     // 3) Build tree structure with selfTotal and total
     const buildTree = (parentId: number | null): CategoryNode[] => {
       return allCategories
-        .filter((cat) => cat.parentId === parentId)
+        .filter((cat) => cat.parentId === parentId && !excludedIds.has(cat.id))
         .map((cat) => {
           const selfTotal = expenseMap.get(cat.id) || 0;
           const children = buildTree(cat.id);

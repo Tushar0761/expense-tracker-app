@@ -5,6 +5,7 @@ import {
   fetchHierarchicalCategoryTotals,
   type AccountTotal,
   type CategoryNode,
+  type SpendTypeFilter,
 } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -23,6 +24,8 @@ interface DrillDownPieChartProps {
   className?: string;
   onFilterChange?: () => void;
   onCategoryChange?: (categoryId: number | null, categoryName: string | null) => void;
+  spendTypeFilter?: SpendTypeFilter;
+  excludeCategoryIds?: number[];
 }
 
 const CAT_COLORS = [
@@ -74,10 +77,13 @@ export function DrillDownPieChart({
   className,
   onFilterChange,
   onCategoryChange,
+  spendTypeFilter,
+  excludeCategoryIds,
 }: DrillDownPieChartProps) {
   const { data: rootData = [], isLoading: catLoading } = useQuery<CategoryNode[]>({
-    queryKey: ['category-hierarchical-totals', startDate, endDate],
-    queryFn: () => fetchHierarchicalCategoryTotals(startDate, endDate),
+    queryKey: ['category-hierarchical-totals', startDate, endDate, spendTypeFilter, excludeCategoryIds],
+    queryFn: () =>
+      fetchHierarchicalCategoryTotals(startDate, endDate, spendTypeFilter, excludeCategoryIds),
   });
 
   const { data: accountData = [], isLoading: accLoading } = useQuery<AccountTotal[]>({

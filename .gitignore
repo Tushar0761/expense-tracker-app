@@ -25,3 +25,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+transcation-files/**/*.pdf
+transcation-files/**/*.csv
+*.xlsx

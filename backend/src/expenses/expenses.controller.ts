@@ -20,6 +20,15 @@ import {
 } from './expenses.dto';
 import { ExpensesService } from './expenses.service';
 
+function parseCategoryIdsParam(value?: string): number[] | undefined {
+  if (!value) return undefined;
+  const nums = value
+    .split(',')
+    .map((v) => Number(v))
+    .filter((n) => !isNaN(n));
+  return nums.length > 0 ? nums : undefined;
+}
+
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
@@ -53,8 +62,15 @@ export class ExpensesController {
   getCategoryTotals(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('spendTypeFilter') spendTypeFilter?: 'ALL' | 'FIXED' | 'DISCRETIONARY',
+    @Query('excludeCategoryIds') excludeCategoryIds?: string,
   ) {
-    return this.expensesService.getCategoryWiseTotals(startDate, endDate);
+    return this.expensesService.getCategoryWiseTotals(
+      startDate,
+      endDate,
+      spendTypeFilter,
+      parseCategoryIdsParam(excludeCategoryIds),
+    );
   }
 
   @Get('dashboard')
@@ -63,6 +79,8 @@ export class ExpensesController {
       query?.startDate,
       query?.endDate,
       query?.type,
+      query?.spendTypeFilter,
+      query?.excludeCategoryIds,
     );
   }
 
@@ -72,6 +90,7 @@ export class ExpensesController {
       categoryId: body.categoryId,
       remarks: body.remarks,
       userName: body.userName,
+      spendType: body.spendType,
     });
   }
 

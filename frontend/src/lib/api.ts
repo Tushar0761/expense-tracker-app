@@ -46,6 +46,9 @@ export type FuturePaymentRow = {
   borrowerName: string;
 };
 
+export type SpendType = 'FIXED' | 'DISCRETIONARY';
+export type SpendTypeFilter = 'ALL' | 'FIXED' | 'DISCRETIONARY';
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -274,6 +277,9 @@ export type ExpenseRow = {
   accountName: string | null;
   categoryId: number;
   categoryName: string;
+  spendType: SpendType | null;
+  effectiveSpendType: SpendType;
+  addedBy: string | null;
   createdAt: string;
 };
 
@@ -301,6 +307,8 @@ export type ExpenseQueryParams = {
   sortOrder?: 'asc' | 'desc';
   amountMin?: number;
   amountMax?: number;
+  spendTypeFilter?: SpendTypeFilter;
+  excludeCategoryIds?: number[];
 };
 
 export type CreateExpensePayload = {
@@ -311,6 +319,7 @@ export type CreateExpensePayload = {
   accountId: number;
   categoryId: number;
   emiPaymentId?: number;
+  spendType?: SpendType;
 };
 
 export type UpdateExpensePayload = Partial<CreateExpensePayload>;
@@ -325,6 +334,8 @@ export type ExpenseSummaryParams = {
   granularity: 'day' | 'week' | 'month' | 'year';
   startDate?: string;
   endDate?: string;
+  spendTypeFilter?: SpendTypeFilter;
+  excludeCategoryIds?: number[];
 };
 
 // ==================== CATEGORY TYPES ====================
@@ -344,6 +355,7 @@ export type CategoryWithSubs = {
   name: string;
   level: number;
   parentId: number | null;
+  spendType: SpendType;
   parentName?: string | null;
   fullPath?: string;
   subCategories: SubCategory[];
@@ -354,6 +366,7 @@ export type CategoryFlat = {
   name: string;
   level: number;
   parentId: number | null;
+  spendType: SpendType;
   parentName?: string | null;
   fullPath?: string;
 };
@@ -423,7 +436,12 @@ export async function deleteTransfer(id: number): Promise<void> {
 export async function fetchExpenses(
   params?: ExpenseQueryParams,
 ): Promise<ExpenseListResponse> {
-  const response = await api.get('/api/expenses', { params });
+  const response = await api.get('/api/expenses', {
+    params: {
+      ...params,
+      excludeCategoryIds: params?.excludeCategoryIds?.join(','),
+    },
+  });
   return response.data;
 }
 
@@ -653,7 +671,7 @@ export async function trainOcrModel(): Promise<{
 
 export async function bulkUpdateExpenses(
   ids: number[],
-  data: { categoryId?: number; remarks?: string; userName?: string },
+  data: { categoryId?: number; remarks?: string; userName?: string; spendType?: SpendType },
 ): Promise<{ count: number }> {
   const response = await api.put('/api/expenses/bulk-update', { ids, ...data });
   return response.data;
@@ -662,7 +680,12 @@ export async function bulkUpdateExpenses(
 export async function fetchExpenseSummary(
   params: ExpenseSummaryParams,
 ): Promise<ExpenseSummaryPoint[]> {
-  const response = await api.get('/api/expenses/summary', { params });
+  const response = await api.get('/api/expenses/summary', {
+    params: {
+      ...params,
+      excludeCategoryIds: params.excludeCategoryIds?.join(','),
+    },
+  });
   return response.data;
 }
 
@@ -711,10 +734,16 @@ export async function fetchCategoryStats(query: {
 export async function fetchHierarchicalCategoryTotals(
   startDate?: string,
   endDate?: string,
+  spendTypeFilter?: SpendTypeFilter,
+  excludeCategoryIds?: number[],
 ): Promise<CategoryNode[]> {
   const params = new URLSearchParams();
   if (startDate) params.set('startDate', startDate);
   if (endDate) params.set('endDate', endDate);
+  if (spendTypeFilter) params.set('spendTypeFilter', spendTypeFilter);
+  if (excludeCategoryIds && excludeCategoryIds.length > 0) {
+    params.set('excludeCategoryIds', excludeCategoryIds.join(','));
+  }
 
   const queryString = params.toString();
   const url = `/api/categories/hierarchical-totals${
@@ -729,8 +758,17 @@ export async function createCategory(data: {
   name: string;
   parentId?: number;
   level?: number;
+  spendType?: SpendType;
 }): Promise<CategoryFlat> {
   const response = await api.post('/api/categories', data);
+  return response.data;
+}
+
+export async function updateCategory(
+  id: number,
+  data: { name: string; spendType?: SpendType },
+): Promise<CategoryFlat> {
+  const response = await api.put(`/api/categories/${id}`, data);
   return response.data;
 }
 
@@ -783,8 +821,15 @@ export async function fetchAccountTotals(params?: {
 export async function fetchCategoryTotals(params?: {
   startDate?: string;
   endDate?: string;
+  spendTypeFilter?: SpendTypeFilter;
+  excludeCategoryIds?: number[];
 }): Promise<CategoryTotal[]> {
-  const response = await api.get('/api/expenses/category-totals', { params });
+  const response = await api.get('/api/expenses/category-totals', {
+    params: {
+      ...params,
+      excludeCategoryIds: params?.excludeCategoryIds?.join(','),
+    },
+  });
   return response.data;
 }
 
@@ -792,11 +837,17 @@ export async function fetchDashboardKPIs(
   startDate?: string,
   endDate?: string,
   type?: string,
+  spendTypeFilter?: SpendTypeFilter,
+  excludeCategoryIds?: number[],
 ): Promise<DashboardKPIs> {
   const params = new URLSearchParams();
   if (startDate) params.set('startDate', startDate);
   if (endDate) params.set('endDate', endDate);
   if (type) params.set('type', type);
+  if (spendTypeFilter) params.set('spendTypeFilter', spendTypeFilter);
+  if (excludeCategoryIds && excludeCategoryIds.length > 0) {
+    params.set('excludeCategoryIds', excludeCategoryIds.join(','));
+  }
   const queryString = params.toString();
   const url = `/api/expenses/dashboard${queryString ? `?${queryString}` : ''}`;
   const response = await api.get(url);
@@ -826,7 +877,7 @@ export async function downloadExpenseTemplate(
   if (month) params.set('month', month.toString());
 
   const queryString = params.toString();
-  const url = `${API_BASE_URL}api/expense-excel/template${queryString ? `?${queryString}` : ''}`;
+  const url = `${API_BASE_URL}/api/expense-excel/template${queryString ? `?${queryString}` : ''}`;
 
   const response = await fetch(url);
 
@@ -859,6 +910,24 @@ export async function downloadExpenseTemplate(
   a.click();
   document.body.removeChild(a);
   window.URL.revokeObjectURL(downloadUrl);
+}
+
+// ==================== BUDGET ====================
+
+export type Budget = {
+  id: number;
+  discretionaryBudget: number;
+  updatedAt: string;
+};
+
+export async function fetchBudget(): Promise<Budget | null> {
+  const response = await api.get('/api/budget');
+  return response.data;
+}
+
+export async function updateBudget(discretionaryBudget: number): Promise<Budget> {
+  const response = await api.put('/api/budget', { discretionaryBudget });
+  return response.data;
 }
 
 export async function uploadExpenseFile(file: File): Promise<UploadResult> {

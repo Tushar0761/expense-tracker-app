@@ -9,6 +9,7 @@ import { LoansModule } from './loans/loans.module';
 
 import { ConfigModule } from '@nestjs/config';
 import { AccountsModule } from './accounts/accounts.module';
+import { BudgetModule } from './budget/budget.module';
 import { ExpenseUploadModule } from './expense-upload/expense-upload.module';
 import { TransfersModule } from './transfers/transfers.module';
 
@@ -21,6 +22,7 @@ import { TransfersModule } from './transfers/transfers.module';
     TransfersModule,
     ExpenseUploadModule,
     GpayImportModule,
+    BudgetModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

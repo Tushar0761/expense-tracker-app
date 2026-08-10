@@ -1,13 +1,25 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { spend_type } from '@prisma/client';
+
+export type SpendTypeFilter = 'ALL' | 'FIXED' | 'DISCRETIONARY';
+
+/** Parses a comma-separated query string ("3,7,12") into number[]; leaves arrays/undefined as-is. */
+function parseCsvNumbers({ value }: { value: unknown }): number[] | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const raw = Array.isArray(value) ? value : String(value).split(',');
+  const nums = raw.map((v) => Number(v)).filter((n) => !isNaN(n));
+  return nums.length > 0 ? nums : undefined;
+}
 
 export class CreateExpenseDto {
   @IsDateString()
@@ -37,6 +49,10 @@ export class CreateExpenseDto {
   @IsNumber()
   @IsOptional()
   emiPaymentId?: number;
+
+  @IsOptional()
+  @IsEnum(spend_type)
+  spendType?: spend_type;
 }
 
 export class UpdateExpenseDto {
@@ -67,6 +83,10 @@ export class UpdateExpenseDto {
   @IsNumber()
   @IsOptional()
   emiPaymentId?: number;
+
+  @IsOptional()
+  @IsEnum(spend_type)
+  spendType?: spend_type;
 }
 
 export class ExpenseQueryDto {
@@ -123,6 +143,16 @@ export class ExpenseQueryDto {
   @IsNumber()
   @Type(() => Number)
   amountMax?: number;
+
+  @IsOptional()
+  @IsString()
+  spendTypeFilter?: SpendTypeFilter;
+
+  @IsOptional()
+  @Transform(parseCsvNumbers)
+  @IsArray()
+  @IsNumber({}, { each: true })
+  excludeCategoryIds?: number[];
 }
 
 export class ExpenseSummaryQueryDto {
@@ -137,6 +167,16 @@ export class ExpenseSummaryQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsString()
+  spendTypeFilter?: SpendTypeFilter;
+
+  @IsOptional()
+  @Transform(parseCsvNumbers)
+  @IsArray()
+  @IsNumber({}, { each: true })
+  excludeCategoryIds?: number[];
 }
 
 export class ExpenseDashboardSummaryQueryDto {
@@ -151,6 +191,16 @@ export class ExpenseDashboardSummaryQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsString()
+  spendTypeFilter?: SpendTypeFilter;
+
+  @IsOptional()
+  @Transform(parseCsvNumbers)
+  @IsArray()
+  @IsNumber({}, { each: true })
+  excludeCategoryIds?: number[];
 }
 
 export class BulkUpdateExpenseDto {
@@ -169,6 +219,10 @@ export class BulkUpdateExpenseDto {
   @IsOptional()
   @IsString()
   userName?: string;
+
+  @IsOptional()
+  @IsEnum(spend_type)
+  spendType?: spend_type;
 }
 
 export class SplitItemDto {
